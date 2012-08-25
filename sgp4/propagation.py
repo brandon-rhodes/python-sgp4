@@ -1107,10 +1107,7 @@ def _initl(
        satn,      whichconst,
        ecco,   epoch,  inclo,   no,
        method,
-       ainv,  ao,    con41,  con42, cosio,
-       cosio2,eccsq, omeosq, posq,
-       rp,    rteosq,sinio , gsto,
-       opsmode
+       opsmode,
        ):
 
      # sgp4fix use old way of finding gst
@@ -1337,13 +1334,13 @@ def sgp4init(
      (
        no,
        method,
-       ainv,  ao,    con41,  con42, cosio,
+       ainv,  ao,    satrec.con41,  con42, cosio,
        cosio2,eccsq, omeosq, posq,
-       rp,    rteosq,sinio , gsto,
+       rp,    rteosq,sinio , satrec.gsto,
        ) = _initl(
            satn, whichconst, satrec.ecco, epoch, satrec.inclo, satrec.no, satrec.method,
-           ainv, ao, satrec.con41, con42, cosio, cosio2, eccsq, omeosq,
-           posq, rp, rteosq, sinio, satrec.gsto, satrec.operationmode
+           satrec.con41,
+           satrec.gsto, satrec.operationmode
          );
      satrec.error = 0;
 
