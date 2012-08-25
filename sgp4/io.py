@@ -4,6 +4,7 @@ This is a minimally-edited copy of "sgp4io.cpp".
 
 """
 from math import pi
+from sgp4.ext import jday
 from sgp4.propagation import getgravconst, sgp4init
 
 """

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """Utility routines from "sgp4ext.cpp"."""
 
+from math import floor
+
 """
 /*     ----------------------------------------------------------------
 *
@@ -565,22 +567,21 @@ void rv2coe
 *    vallado       2007, 189, alg 14, ex 3-14
 *
 * --------------------------------------------------------------------------- */
+"""
 
-void    jday
-        (
-          int year, int mon, int day, int hr, int minute, double sec,
-          double& jd
-        )
-   {
-     jd = 367.0 * year -
+def jday(
+          year, mon, day, hr, minute, sec,
+        ):
+
+  return (367.0 * year -
           floor((7 * (year + floor((mon + 9) / 12.0))) * 0.25) +
           floor( 275 * mon / 9.0 ) +
           day + 1721013.5 +
-          ((sec / 60.0 + minute) / 60.0 + hr) / 24.0;  // ut in days
-          // - 0.5*sgn(100.0*year + mon - 190002.5) + 0.5;
-   }  // end jday
+          ((sec / 60.0 + minute) / 60.0 + hr) / 24.0  #  ut in days
+          #  - 0.5*sgn(100.0*year + mon - 190002.5) + 0.5;
+          )
 
-
+"""
 /* -----------------------------------------------------------------------------
 *
 *                           procedure days2mdhms
