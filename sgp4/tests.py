@@ -17,7 +17,7 @@ class Tests(TestCase):
         with open(tlepath) as tlefile:
             lines = tlefile.readlines()
 
-        whichconst = 'wgs84'
+        whichconst = 'wgs72'
 
         for i in range(len(lines)):
 
@@ -35,13 +35,18 @@ class Tests(TestCase):
             ro = [0.0, 0.0, 0.0]
             vo = [0.0, 0.0, 0.0]
             sgp4(whichconst, satrec,  0.0, ro,  vo);
-
             print satrec.t, ro[0], ro[1], ro[2], vo[0], vo[1], vo[2]
 
             tcppath = os.path.join(dirpath, 'tcppver.out')
             with open(tcppath) as tcpfile:
                 tcplines = tcpfile.readlines()
 
-            print ' '.join(repr(float(field)) for field in tcplines[1].split())
+            print ' '.join(repr(float(field)) for field
+                           in tcplines[1].split()[:7])
+
+            sgp4(whichconst, satrec,  360.0, ro,  vo);
+            print satrec.t, ro[0], ro[1], ro[2], vo[0], vo[1], vo[2]
+            print ' '.join(repr(float(field)) for field
+                           in tcplines[2].split()[:7])
 
             break
