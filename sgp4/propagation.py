@@ -906,24 +906,19 @@ def _dsinit(
 *    hoots, schumacher and glover 2004
 *    vallado, crawford, hujsak, kelso  2006
   ----------------------------------------------------------------------------*/
+"""
 
-static void dspace
-     (
-       int irez,
-       double d2201,  double d2211,  double d3210,   double d3222,  double d4410,
-       double d4422,  double d5220,  double d5232,   double d5421,  double d5433,
-       double dedt,   double del1,   double del2,    double del3,   double didt,
-       double dmdt,   double dnodt,  double domdt,   double argpo,  double argpdot,
-       double t,      double tc,     double gsto,    double xfact,  double xlamo,
-       double no,
-       double& atime, double& em,    double& argpm,  double& inclm, double& xli,
-       double& mm,    double& xni,   double& nodem,  double& dndt,  double& nm
-     )
-{
-     const double twopi = 2.0 * pi;
-     int iretn , iret;
-     double delt, ft, theta, x2li, x2omi, xl, xldot , xnddt, xndt, xomi, g22, g32,
-          g44, g52, g54, fasx2, fasx4, fasx6, rptim , step2, stepn , stepp;
+def _dspace(
+       irez,
+       d2201,  d2211,  d3210,   d3222,  d4410,
+       d4422,  d5220,  d5232,   d5421,  d5433,
+       dedt,   del1,   del2,    del3,   didt,
+       dmdt,   dnodt,  domdt,   argpo,  argpdot,
+       t,      tc,     gsto,    xfact,  xlamo,
+       no,
+       atime, em,    argpm,  inclm, xli,
+       mm,    xni,   nodem,  dndt,  nm,
+       ):
 
      fasx2 = 0.13130908;
      fasx4 = 2.8843198;
@@ -933,12 +928,12 @@ static void dspace
      g44   = 1.8014998;
      g52   = 1.0508330;
      g54   = 4.4108898;
-     rptim = 4.37526908801129966e-3; // this equates to 7.29211514668855e-5 rad/sec
+     rptim = 4.37526908801129966e-3; # equates to 7.29211514668855e-5 rad/sec
      stepp =    720.0;
      stepn =   -720.0;
      step2 = 259200.0;
 
-     /* ----------- calculate deep space resonance effects ----------- */
+     #  ----------- calculate deep space resonance effects -----------
      dndt   = 0.0;
      theta  = fmod(gsto + tc * rptim, twopi);
      em     = em + dedt * t;
@@ -948,6 +943,7 @@ static void dspace
      nodem  = nodem + dnodt * t;
      mm     = mm + dmdt * t;
 
+     """
      //   sgp4fix for negative inclinations
      //   the following if statement should be commented out
      //  if (inclm < 0.0)
@@ -964,98 +960,93 @@ static void dspace
      //   the specific changes are unknown because the original code was so convoluted
 
      // sgp4fix take out atime = 0.0 and fix for faster operation
+     """
      ft    = 0.0;
-     if (irez != 0)
-       {
-         // sgp4fix streamline check
-         if ((atime == 0.0) || (t * atime <= 0.0) || (fabs(t) < fabs(atime)) )
-           {
+     if irez != 0:
+
+         #  sgp4fix streamline check
+         if atime == 0.0 or t * atime <= 0.0 or fabs(t) < fabs(atime):
+
              atime  = 0.0;
              xni    = no;
              xli    = xlamo;
-           }
-           // sgp4fix move check outside loop
-           if (t > 0.0)
+
+         # sgp4fix move check outside loop
+         if t > 0.0:
                delt = stepp;
-             else
+         else:
                delt = stepn;
 
-         iretn = 381; // added for do loop
-         iret  =   0; // added for loop
-         while (iretn == 381)
-           {
-             /* ------------------- dot terms calculated ------------- */
-             /* ----------- near - synchronous resonance terms ------- */
-             if (irez != 2)
-               {
-                 xndt  = del1 * sin(xli - fasx2) + del2 * sin(2.0 * (xli - fasx4)) +
+         iretn = 381; # added for do loop
+         iret  =   0; # added for loop
+         while iretn == 381:
+
+             #  ------------------- dot terms calculated -------------
+             #  ----------- near - synchronous resonance terms -------
+             if irez != 2:
+
+                 xndt  = del1 * sin(xli - fasx2) + del2 * sin(2.0 * (xli - fasx4)) + \
                          del3 * sin(3.0 * (xli - fasx6));
                  xldot = xni + xfact;
-                 xnddt = del1 * cos(xli - fasx2) +
-                         2.0 * del2 * cos(2.0 * (xli - fasx4)) +
+                 xnddt = del1 * cos(xli - fasx2) + \
+                         2.0 * del2 * cos(2.0 * (xli - fasx4)) + \
                          3.0 * del3 * cos(3.0 * (xli - fasx6));
                  xnddt = xnddt * xldot;
-               }
-               else
-               {
-                 /* --------- near - half-day resonance terms -------- */
+
+             else:
+
+                 # --------- near - half-day resonance terms --------
                  xomi  = argpo + argpdot * atime;
                  x2omi = xomi + xomi;
                  x2li  = xli + xli;
-                 xndt  = d2201 * sin(x2omi + xli - g22) + d2211 * sin(xli - g22) +
+                 xndt  = (d2201 * sin(x2omi + xli - g22) + d2211 * sin(xli - g22) +
                        d3210 * sin(xomi + xli - g32)  + d3222 * sin(-xomi + xli - g32)+
                        d4410 * sin(x2omi + x2li - g44)+ d4422 * sin(x2li - g44) +
                        d5220 * sin(xomi + xli - g52)  + d5232 * sin(-xomi + xli - g52)+
-                       d5421 * sin(xomi + x2li - g54) + d5433 * sin(-xomi + x2li - g54);
+                       d5421 * sin(xomi + x2li - g54) + d5433 * sin(-xomi + x2li - g54));
                  xldot = xni + xfact;
-                 xnddt = d2201 * cos(x2omi + xli - g22) + d2211 * cos(xli - g22) +
+                 xnddt = (d2201 * cos(x2omi + xli - g22) + d2211 * cos(xli - g22) +
                        d3210 * cos(xomi + xli - g32) + d3222 * cos(-xomi + xli - g32) +
                        d5220 * cos(xomi + xli - g52) + d5232 * cos(-xomi + xli - g52) +
                        2.0 * (d4410 * cos(x2omi + x2li - g44) +
                        d4422 * cos(x2li - g44) + d5421 * cos(xomi + x2li - g54) +
-                       d5433 * cos(-xomi + x2li - g54));
+                       d5433 * cos(-xomi + x2li - g54)));
                  xnddt = xnddt * xldot;
-               }
 
-             /* ----------------------- integrator ------------------- */
-             // sgp4fix move end checks to end of routine
-             if (fabs(t - atime) >= stepp)
-               {
+             #  ----------------------- integrator -------------------
+             #  sgp4fix move end checks to end of routine
+             if fabs(t - atime) >= stepp:
                  iret  = 0;
                  iretn = 381;
-               }
-               else // exit here
-               {
+
+             else:
                  ft    = t - atime;
                  iretn = 0;
-               }
 
-             if (iretn == 381)
-               {
+             if iretn == 381:
+
                  xli   = xli + xldot * delt + xndt * step2;
                  xni   = xni + xndt * delt + xnddt * step2;
                  atime = atime + delt;
-               }
-           }  // while iretn = 381
 
          nm = xni + xndt * ft + xnddt * ft * ft * 0.5;
          xl = xli + xldot * ft + xndt * ft * ft * 0.5;
-         if (irez != 1)
-           {
+         if irez != 1:
              mm   = xl - 2.0 * nodem + 2.0 * theta;
              dndt = nm - no;
-           }
-           else
-           {
+
+         else:
              mm   = xl - nodem - argpm + theta;
              dndt = nm - no;
-           }
+
          nm = no + dndt;
-       }
 
-//#include "debug4.cpp"
-}  // end dsspace
+     return (
+       atime, em,    argpm,  inclm, xli,
+       mm,    xni,   nodem,  dndt,  nm,
+       )
 
+"""
 /*-----------------------------------------------------------------------------
 *
 *                           procedure initl
