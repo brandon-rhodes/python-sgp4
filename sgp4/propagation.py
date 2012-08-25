@@ -1252,39 +1252,24 @@ def _initl(
 *    hoots, schumacher and glover 2004
 *    vallado, crawford, hujsak, kelso  2006
   ----------------------------------------------------------------------------*/
+"""
 
-bool sgp4init
-     (
-       gravconsttype whichconst, char opsmode,   const int satn,     const double epoch,
-       const double xbstar,  const double xecco, const double xargpo,
-       const double xinclo,  const double xmo,   const double xno,
-       const double xnodeo,  elsetrec& satrec
-     )
-{
-     /* --------------------- local variables ------------------------ */
-     double ao, ainv,   con42, cosio, sinio, cosio2, eccsq,
-          omeosq, posq,   rp,     rteosq,
-          cnodm , snodm , cosim , sinim , cosomm, sinomm, cc1sq ,
-          cc2   , cc3   , coef  , coef1 , cosio4, day   , dndt  ,
-          em    , emsq  , eeta  , etasq , gam   , argpm , nodem ,
-          inclm , mm    , nm    , perige, pinvsq, psisq , qzms24,
-          rtemsq, s1    , s2    , s3    , s4    , s5    , s6    ,
-          s7    , sfour , ss1   , ss2   , ss3   , ss4   , ss5   ,
-          ss6   , ss7   , sz1   , sz2   , sz3   , sz11  , sz12  ,
-          sz13  , sz21  , sz22  , sz23  , sz31  , sz32  , sz33  ,
-          tc    , temp  , temp1 , temp2 , temp3 , tsi   , xpidot,
-          xhdot1, z1    , z2    , z3    , z11   , z12   , z13   ,
-          z21   , z22   , z23   , z31   , z32   , z33,
-          qzms2t, ss, j2, j3oj2, j4, x2o3, r[3], v[3],
-          tumin, mu, radiusearthkm, xke, j3, delmotemp, qzms2ttemp, qzms24temp;
+def sgp4init(
+       whichconst, opsmode,   satn,     epoch,
+       xbstar,  xecco, xargpo,
+       xinclo,  xmo,   xno,
+       xnodeo,  satrec,
+       ):
 
+     """
      /* ------------------------ initialization --------------------- */
      // sgp4fix divisor for divide by zero check on inclination
      // the old check used 1.0 + cos(pi-1.0e-9), but then compared it to
      // 1.5 e-12, so the threshold was changed to 1.5e-12 for consistency
-     const double temp4    =   1.5e-12;
+     """
+     temp4    =   1.5e-12;
 
-     /* ----------- set all near earth variables to zero ------------ */
+     #  ----------- set all near earth variables to zero ------------
      satrec.isimp   = 0;   satrec.method = 'n'; satrec.aycof    = 0.0;
      satrec.con41   = 0.0; satrec.cc1    = 0.0; satrec.cc4      = 0.0;
      satrec.cc5     = 0.0; satrec.d2     = 0.0; satrec.d3       = 0.0;
@@ -1295,7 +1280,7 @@ bool sgp4init
      satrec.x7thm1  = 0.0; satrec.mdot   = 0.0; satrec.nodedot  = 0.0;
      satrec.xlcof   = 0.0; satrec.xmcof  = 0.0; satrec.nodecf   = 0.0;
 
-     /* ----------- set all deep space variables to zero ------------ */
+     #  ----------- set all deep space variables to zero ------------
      satrec.irez  = 0;   satrec.d2201 = 0.0; satrec.d2211 = 0.0;
      satrec.d3210 = 0.0; satrec.d3222 = 0.0; satrec.d4410 = 0.0;
      satrec.d4422 = 0.0; satrec.d5220 = 0.0; satrec.d5232 = 0.0;
@@ -1316,10 +1301,12 @@ bool sgp4init
      satrec.zmol  = 0.0; satrec.zmos  = 0.0; satrec.atime = 0.0;
      satrec.xli   = 0.0; satrec.xni   = 0.0;
 
+     """
      // sgp4fix - note the following variables are also passed directly via satrec.
      // it is possible to streamline the sgp4init call by deleting the "x"
      // variables, but the user would need to set the satrec.* values first. we
      // include the additional assignments in case twoline2rv is not used.
+     """
      satrec.bstar   = xbstar;
      satrec.ecco    = xecco;
      satrec.argpo   = xargpo;
@@ -1328,14 +1315,14 @@ bool sgp4init
      satrec.no	    = xno;
      satrec.nodeo   = xnodeo;
 
-     // sgp4fix add opsmode
+     #  sgp4fix add opsmode
      satrec.operationmode = opsmode;
 
-     /* ------------------------ earth constants ----------------------- */
-     // sgp4fix identify constants and allow alternate values
-     getgravconst( whichconst, tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2 );
+     #  ------------------------ earth constants -----------------------
+     #  sgp4fix identify constants and allow alternate values
+     tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2 = getgravconst(whichconst)
      ss     = 78.0 / radiusearthkm + 1.0;
-     // sgp4fix use multiply for speed instead of pow
+     #  sgp4fix use multiply for speed instead of pow
      qzms2ttemp = (120.0 - 78.0) / radiusearthkm;
      qzms2t = qzms2ttemp * qzms2ttemp * qzms2ttemp * qzms2ttemp;
      x2o3   =  2.0 / 3.0;
@@ -1343,14 +1330,20 @@ bool sgp4init
      satrec.init = 'y';
      satrec.t	 = 0.0;
 
-     initl
-         (
+     (
+       no,
+       method,
+       ainv,  ao,    con41,  con42, cosio,
+       cosio2,eccsq, omeosq, posq,
+       rp,    rteosq,sinio , gsto,
+       ) = _initl(
            satn, whichconst, satrec.ecco, epoch, satrec.inclo, satrec.no, satrec.method,
            ainv, ao, satrec.con41, con42, cosio, cosio2, eccsq, omeosq,
            posq, rp, rteosq, sinio, satrec.gsto, satrec.operationmode
          );
      satrec.error = 0;
 
+     """
      // sgp4fix remove this check as it is unnecessary
      // the mrt check in sgp4 handles decaying satellite cases even if the starting
      // condition is below the surface of te earth
@@ -1359,27 +1352,28 @@ bool sgp4init
 //         printf("# *** satn%d epoch elts sub-orbital ***\n", satn);
 //         satrec.error = 5;
 //       }
+     """
 
-     if ((omeosq >= 0.0 ) || ( satrec.no >= 0.0))
-       {
+     if omeosq >= 0.0 or satrec.no >= 0.0:
+
          satrec.isimp = 0;
-         if (rp < (220.0 / radiusearthkm + 1.0))
+         if rp < 220.0 / radiusearthkm + 1.0:
              satrec.isimp = 1;
          sfour  = ss;
          qzms24 = qzms2t;
          perige = (rp - 1.0) * radiusearthkm;
 
-         /* - for perigees below 156 km, s and qoms2t are altered - */
-         if (perige < 156.0)
-           {
+         #  - for perigees below 156 km, s and qoms2t are altered -
+         if perige < 156.0:
+
              sfour = perige - 78.0;
-             if (perige < 98.0)
+             if perige < 98.0:
                  sfour = 20.0;
-             // sgp4fix use multiply for speed instead of pow
+             #  sgp4fix use multiply for speed instead of pow
              qzms24temp =  (120.0 - sfour) / radiusearthkm;
              qzms24 = qzms24temp * qzms24temp * qzms24temp * qzms24temp;
              sfour  = sfour / radiusearthkm + 1.0;
-           }
+
          pinvsq = 1.0 / posq;
 
          tsi  = 1.0 / (ao - sfour);
@@ -1394,10 +1388,10 @@ bool sgp4init
                         (8.0 + 3.0 * etasq * (8.0 + etasq)));
          satrec.cc1   = satrec.bstar * cc2;
          cc3   = 0.0;
-         if (satrec.ecco > 1.0e-4)
+         if satrec.ecco > 1.0e-4:
              cc3 = -2.0 * coef * tsi * j3oj2 * satrec.no * sinio / satrec.ecco;
          satrec.x1mth2 = 1.0 - cosio2;
-         satrec.cc4    = 2.0* satrec.no * coef1 * ao * omeosq *
+         satrec.cc4    = 2.0* satrec.no * coef1 * ao * omeosq * \
                            (satrec.eta * (2.0 + 0.5 * etasq) + satrec.ecco *
                            (0.5 + 2.0 * etasq) - j2 * tsi / (ao * psisq) *
                            (-3.0 * satrec.con41 * (1.0 - 2.0 * eeta + etasq *
@@ -1409,43 +1403,60 @@ bool sgp4init
          temp1  = 1.5 * j2 * pinvsq * satrec.no;
          temp2  = 0.5 * temp1 * j2 * pinvsq;
          temp3  = -0.46875 * j4 * pinvsq * pinvsq * satrec.no;
-         satrec.mdot     = satrec.no + 0.5 * temp1 * rteosq * satrec.con41 + 0.0625 *
+         satrec.mdot     = satrec.no + 0.5 * temp1 * rteosq * satrec.con41 + 0.0625 * \
                             temp2 * rteosq * (13.0 - 78.0 * cosio2 + 137.0 * cosio4);
-         satrec.argpdot  = -0.5 * temp1 * con42 + 0.0625 * temp2 *
+         satrec.argpdot  = (-0.5 * temp1 * con42 + 0.0625 * temp2 *
                              (7.0 - 114.0 * cosio2 + 395.0 * cosio4) +
-                             temp3 * (3.0 - 36.0 * cosio2 + 49.0 * cosio4);
+                             temp3 * (3.0 - 36.0 * cosio2 + 49.0 * cosio4));
          xhdot1            = -temp1 * cosio;
          satrec.nodedot = xhdot1 + (0.5 * temp2 * (4.0 - 19.0 * cosio2) +
                               2.0 * temp3 * (3.0 - 7.0 * cosio2)) * cosio;
          xpidot            =  satrec.argpdot+ satrec.nodedot;
          satrec.omgcof   = satrec.bstar * cc3 * cos(satrec.argpo);
          satrec.xmcof    = 0.0;
-         if (satrec.ecco > 1.0e-4)
+         if satrec.ecco > 1.0e-4:
              satrec.xmcof = -x2o3 * coef * satrec.bstar / eeta;
          satrec.nodecf = 3.5 * omeosq * xhdot1 * satrec.cc1;
          satrec.t2cof   = 1.5 * satrec.cc1;
-         // sgp4fix for divide by zero with xinco = 180 deg
-         if (fabs(cosio+1.0) > 1.5e-12)
+         #  sgp4fix for divide by zero with xinco = 180 deg
+         if fabs(cosio+1.0) > 1.5e-12:
              satrec.xlcof = -0.25 * j3oj2 * sinio * (3.0 + 5.0 * cosio) / (1.0 + cosio);
-           else
+         else:
              satrec.xlcof = -0.25 * j3oj2 * sinio * (3.0 + 5.0 * cosio) / temp4;
          satrec.aycof   = -0.5 * j3oj2 * sinio;
-         // sgp4fix use multiply for speed instead of pow
+         #  sgp4fix use multiply for speed instead of pow
          delmotemp = 1.0 + satrec.eta * cos(satrec.mo);
          satrec.delmo   = delmotemp * delmotemp * delmotemp;
          satrec.sinmao  = sin(satrec.mo);
          satrec.x7thm1  = 7.0 * cosio2 - 1.0;
 
-         /* --------------- deep space initialization ------------- */
-         if ((2*pi / satrec.no) >= 225.0)
-           {
+         #  --------------- deep space initialization -------------
+         if 2*pi / satrec.no >= 225.0:
+
              satrec.method = 'd';
              satrec.isimp  = 1;
              tc    =  0.0;
              inclm = satrec.inclo;
 
-             dscom
-                 (
+             (
+                 snodm, cnodm, sinim,  cosim, sinomm,
+                 cosomm,day,   e3,     ee2,   em,
+                 emsq,  gam,   peo,    pgho,  pho,
+                 pinco, plo,   rtemsq, se2,   se3,
+                 sgh2,  sgh3,  sgh4,   sh2,   sh3,
+                 si2,   si3,   sl2,    sl3,   sl4,
+                 s1,    s2,    s3,     s4,    s5,
+                 s6,    s7,    ss1,    ss2,   ss3,
+                 ss4,   ss5,   ss6,    ss7,   sz1,
+                 sz2,   sz3,   sz11,   sz12,  sz13,
+                 sz21,  sz22,  sz23,   sz31,  sz32,
+                 sz33,  xgh2,  xgh3,   xgh4,  xh2,
+                 xh3,   xi2,   xi3,    xl2,   xl3,
+                 xl4,   nm,    z1,     z2,    z3,
+                 z11,   z12,   z13,    z21,   z22,
+                 z23,   z31,   z32,    z33,   zmol,
+                 zmos
+             ) = _dscom(
                    epoch, satrec.ecco, satrec.argpo, tc, satrec.inclo, satrec.nodeo,
                    satrec.no, snodm, cnodm,  sinim, cosim,sinomm,     cosomm,
                    day, satrec.e3, satrec.ee2, em,         emsq, gam,
@@ -1462,8 +1473,7 @@ bool sgp4init
                    z12, z13, z21, z22, z23, z31, z32, z33,
                    satrec.zmol, satrec.zmos
                  );
-             dpper
-                 (
+             ep, inclp, nodep, argpp, mp = _dpper(
                    satrec.e3, satrec.ee2, satrec.peo, satrec.pgho,
                    satrec.pho, satrec.pinco, satrec.plo, satrec.se2,
                    satrec.se3, satrec.sgh2, satrec.sgh3, satrec.sgh4,
@@ -1480,8 +1490,16 @@ bool sgp4init
              nodem  = 0.0;
              mm     = 0.0;
 
-             dsinit
-                 (
+             (
+                 em,    argpm,  inclm, mm,
+                 nm,    nodem,
+                 irez,
+                 atime, d2201, d2211,  d3210, d3222,
+                 d4410, d4422, d5220,  d5232, d5421,
+                 d5433, dedt,  didt,   dmdt,  dndt,
+                 dnodt, domdt, del1,   del2,  del3,
+                 xfact, xlamo, xli,    xni,
+             ) = _dsinit(
                    whichconst,
                    cosim, emsq, satrec.argpo, s1, s2, s3, s4, s5, sinim, ss1, ss2, ss3, ss4,
                    ss5, sz1, sz3, sz11, sz13, sz21, sz23, sz31, sz33, satrec.t, tc,
@@ -1496,16 +1514,15 @@ bool sgp4init
                    satrec.del1,  satrec.del2,  satrec.del3,  satrec.xfact,
                    satrec.xlamo, satrec.xli,   satrec.xni
                  );
-           }
 
-       /* ----------- set variables if not deep space ----------- */
-       if (satrec.isimp != 1)
-         {
+         #----------- set variables if not deep space -----------
+         if satrec.isimp != 1:
+
            cc1sq          = satrec.cc1 * satrec.cc1;
            satrec.d2    = 4.0 * ao * tsi * cc1sq;
            temp           = satrec.d2 * tsi * satrec.cc1 / 3.0;
            satrec.d3    = (17.0 * ao + sfour) * temp;
-           satrec.d4    = 0.5 * temp * ao * tsi * (221.0 * ao + 31.0 * sfour) *
+           satrec.d4    = 0.5 * temp * ao * tsi * (221.0 * ao + 31.0 * sfour) * \
                             satrec.cc1;
            satrec.t3cof = satrec.d2 + 2.0 * cc1sq;
            satrec.t4cof = 0.25 * (3.0 * satrec.d3 + satrec.cc1 *
@@ -1514,21 +1531,23 @@ bool sgp4init
                             12.0 * satrec.cc1 * satrec.d3 +
                             6.0 * satrec.d2 * satrec.d2 +
                             15.0 * cc1sq * (2.0 * satrec.d2 + cc1sq));
-         }
-       } // if omeosq = 0 ...
 
+     """
        /* finally propogate to zero epoch to initialize all others. */
        // sgp4fix take out check to let satellites process until they are actually below earth surface
 //       if(satrec.error == 0)
-       sgp4(whichconst, satrec, 0.0, r, v);
+     """
+     r = [0.0, 0.0, 0.0]
+     v = [0.0, 0.0, 0.0]
+     sgp4(whichconst, satrec, 0.0, r, v);
 
-       satrec.init = 'n';
+     satrec.init = 'n';
 
-//#include "debug6.cpp"
-       //sgp4fix return boolean. satrec.error contains any error codes
-       return true;
-}  // end sgp4init
+     # sgp4fix return boolean. satrec.error contains any error codes
+     return True;
 
+
+"""
 /*-----------------------------------------------------------------------------
 *
 *                             procedure sgp4
