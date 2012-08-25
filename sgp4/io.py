@@ -198,7 +198,7 @@ def twoline2rv(
            year= satrec.epochyr + 1900;
 
        days2mdhms ( year,satrec.epochdays, mon,day,hr,minute,sec );
-       jday( year,mon,day,hr,minute,sec, satrec.jdsatepoch );
+       satrec.jdsatepoch = jday(year,mon,day,hr,minute,sec);
 
        #  ---- input start stop times manually
        if typerun != 'v' and typerun != 'c':
@@ -212,14 +212,15 @@ def twoline2rv(
                scanf( "%i %i %i %i %i %lf",&startyear, &startmon, &startday, &starthr, &startmin, &startsec);
                """
                fflush(stdin);
-               jday( startyear,startmon,startday,starthr,startmin,startsec, jdstart );
+               jdstart = jday(
+                   startyear,startmon,startday,starthr,startmin,startsec);
 
                printf("input stop prop year mon day hr min sec \n");
                """
                scanf( "%i %i %i %i %i %lf",&stopyear, &stopmon, &stopday, &stophr, &stopmin, &stopsec);
                """
                fflush(stdin);
-               jday( stopyear,stopmon,stopday,stophr,stopmin,stopsec, jdstop );
+               jdstop = jday(stopyear,stopmon,stopday,stophr,stopmin,stopsec);
 
                startmfe = (jdstart - satrec.jdsatepoch) * 1440.0;
                stopmfe  = (jdstop - satrec.jdsatepoch) * 1440.0;
@@ -239,9 +240,9 @@ def twoline2rv(
                scanf( "%i %lf",&stopyear, &stopdayofyr );
                """
                days2mdhms ( startyear,startdayofyr, mon,day,hr,minute,sec );
-               jday( startyear,mon,day,hr,minute,sec, jdstart );
+               jdstart = jday(startyear,mon,day,hr,minute,sec);
                days2mdhms ( stopyear,stopdayofyr, mon,day,hr,minute,sec );
-               jday( stopyear,mon,day,hr,minute,sec, jdstop );
+               jdstop = jday(stopyear,mon,day,hr,minute,sec);
 
                startmfe = (jdstart - satrec.jdsatepoch) * 1440.0;
                stopmfe  = (jdstop - satrec.jdsatepoch) * 1440.0;
