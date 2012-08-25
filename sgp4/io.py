@@ -294,9 +294,6 @@ def twoline2rv(
 def sscanf(data, format):
     """Yes: a bootleg sscanf(), instead of tediously rewriting the above!"""
 
-    print repr(data)
-    print len(data)
-    print repr(format)
     directives = format.split()
     values = []
     start = 0
@@ -304,11 +301,6 @@ def sscanf(data, format):
     for directive in directives:
         conversion = directive[-1]
         lengthstr = directive[1 : -2 if directive[-2] == 'l' else -1]
-
-        #print 'comparing', repr(data[start]), repr(' ')
-        # if conversion not in ('c', 's'):
-        #     if data[start] == 32:  # space
-        #         start += 1
 
         if lengthstr:
             length = int(lengthstr)
@@ -319,21 +311,15 @@ def sscanf(data, format):
             while not source[start + length].isspace():
                 length += 1
 
-        print repr(directive), start, length, repr(conversion)
-
         if conversion in ('c', 's'):
             values.append(source)
         elif conversion == 'd':
             values.append(int(source))
         elif conversion == 'f':
-            # if '-' in source:
-            #     significand, exponent = source.split('-')
-            #     source = '%se-0%s' % (significand, exponent)
             values.append(float(source))
         else:
             raise ValueError('unknown format specifier %r' % (conversion,))
 
-        print repr(source), '->', repr(values[-1])
         start += length
 
     return values
