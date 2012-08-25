@@ -105,34 +105,37 @@ def twoline2rv(
        longstr1 = bytearray(longstr1)
        longstr2 = bytearray(longstr2)
 
+       SPACE = 32
+       PERIOD = 46
+
        #  set the implied decimal points since doing a formated read
        #  fixes for bad input data values (missing, ...)
        for j in xrange(10, 16):
-           if longstr1[j] == ' ':
+           if longstr1[j] == SPACE:
                longstr1[j] = '_';
 
-       if longstr1[44] != ' ':
+       if longstr1[44] != SPACE:
            longstr1[43] = longstr1[44];
        longstr1[44] = '.';
-       if longstr1[7] == ' ':
+       if longstr1[7] == SPACE:
            longstr1[7] = 'U';
-       if longstr1[9] == ' ':
+       if longstr1[9] == SPACE:
            longstr1[9] = '.';
        for j in xrange(45, 50):
-           if longstr1[j] == ' ':
+           if longstr1[j] == SPACE:
                longstr1[j] = '0';
-       if longstr1[51] == ' ':
+       if longstr1[51] == SPACE:
            longstr1[51] = '0';
-       if longstr1[53] != ' ':
+       if longstr1[53] != SPACE:
            longstr1[52] = longstr1[53];
        longstr1[53] = '.';
        longstr2[25] = '.';
        for j in xrange(26, 33):
-           if longstr2[j] == ' ':
+           if longstr2[j] == SPACE:
                longstr2[j] = '0';
-       if longstr1[62] == ' ':
+       if longstr1[62] == SPACE:
            longstr1[62] = '0';
-       if longstr1[68] == ' ':
+       if longstr1[68] == SPACE:
            longstr1[68] = '0';
 
        (cardnumb,satrec.satnum,classification, intldesg, satrec.epochyr,
@@ -143,7 +146,7 @@ def twoline2rv(
 
        if typerun == 'v':  #  run for specified times from the file
 
-           if longstr2[52] == ' ':
+           if longstr2[52] == SPACE:
                (cardnumb,satrec.satnum, satrec.inclo,
                 satrec.nodeo,satrec.ecco, satrec.argpo, satrec.mo, satrec.no,
                 revnum, startmfe, stopmfe, deltamin) = \
@@ -159,7 +162,7 @@ def twoline2rv(
 
        else:  #  simply run -1 day to +1 day or user input times
 
-           if longstr2[52] == ' ':
+           if longstr2[52] == SPACE:
                (cardnumb,satrec.satnum, satrec.inclo,
                 satrec.nodeo,satrec.ecco, satrec.argpo, satrec.mo, satrec.no,
                 revnum) = \
@@ -303,16 +306,16 @@ def sscanf(data, format):
         lengthstr = directive[1 : -2 if directive[-2] == 'l' else -1]
 
         #print 'comparing', repr(data[start]), repr(' ')
-        if conversion not in ('c', 's'):
-            if data[start] == 32:  # space
-                start += 1
+        # if conversion not in ('c', 's'):
+        #     if data[start] == 32:  # space
+        #         start += 1
 
-        print 'data is', repr(data[start:start+5] + '...')
         if lengthstr:
             length = int(lengthstr)
             source = data[start:start + length]
         else:
-            length = 0
+            while data[start] == 32:  # space
+                start += 1
             while not source[start + length].isspace():
                 length += 1
 
@@ -323,9 +326,9 @@ def sscanf(data, format):
         elif conversion == 'd':
             values.append(int(source))
         elif conversion == 'f':
-            if '-' in source:
-                significand, exponent = source.split('-')
-                source = '%se-0%s' % (significand, exponent)
+            # if '-' in source:
+            #     significand, exponent = source.split('-')
+            #     source = '%se-0%s' % (significand, exponent)
             values.append(float(source))
         else:
             raise ValueError('unknown format specifier %r' % (conversion,))

@@ -25,5 +25,5 @@ class Tests(TestCase):
 
             satrec = SatRec()
 
-            twoline2rv(line1, line2, 'v', None, 'i', 'wgs84', satrec)
+            twoline2rv(line1, line2, 'c', None, 'i', 'wgs84', satrec)
             break
