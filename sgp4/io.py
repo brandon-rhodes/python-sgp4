@@ -4,7 +4,7 @@ This is a minimally-edited copy of "sgp4io.cpp".
 
 """
 from math import pi
-from sgp4.ext import jday
+from sgp4.ext import days2mdhms, jday
 from sgp4.propagation import getgravconst, sgp4init
 
 """
@@ -197,7 +197,7 @@ def twoline2rv(
        else:
            year= satrec.epochyr + 1900;
 
-       days2mdhms ( year,satrec.epochdays, mon,day,hr,minute,sec );
+       mon,day,hr,minute,sec = days2mdhms(year, satrec.epochdays);
        satrec.jdsatepoch = jday(year,mon,day,hr,minute,sec);
 
        #  ---- input start stop times manually
@@ -239,9 +239,9 @@ def twoline2rv(
                printf("input stop year dayofyr \n");
                scanf( "%i %lf",&stopyear, &stopdayofyr );
                """
-               days2mdhms ( startyear,startdayofyr, mon,day,hr,minute,sec );
+               mon,day,hr,minute,sec = days2mdhms(startyear, startdayofyr);
                jdstart = jday(startyear,mon,day,hr,minute,sec);
-               days2mdhms ( stopyear,stopdayofyr, mon,day,hr,minute,sec );
+               mon,day,hr,minute,sec = days2mdhms(stopyear, stopdayofyr);
                jdstop = jday(stopyear,mon,day,hr,minute,sec);
 
                startmfe = (jdstart - satrec.jdsatepoch) * 1440.0;

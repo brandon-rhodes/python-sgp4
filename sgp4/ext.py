@@ -618,40 +618,37 @@ def jday(
 *  coupling      :
 *    none.
 * --------------------------------------------------------------------------- */
+"""
 
-void    days2mdhms
-        (
-          int year, double days,
-          int& mon, int& day, int& hr, int& minute, double& sec
-        )
-   {
-     int i, inttemp, dayofyr;
-     double    temp;
-     int lmonth[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+def days2mdhms(year, days):
 
-     dayofyr = (int)floor(days);
-     /* ----------------- find month and day of month ---------------- */
-     if ( (year % 4) == 0 )
-       lmonth[1] = 29;
+     lmonth = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
+
+     dayofyr = int(floor(days));
+     #  ----------------- find month and day of month ----------------
+     if (year % 4) == 0:
+       lmonth = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
 
      i = 1;
      inttemp = 0;
-     while ((dayofyr > inttemp + lmonth[i-1]) && (i < 12))
-     {
+     while dayofyr > inttemp + lmonth[i-1] and i < 12:
+
        inttemp = inttemp + lmonth[i-1];
-       i++;
-     }
+       i += 1;
+
      mon = i;
      day = dayofyr - inttemp;
 
-     /* ----------------- find hours minutes and seconds ------------- */
+     #  ----------------- find hours minutes and seconds -------------
      temp = (days - dayofyr) * 24.0;
-     hr   = (int)floor(temp);
+     hr   = int(floor(temp));
      temp = (temp - hr) * 60.0;
-     minute  = (int)floor(temp);
+     minute  = int(floor(temp));
      sec  = (temp - minute) * 60.0;
-   }  // end days2mdhms
 
+     return mon, day, hr, minute, sec
+
+"""
 /* -----------------------------------------------------------------------------
 *
 *                           procedure invjday
