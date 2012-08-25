@@ -100,6 +100,11 @@ def twoline2rv(
 
        satrec.error = 0;
 
+       # This is Python, so we make the strings mutable before setting
+       # the C++ code loose on them.
+       longstr1 = bytearray(longstr1)
+       longstr2 = bytearray(longstr2)
+
        #  set the implied decimal points since doing a formated read
        #  fixes for bad input data values (missing, ...)
        for j in xrange(10, 16):
@@ -283,24 +288,49 @@ def twoline2rv(
        return startmfe, stopmfe, deltamin
 
 
-def sscanf(string, format):
+def sscanf(data, format):
     """Yes: a bootleg sscanf(), instead of tediously rewriting the above!"""
 
+    print repr(data)
+    print len(data)
+    print repr(format)
     directives = format.split()
     values = []
     start = 0
 
     for directive in directives:
-        length = int(directive[1 : -2 if directive[-2] == 'l' else -1])
         conversion = directive[-1]
+        lengthstr = directive[1 : -2 if directive[-2] == 'l' else -1]
 
-        source = string[start:start + length]
+        #print 'comparing', repr(data[start]), repr(' ')
+        if conversion not in ('c', 's'):
+            if data[start] == 32:  # space
+                start += 1
+
+        print 'data is', repr(data[start:start+5] + '...')
+        if lengthstr:
+            length = int(lengthstr)
+            source = data[start:start + length]
+        else:
+            length = 0
+            while not source[start + length].isspace():
+                length += 1
+
+        print repr(directive), start, length, repr(conversion)
 
         if conversion in ('c', 's'):
             values.append(source)
         elif conversion == 'd':
             values.append(int(source))
         elif conversion == 'f':
+            if '-' in source:
+                significand, exponent = source.split('-')
+                source = '%se-0%s' % (significand, exponent)
             values.append(float(source))
+        else:
+            raise ValueError('unknown format specifier %r' % (conversion,))
+
+        print repr(source), '->', repr(values[-1])
+        start += length
 
     return values

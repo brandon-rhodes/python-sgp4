@@ -2,6 +2,11 @@
 
 import os
 from unittest import TestCase
+from sgp4.io import twoline2rv
+
+class SatRec(object):
+    pass
+
 
 class Tests(TestCase):
 
@@ -18,5 +23,7 @@ class Tests(TestCase):
             line1 = lines[i]
             line2 = lines[i + 1]
 
-            print line1
+            satrec = SatRec()
+
+            twoline2rv(line1, line2, 'v', None, 'i', 'wgs84', satrec)
             break
