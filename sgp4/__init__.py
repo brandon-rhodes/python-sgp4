@@ -15,4 +15,13 @@ always download the latest version of their code for comparison against
 this Python module (or other implementations) as `AIAA-2006-6753.zip
 <http://www.celestrak.com/publications/AIAA/2006-6753/AIAA-2006-6753.zip>`_.
 
+This module was adapted from Vallado's C++ code since its revision date
+was the most recent of the versions of SPG4 in the zip file:
+
+* C++, August 2010
+* Fortran, August 2008
+* Pascal, August 2008
+* Matlab, May 2008
+* Java, July 2005
+
 """
