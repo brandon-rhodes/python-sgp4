@@ -1330,8 +1330,7 @@ def sgp4init(
        rp,    rteosq,sinio , satrec.gsto,
        ) = _initl(
            satn, whichconst, satrec.ecco, epoch, satrec.inclo, satrec.no, satrec.method,
-           satrec.con41,
-           satrec.gsto, satrec.operationmode
+           satrec.operationmode
          );
      satrec.error = 0;
 
