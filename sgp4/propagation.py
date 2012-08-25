@@ -17,6 +17,9 @@ code for the first time here in its Python form.
 |   On a very hot August day in 2012
 """
 
+from math import atan2, cos, fabs, fmod, pi, sin
+twopi = 2.0 * pi
+
 """
 /*     ----------------------------------------------------------------
 *
@@ -137,39 +140,31 @@ code for the first time here in its Python form.
 *    hoots, schumacher and glover 2004
 *    vallado, crawford, hujsak, kelso  2006
   ----------------------------------------------------------------------------*/
+"""
 
-static void dpper
-     (
-       double e3,     double ee2,    double peo,     double pgho,   double pho,
-       double pinco,  double plo,    double se2,     double se3,    double sgh2,
-       double sgh3,   double sgh4,   double sh2,     double sh3,    double si2,
-       double si3,    double sl2,    double sl3,     double sl4,    double t,
-       double xgh2,   double xgh3,   double xgh4,    double xh2,    double xh3,
-       double xi2,    double xi3,    double xl2,     double xl3,    double xl4,
-       double zmol,   double zmos,   double inclo,
-       char init,
-       double& ep,    double& inclp, double& nodep,  double& argpp, double& mp,
-       char opsmode
-     )
-{
-     /* --------------------- local variables ------------------------ */
-     const double twopi = 2.0 * pi;
-     double alfdp, betdp, cosip, cosop, dalf, dbet, dls,
-          f2,    f3,    pe,    pgh,   ph,   pinc, pl ,
-          sel,   ses,   sghl,  sghs,  shll, shs,  sil,
-          sinip, sinop, sinzf, sis,   sll,  sls,  xls,
-          xnoh,  zf,    zm,    zel,   zes,  znl,  zns;
+def _dpper(
+       e3,     ee2,    peo,     pgho,   pho,
+       pinco,  plo,    se2,     se3,    sgh2,
+       sgh3,   sgh4,   sh2,     sh3,    si2,
+       si3,    sl2,    sl3,     sl4,    t,
+       xgh2,   xgh3,   xgh4,    xh2,    xh3,
+       xi2,    xi3,    xl2,     xl3,    xl4,
+       zmol,   zmos,   inclo,
+       init,
+       ep,    inclp, nodep,  argpp, mp,
+       opsmode,
+       ):
 
-     /* ---------------------- constants ----------------------------- */
+     #  ---------------------- constants -----------------------------
      zns   = 1.19459e-5;
      zes   = 0.01675;
      znl   = 1.5835218e-4;
      zel   = 0.05490;
 
-     /* --------------- calculate time varying periodics ----------- */
+     #  --------------- calculate time varying periodics -----------
      zm    = zmos + zns * t;
-     // be sure that the initial call has time set to zero
-     if (init == 'y')
+     # be sure that the initial call has time set to zero
+     if init == 'y':
          zm = zmos;
      zf    = zm + 2.0 * zes * sin(zm);
      sinzf = sin(zf);
@@ -181,7 +176,7 @@ static void dpper
      sghs  = sgh2 * f2 + sgh3 * f3 + sgh4 * sinzf;
      shs   = sh2 * f2 + sh3 * f3;
      zm    = zmol + znl * t;
-     if (init == 'y')
+     if init == 'y':
          zm = zmol;
      zf    = zm + 2.0 * zel * sin(zm);
      sinzf = sin(zf);
@@ -198,8 +193,8 @@ static void dpper
      pgh   = sghs + sghl;
      ph    = shs + shll;
 
-     if (init == 'n')
-       {
+     if init == 'n':
+
        pe    = pe - peo;
        pinc  = pinc - pinco;
        pl    = pl - plo;
@@ -210,6 +205,7 @@ static void dpper
        sinip = sin(inclp);
        cosip = cos(inclp);
 
+       """
        /* ----------------- apply periodics directly ------------ */
        //  sgp4fix for lyddane choice
        //  strn3 used original inclination - this is technically feasible
@@ -219,17 +215,19 @@ static void dpper
        //  use next line for original strn3 approach and original inclination
        //  if (inclo >= 0.2)
        //  use next line for gsfc version and perturbed inclination
-       if (inclp >= 0.2)
-         {
+       """
+
+       if inclp >= 0.2:
+
            ph     = ph / sinip;
            pgh    = pgh - cosip * ph;
            argpp  = argpp + pgh;
            nodep  = nodep + ph;
            mp     = mp + pl;
-         }
-         else
-         {
-           /* ---- apply periodics with lyddane modification ---- */
+
+       else:
+
+           #  ---- apply periodics with lyddane modification ----
            sinop  = sin(nodep);
            cosop  = cos(nodep);
            alfdp  = sinip * sinop;
@@ -239,32 +237,30 @@ static void dpper
            alfdp  = alfdp + dalf;
            betdp  = betdp + dbet;
            nodep  = fmod(nodep, twopi);
-           //  sgp4fix for afspc written intrinsic functions
-           // nodep used without a trigonometric function ahead
-           if ((nodep < 0.0) && (opsmode == 'a'))
+           #   sgp4fix for afspc written intrinsic functions
+           #  nodep used without a trigonometric function ahead
+           if nodep < 0.0 and opsmode == 'a':
                nodep = nodep + twopi;
            xls    = mp + argpp + cosip * nodep;
            dls    = pl + pgh - pinc * nodep * sinip;
            xls    = xls + dls;
            xnoh   = nodep;
            nodep  = atan2(alfdp, betdp);
-           //  sgp4fix for afspc written intrinsic functions
-           // nodep used without a trigonometric function ahead
-           if ((nodep < 0.0) && (opsmode == 'a'))
+           #   sgp4fix for afspc written intrinsic functions
+           #  nodep used without a trigonometric function ahead
+           if nodep < 0.0 and opsmode == 'a':
                nodep = nodep + twopi;
-           if (fabs(xnoh - nodep) > pi)
-             if (nodep < xnoh)
+           if fabs(xnoh - nodep) > pi:
+             if nodep < xnoh:
                 nodep = nodep + twopi;
-               else
+             else:
                 nodep = nodep - twopi;
            mp    = mp + pl;
            argpp = xls - mp - cosip * nodep;
-         }
-       }   // if init == 'n'
 
-//#include "debug1.cpp"
-}  // end dpper
+     return ep, inclp, nodep, argpp, mp
 
+"""
 /*-----------------------------------------------------------------------------
 *
 *                           procedure dscom
