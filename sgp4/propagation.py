@@ -18,7 +18,10 @@ code for the first time here in its Python form.
 """
 
 from math import atan2, cos, fabs, floor, fmod, pi, sin, sqrt
+
 twopi = 2.0 * pi
+true = True
+false = False
 
 """
 /*     ----------------------------------------------------------------
@@ -1544,7 +1547,7 @@ def sgp4init(
      satrec.init = 'n';
 
      # sgp4fix return boolean. satrec.error contains any error codes
-     return True;
+     return true;
 
 
 """
@@ -1634,44 +1637,32 @@ def sgp4init(
 *    hoots, schumacher and glover 2004
 *    vallado, crawford, hujsak, kelso  2006
   ----------------------------------------------------------------------------*/
+"""
 
-bool sgp4
-     (
-       gravconsttype whichconst, elsetrec& satrec,  double tsince,
-       double r[3],  double v[3]
-     )
-{
-     double am   , axnl  , aynl , betal ,  cosim , cnod  ,
-         cos2u, coseo1, cosi , cosip ,  cosisq, cossu , cosu,
-         delm , delomg, em   , emsq  ,  ecose , el2   , eo1 ,
-         ep   , esine , argpm, argpp ,  argpdf, pl,     mrt = 0.0,
-         mvt  , rdotl , rl   , rvdot ,  rvdotl, sinim ,
-         sin2u, sineo1, sini , sinip ,  sinsu , sinu  ,
-         snod , su    , t2   , t3    ,  t4    , tem5  , temp,
-         temp1, temp2 , tempa, tempe ,  templ , u     , ux  ,
-         uy   , uz    , vx   , vy    ,  vz    , inclm , mm  ,
-         nm   , nodem, xinc , xincp ,  xl    , xlm   , mp  ,
-         xmdf , xmx   , xmy  , nodedf, xnode , nodep, tc  , dndt,
-         twopi, x2o3  , j2   , j3    , tumin, j4 , xke   , j3oj2, radiusearthkm,
-         mu, vkmpersec, delmtemp;
-     int ktr;
+def sgp4(
+       whichconst, satrec,  tsince, r, v,
+       ):
 
+     mrt = 0.0
+
+     """
      /* ------------------ set mathematical constants --------------- */
      // sgp4fix divisor for divide by zero check on inclination
      // the old check used 1.0 + cos(pi-1.0e-9), but then compared it to
      // 1.5 e-12, so the threshold was changed to 1.5e-12 for consistency
-     const double temp4 =   1.5e-12;
+     """
+     temp4 =   1.5e-12;
      twopi = 2.0 * pi;
      x2o3  = 2.0 / 3.0;
-     // sgp4fix identify constants and allow alternate values
-     getgravconst( whichconst, tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2 );
+     #  sgp4fix identify constants and allow alternate values
+     tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2 = getgravconst(whichconst)
      vkmpersec     = radiusearthkm * xke/60.0;
 
-     /* --------------------- clear sgp4 error flag ----------------- */
+     #  --------------------- clear sgp4 error flag -----------------
      satrec.t     = tsince;
      satrec.error = 0;
 
-     /* ------- update for secular gravity and atmospheric drag ----- */
+     #  ------- update for secular gravity and atmospheric drag -----
      xmdf    = satrec.mo + satrec.mdot * satrec.t;
      argpdf  = satrec.argpo + satrec.argpdot * satrec.t;
      nodedf  = satrec.nodeo + satrec.nodedot * satrec.t;
@@ -1683,12 +1674,12 @@ bool sgp4
      tempe   = satrec.bstar * satrec.cc4 * satrec.t;
      templ   = satrec.t2cof * t2;
 
-     if (satrec.isimp != 1)
-       {
+     if satrec.isimp != 1:
+
          delomg = satrec.omgcof * satrec.t;
-         // sgp4fix use mutliply for speed instead of pow
+         #  sgp4fix use mutliply for speed instead of pow
          delmtemp =  1.0 + satrec.eta * cos(xmdf);
-         delm   = satrec.xmcof *
+         delm   = satrec.xmcof * \
                   (delmtemp * delmtemp * delmtemp -
                   satrec.delmo);
          temp   = delomg + delm;
@@ -1696,22 +1687,23 @@ bool sgp4
          argpm  = argpdf - temp;
          t3     = t2 * satrec.t;
          t4     = t3 * satrec.t;
-         tempa  = tempa - satrec.d2 * t2 - satrec.d3 * t3 -
+         tempa  = tempa - satrec.d2 * t2 - satrec.d3 * t3 - \
                           satrec.d4 * t4;
          tempe  = tempe + satrec.bstar * satrec.cc5 * (sin(mm) -
                           satrec.sinmao);
          templ  = templ + satrec.t3cof * t3 + t4 * (satrec.t4cof +
                           satrec.t * satrec.t5cof);
-       }
 
      nm    = satrec.no;
      em    = satrec.ecco;
      inclm = satrec.inclo;
-     if (satrec.method == 'd')
-       {
+     if satrec.method == 'd':
+
          tc = satrec.t;
-         dspace
-             (
+         (
+             atime, em,    argpm,  inclm, xli,
+             mm,    xni,   nodem,  dndt,  nm,
+         ) = _dspace(
                satrec.irez,
                satrec.d2201, satrec.d2211, satrec.d3210,
                satrec.d3222, satrec.d4410, satrec.d4422,
@@ -1725,30 +1717,29 @@ bool sgp4
                em, argpm, inclm, satrec.xli, mm, satrec.xni,
                nodem, dndt, nm
              );
-       } // if method = d
 
-     if (nm <= 0.0)
-       {
-//         printf("# error nm %f\n", nm);
+     if nm <= 0.0:
+
+#          printf("# error nm %f\n", nm);
          satrec.error = 2;
-         // sgp4fix add return
+         #  sgp4fix add return
          return false;
-       }
+
      am = pow((xke / nm),x2o3) * tempa * tempa;
      nm = xke / pow(am, 1.5);
      em = em - tempe;
 
-     // fix tolerance for error recognition
-     // sgp4fix am is fixed from the previous nm check
-     if ((em >= 1.0) || (em < -0.001)/* || (am < 0.95)*/ )
-       {
-//         printf("# error em %f\n", em);
+     #  fix tolerance for error recognition
+     #  sgp4fix am is fixed from the previous nm check
+     if em >= 1.0 or em < -0.001:  # || (am < 0.95)
+
+#          printf("# error em %f\n", em);
          satrec.error = 1;
-         // sgp4fix to return if there is an error in eccentricity
+         #  sgp4fix to return if there is an error in eccentricity
          return false;
-       }
-     // sgp4fix fix tolerance to avoid a divide by zero
-     if (em < 1.0e-6)
+
+     #  sgp4fix fix tolerance to avoid a divide by zero
+     if em < 1.0e-6:
          em  = 1.0e-6;
      mm     = mm + satrec.no * templ;
      xlm    = mm + argpm + nodem;
@@ -1760,11 +1751,11 @@ bool sgp4
      xlm    = fmod(xlm, twopi);
      mm     = fmod(xlm - argpm - nodem, twopi);
 
-     /* ----------------- compute extra mean quantities ------------- */
+     #  ----------------- compute extra mean quantities -------------
      sinim = sin(inclm);
      cosim = cos(inclm);
 
-     /* -------------------- add lunar-solar periodics -------------- */
+     #  -------------------- add lunar-solar periodics --------------
      ep     = em;
      xincp  = inclm;
      argpp  = argpm;
@@ -1772,10 +1763,9 @@ bool sgp4
      mp     = mm;
      sinip  = sinim;
      cosip  = cosim;
-     if (satrec.method == 'd')
-       {
-         dpper
-             (
+     if satrec.method == 'd':
+
+         ep, inclp, nodep, argpp, mp = _dpper(
                satrec.e3,   satrec.ee2,  satrec.peo,
                satrec.pgho, satrec.pho,  satrec.pinco,
                satrec.plo,  satrec.se2,  satrec.se3,
@@ -1789,71 +1779,68 @@ bool sgp4
                satrec.zmol, satrec.zmos, satrec.inclo,
                'n', ep, xincp, nodep, argpp, mp, satrec.operationmode
              );
-         if (xincp < 0.0)
-           {
+         if xincp < 0.0:
+
              xincp  = -xincp;
              nodep = nodep + pi;
              argpp  = argpp - pi;
-           }
-         if ((ep < 0.0 ) || ( ep > 1.0))
-           {
-//            printf("# error ep %f\n", ep);
-             satrec.error = 3;
-             // sgp4fix add return
-             return false;
-           }
-       } // if method = d
 
-     /* -------------------- long period periodics ------------------ */
-     if (satrec.method == 'd')
-       {
+         if ep < 0.0 or ep > 1.0:
+
+#             printf("# error ep %f\n", ep);
+             satrec.error = 3;
+             #  sgp4fix add return
+             return false;
+
+     #  -------------------- long period periodics ------------------
+     if satrec.method == 'd':
+
          sinip =  sin(xincp);
          cosip =  cos(xincp);
          satrec.aycof = -0.5*j3oj2*sinip;
-         // sgp4fix for divide by zero for xincp = 180 deg
-         if (fabs(cosip+1.0) > 1.5e-12)
+         #  sgp4fix for divide by zero for xincp = 180 deg
+         if fabs(cosip+1.0) > 1.5e-12:
              satrec.xlcof = -0.25 * j3oj2 * sinip * (3.0 + 5.0 * cosip) / (1.0 + cosip);
-           else
+         else:
              satrec.xlcof = -0.25 * j3oj2 * sinip * (3.0 + 5.0 * cosip) / temp4;
-       }
+
      axnl = ep * cos(argpp);
      temp = 1.0 / (am * (1.0 - ep * ep));
      aynl = ep* sin(argpp) + temp * satrec.aycof;
      xl   = mp + argpp + nodep + temp * satrec.xlcof * axnl;
 
-     /* --------------------- solve kepler's equation --------------- */
+     #  --------------------- solve kepler's equation ---------------
      u    = fmod(xl - nodep, twopi);
      eo1  = u;
      tem5 = 9999.9;
      ktr = 1;
-     //   sgp4fix for kepler iteration
-     //   the following iteration needs better limits on corrections
-     while (( fabs(tem5) >= 1.0e-12) && (ktr <= 10) )
-       {
+     #    sgp4fix for kepler iteration
+     #    the following iteration needs better limits on corrections
+     while fabs(tem5) >= 1.0e-12 and ktr <= 10:
+
          sineo1 = sin(eo1);
          coseo1 = cos(eo1);
          tem5   = 1.0 - coseo1 * axnl - sineo1 * aynl;
          tem5   = (u - aynl * coseo1 + axnl * sineo1 - eo1) / tem5;
-         if(fabs(tem5) >= 0.95)
-             tem5 = tem5 > 0.0 ? 0.95 : -0.95;
+         if fabs(tem5) >= 0.95:
+             tem5 = 0.95 if tem5 > 0.0 else -0.95;
          eo1    = eo1 + tem5;
          ktr = ktr + 1;
-       }
 
-     /* ------------- short period preliminary quantities ----------- */
+     #  ------------- short period preliminary quantities -----------
      ecose = axnl*coseo1 + aynl*sineo1;
      esine = axnl*sineo1 - aynl*coseo1;
      el2   = axnl*axnl + aynl*aynl;
      pl    = am*(1.0-el2);
-     if (pl < 0.0)
-       {
-//         printf("# error pl %f\n", pl);
+     if pl < 0.0:
+
+#          printf("# error pl %f\n", pl);
          satrec.error = 4;
-         // sgp4fix add return
+         #  sgp4fix add return
          return false;
-       }
-       else
-       {
+
+     else:
+
          rl     = am * (1.0 - ecose);
          rdotl  = sqrt(am) * esine/rl;
          rvdotl = sqrt(pl) / rl;
@@ -1868,15 +1855,15 @@ bool sgp4
          temp1  = 0.5 * j2 * temp;
          temp2  = temp1 * temp;
 
-         /* -------------- update for short period periodics ------------ */
-         if (satrec.method == 'd')
-           {
+         #  -------------- update for short period periodics ------------
+         if satrec.method == 'd':
+
              cosisq                 = cosip * cosip;
              satrec.con41  = 3.0*cosisq - 1.0;
              satrec.x1mth2 = 1.0 - cosisq;
              satrec.x7thm1 = 7.0*cosisq - 1.0;
-           }
-         mrt   = rl * (1.0 - 1.5 * temp2 * betal * satrec.con41) +
+
+         mrt   = rl * (1.0 - 1.5 * temp2 * betal * satrec.con41) + \
                  0.5 * temp1 * satrec.x1mth2 * cos2u;
          su    = su - 0.25 * temp2 * satrec.x7thm1 * sin2u;
          xnode = nodep + 1.5 * temp2 * cosip * sin2u;
@@ -1885,7 +1872,7 @@ bool sgp4
          rvdot = rvdotl + nm * temp1 * (satrec.x1mth2 * cos2u +
                  1.5 * satrec.con41) / xke;
 
-         /* --------------------- orientation vectors ------------------- */
+         #  --------------------- orientation vectors -------------------
          sinsu =  sin(su);
          cossu =  cos(su);
          snod  =  sin(xnode);
@@ -1901,28 +1888,24 @@ bool sgp4
          vy    =  xmy * cossu - snod * sinsu;
          vz    =  sini * cossu;
 
-         /* --------- position and velocity (in km and km/sec) ---------- */
+         #  --------- position and velocity (in km and km/sec) ----------
          r[0] = (mrt * ux)* radiusearthkm;
          r[1] = (mrt * uy)* radiusearthkm;
          r[2] = (mrt * uz)* radiusearthkm;
          v[0] = (mvt * ux + rvdot * vx) * vkmpersec;
          v[1] = (mvt * uy + rvdot * vy) * vkmpersec;
          v[2] = (mvt * uz + rvdot * vz) * vkmpersec;
-       }  // if pl > 0
 
-     // sgp4fix for decaying satellites
-     if (mrt < 1.0)
-       {
-//         printf("# decay condition %11.6f \n",mrt);
+     #  sgp4fix for decaying satellites
+     if mrt < 1.0:
+
+#          printf("# decay condition %11.6f \n",mrt);
          satrec.error = 6;
          return false;
-       }
 
-//#include "debug7.cpp"
      return true;
-}  // end sgp4
 
-
+"""
 /* -----------------------------------------------------------------------------
 *
 *                           function gstime
