@@ -213,7 +213,7 @@ def twoline2rv(
                printf("input start prop year mon day hr min sec \n");
                #  make sure there is no space at the end of the format specifiers in scanf!
                """
-               scanf( "%i %i %i %i %i %lf",&startyear, &startmon, &startday, &starthr, &startmin, &startsec);
+               scanf( "%i %i %i %i %i %lf",startyear, startmon, startday, starthr, startmin, startsec);
                """
                fflush(stdin);
                jdstart = jday(
@@ -221,7 +221,7 @@ def twoline2rv(
 
                printf("input stop prop year mon day hr min sec \n");
                """
-               scanf( "%i %i %i %i %i %lf",&stopyear, &stopmon, &stopday, &stophr, &stopmin, &stopsec);
+               scanf( "%i %i %i %i %i %lf",stopyear, stopmon, stopday, stophr, stopmin, stopsec);
                """
                fflush(stdin);
                jdstop = jday(stopyear,stopmon,stopday,stophr,stopmin,stopsec);
@@ -231,7 +231,7 @@ def twoline2rv(
 
                printf("input time step in minutes \n");
                """
-               scanf( "%lf",&deltamin );
+               scanf( "%lf",deltamin );
                """
 
            #  -------- enter start/stop year and days of year values -----------
@@ -239,9 +239,9 @@ def twoline2rv(
 
                """
                printf("input start year dayofyr \n");
-               scanf( "%i %lf",&startyear, &startdayofyr );
+               scanf( "%i %lf",startyear, startdayofyr );
                printf("input stop year dayofyr \n");
-               scanf( "%i %lf",&stopyear, &stopdayofyr );
+               scanf( "%i %lf",stopyear, stopdayofyr );
                """
                mon,day,hr,minute,sec = days2mdhms(startyear, startdayofyr);
                jdstart = jday(startyear,mon,day,hr,minute,sec);
@@ -253,7 +253,7 @@ def twoline2rv(
 
                printf("input time step in minutes \n");
                """
-               scanf( "%lf",&deltamin );
+               scanf( "%lf",deltamin );
                """
 
            #  ------------------ enter start/stop mfe values -------------------
@@ -261,11 +261,11 @@ def twoline2rv(
 
                """
                printf("input start min from epoch \n");
-               scanf( "%lf",&startmfe );
+               scanf( "%lf",startmfe );
                printf("input stop min from epoch \n");
-               scanf( "%lf",&stopmfe );
+               scanf( "%lf",stopmfe );
                printf("input time step in minutes \n");
-               scanf( "%lf",&deltamin );
+               scanf( "%lf",deltamin );
                """
 
        #  ------------ perform complete catalog evaluation, -+ 1 day -----------
@@ -281,3 +281,26 @@ def twoline2rv(
                  satrec.nodeo, satrec);
 
        return startmfe, stopmfe, deltamin
+
+
+def sscanf(string, format):
+    """Yes: a bootleg sscanf(), instead of tediously rewriting the above!"""
+
+    directives = format.split()
+    values = []
+    start = 0
+
+    for directive in directives:
+        length = int(directive[1 : -2 if directive[-2] == 'l' else -1])
+        conversion = directive[-1]
+
+        source = string[start:start + length]
+
+        if conversion in ('c', 's'):
+            values.append(source)
+        elif conversion == 'd':
+            values.append(int(source))
+        elif conversion == 'f':
+            values.append(float(source))
+
+    return values
