@@ -1525,8 +1525,8 @@ def sgp4init(
        // sgp4fix take out check to let satellites process until they are actually below earth surface
 //       if(satrec.error == 0)
      """
-     r = [0.0, 0.0, 0.0]
-     v = [0.0, 0.0, 0.0]
+     r = [None, None, None]
+     v = [None, None, None]
      sgp4(whichconst, satrec, 0.0, r, v);
 
      satrec.init = 'n';
