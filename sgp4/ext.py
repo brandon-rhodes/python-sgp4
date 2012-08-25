@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+"""Utility routines from "sgp4ext.cpp"."""
+
+"""
 /*     ----------------------------------------------------------------
 *
 *                               sgp4ext.cpp
@@ -222,7 +226,7 @@ double  asinh
 *
 *  this function solves keplers equation when the true anomaly is known.
 *    the mean and eccentric, parabolic, or hyperbolic anomaly is also found.
-*    the parabolic limit at 168ø is arbitrary. the hyperbolic anomaly is also
+*    the parabolic limit at 168Â° is arbitrary. the hyperbolic anomaly is also
 *    limited. the hyperbolic sine is used because it's not double valued.
 *
 *  author        : david vallado                  719-573-2600   27 may 2002
@@ -235,8 +239,8 @@ double  asinh
 *    nu          - true anomaly                   -2pi to 2pi rad
 *
 *  outputs       :
-*    e0          - eccentric anomaly              0.0  to 2pi rad       153.02 ø
-*    m           - mean anomaly                   0.0  to 2pi rad       151.7425 ø
+*    e0          - eccentric anomaly              0.0  to 2pi rad       153.02 Â°
+*    m           - mean anomaly                   0.0  to 2pi rad       151.7425 Â°
 *
 *  locals        :
 *    e1          - eccentric anomaly, next value  rad
@@ -718,8 +722,4 @@ void    invjday
      days2mdhms(year, days, mon, day, hr, minute, sec);
      sec = sec - 0.00000086400;
    }  // end invjday
-
-
-
-
-
+"""
