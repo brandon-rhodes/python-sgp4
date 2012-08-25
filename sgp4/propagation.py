@@ -17,7 +17,7 @@ code for the first time here in its Python form.
 |   On a very hot August day in 2012
 """
 
-from math import atan2, cos, fabs, fmod, pi, sin
+from math import atan2, cos, fabs, fmod, pi, sin, sqrt
 twopi = 2.0 * pi
 
 """
@@ -328,50 +328,41 @@ def _dpper(
 *    hoots, schumacher and glover 2004
 *    vallado, crawford, hujsak, kelso  2006
   ----------------------------------------------------------------------------*/
+"""
 
-static void dscom
-     (
-       double epoch,  double ep,     double argpp,   double tc,     double inclp,
-       double nodep,  double np,
-       double& snodm, double& cnodm, double& sinim,  double& cosim, double& sinomm,
-       double& cosomm,double& day,   double& e3,     double& ee2,   double& em,
-       double& emsq,  double& gam,   double& peo,    double& pgho,  double& pho,
-       double& pinco, double& plo,   double& rtemsq, double& se2,   double& se3,
-       double& sgh2,  double& sgh3,  double& sgh4,   double& sh2,   double& sh3,
-       double& si2,   double& si3,   double& sl2,    double& sl3,   double& sl4,
-       double& s1,    double& s2,    double& s3,     double& s4,    double& s5,
-       double& s6,    double& s7,    double& ss1,    double& ss2,   double& ss3,
-       double& ss4,   double& ss5,   double& ss6,    double& ss7,   double& sz1,
-       double& sz2,   double& sz3,   double& sz11,   double& sz12,  double& sz13,
-       double& sz21,  double& sz22,  double& sz23,   double& sz31,  double& sz32,
-       double& sz33,  double& xgh2,  double& xgh3,   double& xgh4,  double& xh2,
-       double& xh3,   double& xi2,   double& xi3,    double& xl2,   double& xl3,
-       double& xl4,   double& nm,    double& z1,     double& z2,    double& z3,
-       double& z11,   double& z12,   double& z13,    double& z21,   double& z22,
-       double& z23,   double& z31,   double& z32,    double& z33,   double& zmol,
-       double& zmos
-     )
-{
-     /* -------------------------- constants ------------------------- */
-     const double zes     =  0.01675;
-     const double zel     =  0.05490;
-     const double c1ss    =  2.9864797e-6;
-     const double c1l     =  4.7968065e-7;
-     const double zsinis  =  0.39785416;
-     const double zcosis  =  0.91744867;
-     const double zcosgs  =  0.1945905;
-     const double zsings  = -0.98088458;
-     const double twopi   =  2.0 * pi;
+def _dscom(
+       epoch,  ep,     argpp,   tc,     inclp,
+       nodep,  np,
+       snodm, cnodm, sinim,  cosim, sinomm,
+       cosomm,day,   e3,     ee2,   em,
+       emsq,  gam,   peo,    pgho,  pho,
+       pinco, plo,   rtemsq, se2,   se3,
+       sgh2,  sgh3,  sgh4,   sh2,   sh3,
+       si2,   si3,   sl2,    sl3,   sl4,
+       s1,    s2,    s3,     s4,    s5,
+       s6,    s7,    ss1,    ss2,   ss3,
+       ss4,   ss5,   ss6,    ss7,   sz1,
+       sz2,   sz3,   sz11,   sz12,  sz13,
+       sz21,  sz22,  sz23,   sz31,  sz32,
+       sz33,  xgh2,  xgh3,   xgh4,  xh2,
+       xh3,   xi2,   xi3,    xl2,   xl3,
+       xl4,   nm,    z1,     z2,    z3,
+       z11,   z12,   z13,    z21,   z22,
+       z23,   z31,   z32,    z33,   zmol,
+       zmos
+     ):
 
-     /* --------------------- local variables ------------------------ */
-     int lsflg;
-     double a1    , a2    , a3    , a4    , a5    , a6    , a7    ,
-        a8    , a9    , a10   , betasq, cc    , ctem  , stem  ,
-        x1    , x2    , x3    , x4    , x5    , x6    , x7    ,
-        x8    , xnodce, xnoi  , zcosg , zcosgl, zcosh , zcoshl,
-        zcosi , zcosil, zsing , zsingl, zsinh , zsinhl, zsini ,
-        zsinil, zx    , zy;
+     #  -------------------------- constants -------------------------
+     zes     =  0.01675;
+     zel     =  0.05490;
+     c1ss    =  2.9864797e-6;
+     c1l     =  4.7968065e-7;
+     zsinis  =  0.39785416;
+     zcosis  =  0.91744867;
+     zcosgs  =  0.1945905;
+     zsings  = -0.98088458;
 
+     #  --------------------- local variables ------------------------
      nm     = np;
      em     = ep;
      snodm  = sin(nodep);
@@ -384,7 +375,7 @@ static void dscom
      betasq = 1.0 - emsq;
      rtemsq = sqrt(betasq);
 
-     /* ----------------- initialize lunar solar terms --------------- */
+     #  ----------------- initialize lunar solar terms ---------------
      peo    = 0.0;
      pinco  = 0.0;
      plo    = 0.0;
@@ -406,7 +397,7 @@ static void dscom
      zcosgl = cos(zx);
      zsingl = sin(zx);
 
-     /* ------------------------- do solar terms --------------------- */
+     #  ------------------------- do solar terms ---------------------
      zcosg = zcosgs;
      zsing = zsings;
      zcosi = zcosis;
@@ -416,8 +407,8 @@ static void dscom
      cc    = c1ss;
      xnoi  = 1.0 / nm;
 
-     for (lsflg = 1; lsflg <= 2; lsflg++)
-       {
+     for lsflg in 1, 2:
+
          a1  =   zcosg * zcosh + zsing * zcosi * zsinh;
          a3  =  -zsing * zcosh + zcosg * zcosi * zsinh;
          a7  =  -zcosg * zsinh + zsing * zcosi * zcosh;
@@ -445,11 +436,11 @@ static void dscom
          z2  =  6.0 *  (a1 * a3 + a2 * a4) + z32 * emsq;
          z3  =  3.0 *  (a3 * a3 + a4 * a4) + z33 * emsq;
          z11 = -6.0 * a1 * a5 + emsq *  (-24.0 * x1 * x7-6.0 * x3 * x5);
-         z12 = -6.0 *  (a1 * a6 + a3 * a5) + emsq *
+         z12 = -6.0 *  (a1 * a6 + a3 * a5) + emsq * \
                 (-24.0 * (x2 * x7 + x1 * x8) - 6.0 * (x3 * x6 + x4 * x5));
          z13 = -6.0 * a3 * a6 + emsq * (-24.0 * x2 * x8 - 6.0 * x4 * x6);
          z21 =  6.0 * a2 * a5 + emsq * (24.0 * x1 * x5 - 6.0 * x3 * x7);
-         z22 =  6.0 *  (a4 * a5 + a2 * a6) + emsq *
+         z22 =  6.0 *  (a4 * a5 + a2 * a6) + emsq * \
                 (24.0 * (x2 * x5 + x1 * x6) - 6.0 * (x4 * x7 + x3 * x8));
          z23 =  6.0 * a4 * a6 + emsq * (24.0 * x2 * x6 - 6.0 * x4 * x8);
          z1  = z1 + z1 + betasq * z31;
@@ -463,9 +454,9 @@ static void dscom
          s6  = x2 * x3 + x1 * x4;
          s7  = x2 * x4 - x1 * x3;
 
-         /* ----------------------- do lunar terms ------------------- */
-         if (lsflg == 1)
-           {
+         #  ----------------------- do lunar terms -------------------
+         if lsflg == 1:
+
              ss1   = s1;
              ss2   = s2;
              ss3   = s3;
@@ -492,13 +483,11 @@ static void dscom
              zcosh = zcoshl * cnodm + zsinhl * snodm;
              zsinh = snodm * zcoshl - cnodm * zsinhl;
              cc    = c1l;
-          }
-       }
 
      zmol = fmod(4.7199672 + 0.22997150  * day - gam, twopi);
      zmos = fmod(6.2565837 + 0.017201977 * day, twopi);
 
-     /* ------------------------ do solar terms ---------------------- */
+     #  ------------------------ do solar terms ----------------------
      se2  =   2.0 * ss1 * ss6;
      se3  =   2.0 * ss1 * ss7;
      si2  =   2.0 * ss2 * sz12;
@@ -512,7 +501,7 @@ static void dscom
      sh2  =  -2.0 * ss2 * sz22;
      sh3  =  -2.0 * ss2 * (sz23 - sz21);
 
-     /* ------------------------ do lunar terms ---------------------- */
+     #  ------------------------ do lunar terms ----------------------
      ee2  =   2.0 * s1 * s6;
      e3   =   2.0 * s1 * s7;
      xi2  =   2.0 * s2 * z12;
@@ -526,9 +515,27 @@ static void dscom
      xh2  =  -2.0 * s2 * z22;
      xh3  =  -2.0 * s2 * (z23 - z21);
 
-//#include "debug2.cpp"
-}  // end dscom
+     return (
+       snodm, cnodm, sinim,  cosim, sinomm,
+       cosomm,day,   e3,     ee2,   em,
+       emsq,  gam,   peo,    pgho,  pho,
+       pinco, plo,   rtemsq, se2,   se3,
+       sgh2,  sgh3,  sgh4,   sh2,   sh3,
+       si2,   si3,   sl2,    sl3,   sl4,
+       s1,    s2,    s3,     s4,    s5,
+       s6,    s7,    ss1,    ss2,   ss3,
+       ss4,   ss5,   ss6,    ss7,   sz1,
+       sz2,   sz3,   sz11,   sz12,  sz13,
+       sz21,  sz22,  sz23,   sz31,  sz32,
+       sz33,  xgh2,  xgh3,   xgh4,  xh2,
+       xh3,   xi2,   xi3,    xl2,   xl3,
+       xl4,   nm,    z1,     z2,    z3,
+       z11,   z12,   z13,    z21,   z22,
+       z23,   z31,   z32,    z33,   zmol,
+       zmos
+       )
 
+"""
 /*-----------------------------------------------------------------------------
 *
 *                           procedure dsinit
