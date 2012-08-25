@@ -337,23 +337,14 @@ def _dpper(
 def _dscom(
        epoch,  ep,     argpp,   tc,     inclp,
        nodep,  np,
-       snodm, cnodm, sinim,  cosim, sinomm,
-       cosomm,day,   e3,     ee2,   em,
-       emsq,  gam,   peo,    pgho,  pho,
-       pinco, plo,   rtemsq, se2,   se3,
+       e3,     ee2,
+       peo,    pgho,  pho,
+       pinco, plo, se2,   se3,
        sgh2,  sgh3,  sgh4,   sh2,   sh3,
        si2,   si3,   sl2,    sl3,   sl4,
-       s1,    s2,    s3,     s4,    s5,
-       s6,    s7,    ss1,    ss2,   ss3,
-       ss4,   ss5,   ss6,    ss7,   sz1,
-       sz2,   sz3,   sz11,   sz12,  sz13,
-       sz21,  sz22,  sz23,   sz31,  sz32,
-       sz33,  xgh2,  xgh3,   xgh4,  xh2,
+       xgh2,  xgh3,   xgh4,  xh2,
        xh3,   xi2,   xi3,    xl2,   xl3,
-       xl4,   nm,    z1,     z2,    z3,
-       z11,   z12,   z13,    z21,   z22,
-       z23,   z31,   z32,    z33,   zmol,
-       zmos,
+       xl4,   zmol,  zmos,
      ):
 
      #  -------------------------- constants -------------------------
@@ -1459,19 +1450,16 @@ def sgp4init(
                  zmos
              ) = _dscom(
                    epoch, satrec.ecco, satrec.argpo, tc, satrec.inclo, satrec.nodeo,
-                   satrec.no, snodm, cnodm,  sinim, cosim,sinomm,     cosomm,
-                   day, satrec.e3, satrec.ee2, em,         emsq, gam,
+                   satrec.no,
+                   satrec.e3, satrec.ee2,
                    satrec.peo,  satrec.pgho,   satrec.pho, satrec.pinco,
-                   satrec.plo,  rtemsq,        satrec.se2, satrec.se3,
+                   satrec.plo,        satrec.se2, satrec.se3,
                    satrec.sgh2, satrec.sgh3,   satrec.sgh4,
                    satrec.sh2,  satrec.sh3,    satrec.si2, satrec.si3,
-                   satrec.sl2,  satrec.sl3,    satrec.sl4, s1, s2, s3, s4, s5,
-                   s6,   s7,   ss1,  ss2,  ss3,  ss4,  ss5,  ss6,  ss7, sz1, sz2, sz3,
-                   sz11, sz12, sz13, sz21, sz22, sz23, sz31, sz32, sz33,
+                   satrec.sl2,  satrec.sl3,    satrec.sl4,
                    satrec.xgh2, satrec.xgh3,   satrec.xgh4, satrec.xh2,
                    satrec.xh3,  satrec.xi2,    satrec.xi3,  satrec.xl2,
-                   satrec.xl3,  satrec.xl4,    nm, z1, z2, z3, z11,
-                   z12, z13, z21, z22, z23, z31, z32, z33,
+                   satrec.xl3,  satrec.xl4,
                    satrec.zmol, satrec.zmos
                  );
              ep, inclp, nodep, argpp, mp = _dpper(
