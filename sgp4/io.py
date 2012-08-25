@@ -3,7 +3,7 @@
 This is a minimally-edited copy of "sgp4io.cpp".
 
 """
-from math import pi
+from math import pi, pow
 from sgp4.ext import days2mdhms, jday
 from sgp4.propagation import getgravconst, sgp4init
 
@@ -130,39 +130,43 @@ def twoline2rv(
        if longstr1[68] == ' ':
            longstr1[68] = '0';
 
-       """
+       (cardnumb,satrec.satnum,classification, intldesg, satrec.epochyr,
+        satrec.epochdays,satrec.ndot, satrec.nddot, nexp, satrec.bstar,
+        ibexp, numb, elnum) = \
        sscanf(longstr1,"%2d %5ld %1c %10s %2d %12lf %11lf %7lf %2d %7lf %2d %2d %6ld ",
-                       &cardnumb,&satrec.satnum,&classification, intldesg, &satrec.epochyr,
-                       &satrec.epochdays,&satrec.ndot, &satrec.nddot, &nexp, &satrec.bstar,
-                       &ibexp, &numb, &elnum );
+           )
 
-       if (typerun == 'v')  // run for specified times from the file
-         {
-           if (longstr2[52] == ' ')
+       if typerun == 'v':  #  run for specified times from the file
+
+           if longstr2[52] == ' ':
+               (cardnumb,satrec.satnum, satrec.inclo,
+                satrec.nodeo,satrec.ecco, satrec.argpo, satrec.mo, satrec.no,
+                revnum, startmfe, stopmfe, deltamin) = \
                sscanf(longstr2,"%2d %5ld %9lf %9lf %8lf %9lf %9lf %10lf %6ld %lf %lf %lf \n",
-                       &cardnumb,&satrec.satnum, &satrec.inclo,
-                       &satrec.nodeo,&satrec.ecco, &satrec.argpo, &satrec.mo, &satrec.no,
-                       &revnum, &startmfe, &stopmfe, &deltamin );
-             else
+                   );
+
+           else:
+               (cardnumb,satrec.satnum, satrec.inclo,
+                satrec.nodeo,satrec.ecco, satrec.argpo, satrec.mo, satrec.no,
+                revnum, startmfe, stopmfe, deltamin) = \
                sscanf(longstr2,"%2d %5ld %9lf %9lf %8lf %9lf %9lf %11lf %6ld %lf %lf %lf \n",
-                       &cardnumb,&satrec.satnum, &satrec.inclo,
-                       &satrec.nodeo,&satrec.ecco, &satrec.argpo, &satrec.mo, &satrec.no,
-                       &revnum, &startmfe, &stopmfe, &deltamin );
-         }
-         else  // simply run -1 day to +1 day or user input times
-         {
-           if (longstr2[52] == ' ')
+                   );
+
+       else:  #  simply run -1 day to +1 day or user input times
+
+           if longstr2[52] == ' ':
+               (cardnumb,satrec.satnum, satrec.inclo,
+                satrec.nodeo,satrec.ecco, satrec.argpo, satrec.mo, satrec.no,
+                revnum) = \
                sscanf(longstr2,"%2d %5ld %9lf %9lf %8lf %9lf %9lf %10lf %6ld \n",
-                       &cardnumb,&satrec.satnum, &satrec.inclo,
-                       &satrec.nodeo,&satrec.ecco, &satrec.argpo, &satrec.mo, &satrec.no,
-                       &revnum );
-             else
+                      )
+           else:
+               (cardnumb,satrec.satnum, satrec.inclo,
+                satrec.nodeo,satrec.ecco, satrec.argpo, satrec.mo, satrec.no,
+                revnum) = \
                sscanf(longstr2,"%2d %5ld %9lf %9lf %8lf %9lf %9lf %11lf %6ld \n",
-                       &cardnumb,&satrec.satnum, &satrec.inclo,
-                       &satrec.nodeo,&satrec.ecco, &satrec.argpo, &satrec.mo, &satrec.no,
-                       &revnum );
-         }
-       """
+                      )
+
        #  ---- find no, ndot, nddot ----
        satrec.no   = satrec.no / xpdotp; #   rad/min
        satrec.nddot= satrec.nddot * pow(10.0, nexp);
