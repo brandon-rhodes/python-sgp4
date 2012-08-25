@@ -1977,61 +1977,45 @@ def _gstime(jdut1):
 *    norad spacetrack report #3
 *    vallado, crawford, hujsak, kelso  2006
   --------------------------------------------------------------------------- */
+"""
 
-void getgravconst
-     (
-      gravconsttype whichconst,
-      double& tumin,
-      double& mu,
-      double& radiusearthkm,
-      double& xke,
-      double& j2,
-      double& j3,
-      double& j4,
-      double& j3oj2
-     )
-     {
+def getgravconst(whichconst):
 
-       switch (whichconst)
-         {
-           // -- wgs-72 low precision str#3 constants --
-           case wgs72old:
-           mu     = 398600.79964;        // in km3 / s2
-           radiusearthkm = 6378.135;     // km
+       if whichconst == 'wgs72old':
+           mu     = 398600.79964;        #  in km3 / s2
+           radiusearthkm = 6378.135;     #  km
            xke    = 0.0743669161;
            tumin  = 1.0 / xke;
            j2     =   0.001082616;
            j3     =  -0.00000253881;
            j4     =  -0.00000165597;
            j3oj2  =  j3 / j2;
-         break;
-           // ------------ wgs-72 constants ------------
-           case wgs72:
-           mu     = 398600.8;            // in km3 / s2
-           radiusearthkm = 6378.135;     // km
+
+           #  ------------ wgs-72 constants ------------
+       elif whichconst == 'wgs72':
+           mu     = 398600.8;            #  in km3 / s2
+           radiusearthkm = 6378.135;     #  km
            xke    = 60.0 / sqrt(radiusearthkm*radiusearthkm*radiusearthkm/mu);
            tumin  = 1.0 / xke;
            j2     =   0.001082616;
            j3     =  -0.00000253881;
            j4     =  -0.00000165597;
            j3oj2  =  j3 / j2;
-         break;
-           case wgs84:
-           // ------------ wgs-84 constants ------------
-           mu     = 398600.5;            // in km3 / s2
-           radiusearthkm = 6378.137;     // km
+
+       elif whichconst == 'wgs84':
+           #  ------------ wgs-84 constants ------------
+           mu     = 398600.5;            #  in km3 / s2
+           radiusearthkm = 6378.137;     #  km
            xke    = 60.0 / sqrt(radiusearthkm*radiusearthkm*radiusearthkm/mu);
            tumin  = 1.0 / xke;
            j2     =   0.00108262998905;
            j3     =  -0.00000253215306;
            j4     =  -0.00000161098761;
            j3oj2  =  j3 / j2;
-         break;
-         default:
-           fprintf(stderr,"unknown gravity option (%d)\n",whichconst);
-         break;
-         }
 
-     }   // end getgravconst
+       else:
+           # TODO: logging module?
+           import sys
+           print >>sys.stderr, 'unknown gravity option %r\n' % whichconst
 
-"""
+       return tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2
