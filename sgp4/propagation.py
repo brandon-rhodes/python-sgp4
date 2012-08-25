@@ -627,7 +627,7 @@ def _dsinit(
        irez,
        atime, d2201, d2211,  d3210, d3222,
        d4410, d4422, d5220,  d5232, d5421,
-       d5433, dedt,  didt,   dmdt,  dndt,
+       d5433, dedt,  didt,   dmdt,
        dnodt, domdt, del1,   del2,  del3,
        xfact, xlamo, xli,    xni,
      ):
@@ -912,7 +912,7 @@ def _dspace(
        t,      tc,     gsto,    xfact,  xlamo,
        no,
        atime, em,    argpm,  inclm, xli,
-       mm,    xni,   nodem,  dndt,  nm,
+       mm,    xni,   nodem,  nm,
        ):
 
      fasx2 = 0.13130908;
@@ -1499,7 +1499,7 @@ def sgp4init(
                    satrec.d2201, satrec.d2211, satrec.d3210, satrec.d3222 ,
                    satrec.d4410, satrec.d4422, satrec.d5220, satrec.d5232,
                    satrec.d5421, satrec.d5433, satrec.dedt,  satrec.didt,
-                   satrec.dmdt,  dndt,         satrec.dnodt, satrec.domdt ,
+                   satrec.dmdt,  satrec.dnodt, satrec.domdt,
                    satrec.del1,  satrec.del2,  satrec.del3,  satrec.xfact,
                    satrec.xlamo, satrec.xli,   satrec.xni
                  );
@@ -1701,7 +1701,7 @@ def sgp4(
                satrec.gsto, satrec.xfact, satrec.xlamo,
                satrec.no, satrec.atime,
                em, argpm, inclm, satrec.xli, mm, satrec.xni,
-               nodem, dndt, nm
+               nodem, nm
              );
 
      if nm <= 0.0:
