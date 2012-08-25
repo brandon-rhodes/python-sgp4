@@ -17,7 +17,7 @@ code for the first time here in its Python form.
 |   On a very hot August day in 2012
 """
 
-from math import atan2, cos, fabs, fmod, pi, sin, sqrt
+from math import atan2, cos, fabs, floor, fmod, pi, sin, sqrt
 twopi = 2.0 * pi
 
 """
@@ -1097,47 +1097,40 @@ def _dspace(
 *    hoots, schumacher and glover 2004
 *    vallado, crawford, hujsak, kelso  2006
   ----------------------------------------------------------------------------*/
+"""
 
-static void initl
-     (
-       int satn,      gravconsttype whichconst,
-       double ecco,   double epoch,  double inclo,   double& no,
-       char& method,
-       double& ainv,  double& ao,    double& con41,  double& con42, double& cosio,
-       double& cosio2,double& eccsq, double& omeosq, double& posq,
-       double& rp,    double& rteosq,double& sinio , double& gsto,
-       char opsmode
-     )
-{
-     /* --------------------- local variables ------------------------ */
-     double ak, d1, del, adel, po, x2o3, j2, xke,
-            tumin, mu, radiusearthkm, j3, j4, j3oj2;
+def _initl(
+       satn,      whichconst,
+       ecco,   epoch,  inclo,   no,
+       method,
+       ainv,  ao,    con41,  con42, cosio,
+       cosio2,eccsq, omeosq, posq,
+       rp,    rteosq,sinio , gsto,
+       opsmode
+       ):
 
-     // sgp4fix use old way of finding gst
-     double ds70;
-     double ts70, tfrac, c1, thgr70, fk5r, c1p2p;
-     const double twopi = 2.0 * pi;
+     # sgp4fix use old way of finding gst
 
-     /* ----------------------- earth constants ---------------------- */
-     // sgp4fix identify constants and allow alternate values
-     getgravconst( whichconst, tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2 );
+     #  ----------------------- earth constants ----------------------
+     #  sgp4fix identify constants and allow alternate values
+     tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2 = getgravconst(whichconst)
      x2o3   = 2.0 / 3.0;
 
-     /* ------------- calculate auxillary epoch quantities ---------- */
+     #  ------------- calculate auxillary epoch quantities ----------
      eccsq  = ecco * ecco;
      omeosq = 1.0 - eccsq;
      rteosq = sqrt(omeosq);
      cosio  = cos(inclo);
      cosio2 = cosio * cosio;
 
-     /* ------------------ un-kozai the mean motion ----------------- */
+     #  ------------------ un-kozai the mean motion -----------------
      ak    = pow(xke / no, x2o3);
      d1    = 0.75 * j2 * (3.0 * cosio2 - 1.0) / (rteosq * omeosq);
-     del   = d1 / (ak * ak);
-     adel  = ak * (1.0 - del * del - del *
-             (1.0 / 3.0 + 134.0 * del * del / 81.0));
-     del   = d1/(adel * adel);
-     no    = no / (1.0 + del);
+     del_  = d1 / (ak * ak);
+     adel  = ak * (1.0 - del_ * del_ - del_ *
+             (1.0 / 3.0 + 134.0 * del_ * del_ / 81.0));
+     del_  = d1/(adel * adel);
+     no    = no / (1.0 + del_);
 
      ao    = pow(xke / no, x2o3);
      sinio = sin(inclo);
@@ -1149,30 +1142,35 @@ static void initl
      rp    = ao * (1.0 - ecco);
      method = 'n';
 
-     // sgp4fix modern approach to finding sidereal time
-     if (opsmode == 'a')
-        {
-         // sgp4fix use old way of finding gst
-         // count integer number of days from 0 jan 1970
+     #  sgp4fix modern approach to finding sidereal time
+     if opsmode == 'a':
+
+         #  sgp4fix use old way of finding gst
+         #  count integer number of days from 0 jan 1970
          ts70  = epoch - 7305.0;
          ds70 = floor(ts70 + 1.0e-8);
          tfrac = ts70 - ds70;
-         // find greenwich location at epoch
+         #  find greenwich location at epoch
          c1    = 1.72027916940703639e-2;
          thgr70= 1.7321343856509374;
          fk5r  = 5.07551419432269442e-15;
          c1p2p = c1 + twopi;
          gsto  = fmod( thgr70 + c1*ds70 + c1p2p*tfrac + ts70*ts70*fk5r, twopi);
-         if ( gsto < 0.0 )
+         if gsto < 0.0:
              gsto = gsto + twopi;
-       }
-       else
-        gsto = gstime(epoch + 2433281.5);
 
+     else:
+        gsto = _gstime(epoch + 2433281.5);
 
-//#include "debug5.cpp"
-}  // end initl
+     return (
+       no,
+       method,
+       ainv,  ao,    con41,  con42, cosio,
+       cosio2,eccsq, omeosq, posq,
+       rp,    rteosq,sinio , gsto,
+       )
 
+"""
 /*-----------------------------------------------------------------------------
 *
 *                             procedure sgp4init
