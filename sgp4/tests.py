@@ -2,11 +2,15 @@
 
 import os
 from unittest import TestCase
+from math import pi
+
+from sgp4.ext import invjday, rv2coe
 from sgp4.io import twoline2rv
-from sgp4.propagation import sgp4
+from sgp4.propagation import getgravconst, sgp4
 
 thisdir = os.path.dirname(__file__)
 error = 2e-7
+rad = 180.0 / pi
 
 
 class SatRec(object):
@@ -26,30 +30,41 @@ class Tests(TestCase):
 
                 # TODO: what are we supposed to do with the extra fields
                 # that lie past character 107?
-                if len(expected_line) > 107:
-                    expected_line = expected_line[:107] + expected_line[-1:]
+                # if len(expected_line) > 107:
+                #     expected_line = expected_line[:107] + expected_line[-1:]
 
                 try:
                     actual_line = next(actual)
                 except StopIteration:
-                    print 'WARNING: our output ended early, on line %d' % (i,)
-                    break
+                    raise ValueError(
+                        'WARNING: our output ended early, on line %d' % (i,))
 
                 if actual_line == '(Use previous data line)':
-                    actual_line = '       0.00000000' + previous_data_line[17:]
+                    actual_line = ('       0.00000000' +
+                                   previous_data_line[17:107])
 
                 # Compare the lines.
 
                 if 'xx' in actual_line:
                     similar = (actual_line == expected_line)
                 else:
-                    actuals = (float(a) for a in actual_line.split())
-                    expecteds = (float(e) for e in expected_line.split())
-                    similar = all(-error < (a - e) < error
-                                   for a, e in zip(actuals, expecteds))
+                    afields = actual_line.split()
+                    efields = expected_line.split()
+                    actual7 = [ float(a) for a in afields[:7] ]
+                    expected7 = [ float(e) for e in efields[:7] ]
+                    similar = (
+                        len(actual7) == len(expected7)
+                        and
+                        all(
+                            -error < (a - e) < error
+                             for a, e in zip(actual7, expected7)
+                             )
+                        and
+                        afields[7:] == efields[7:]  # just compare text
+                        )
 
                 if not similar:
-                    print(
+                    raise ValueError(
                         'Line %d of output does not match:\n'
                         '\n'
                         'Expect: %s'
@@ -91,11 +106,13 @@ def generate_test_output(whichconst):
 
 def generate_satellite_output(whichconst, satrec, line2):
 
+    mu = getgravconst(whichconst)[1]
+
     ro, vo = sgp4(whichconst, satrec, 0.0)
     if ro is None:
         yield '(Use previous data line)'
         return
-    yield format_test_line(satrec, ro, vo)
+    yield format_short_line(satrec, ro, vo)
 
     tstart, tend, tstep = (float(field) for field in line2[69:].split())
 
@@ -105,20 +122,38 @@ def generate_satellite_output(whichconst, satrec, line2):
             tsince += tstep
             continue  # avoid duplicating the first line
 
-        ro, vo = sgp4(whichconst, satrec, tsince)
-        if ro is None:
+        r, v = sgp4(whichconst, satrec, tsince)
+
+        if r is None:
             return
-        yield format_test_line(satrec, ro, vo)
+        yield format_long_line(satrec, mu, r, v)
 
         tsince += tstep
 
     if tsince - tend < tstep - 1e-6:  # do not miss last line!
-        ro, vo = sgp4(whichconst, satrec, tend)
-        if ro is None:
+        r, v = sgp4(whichconst, satrec, tend)
+        if r is None:
             return
-        yield format_test_line(satrec, ro, vo)
+        yield format_long_line(satrec, mu, r, v)
 
 
-def format_test_line(satrec, ro, vo):
+def format_short_line(satrec, ro, vo):
+    """Format a test line with the same format string that testcpp.cpp uses."""
+
     return ' %16.8f %16.8f %16.8f %16.8f %12.9f %12.9f %12.9f\n' % (
         satrec.t, ro[0], ro[1], ro[2], vo[0], vo[1], vo[2])
+
+
+def format_long_line(satrec, mu, r, v):
+    short = format_short_line(satrec, r, v).strip('\n')
+
+    jd = satrec.jdsatepoch + satrec.t / 1440.0
+    year, mon, day, hr, minute, sec = invjday(jd)
+
+    (p, a, ecc, incl, node, argp, nu, m, arglat, truelon, lonper
+     ) = rv2coe(r, v, mu)
+
+    return short + (' %14.6f %8.6f %10.5f %10.5f %10.5f %10.5f %10.5f'
+                    ' %5i%3i%3i %2i:%2i:%9.6f\n') % (
+        a, ecc, incl*rad, node*rad, argp*rad, nu*rad,
+        m*rad, year, mon, day, hr, minute, sec)
