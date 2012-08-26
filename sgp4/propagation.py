@@ -820,12 +820,13 @@ def _dsinit(
      return (
        em,    argpm,  inclm, mm,
        nm,    nodem,
-       irez,
-       atime, d2201, d2211,  d3210, d3222,
-       d4410, d4422, d5220,  d5232, d5421,
-       d5433, dedt,  didt,   dmdt,  dndt,
-       dnodt, domdt, del1,   del2,  del3,
-       xfact, xlamo, xli,    xni,
+       irez, atime,
+       d2201, d2211,  d3210, d3222,
+       d4410, d4422, d5220,  d5232,
+       d5421, d5433, dedt,  didt,
+       dmdt,  dndt, dnodt, domdt,
+       del1,   del2,  del3, xfact,
+       xlamo, xli,    xni,
        )
 
 """
@@ -1461,7 +1462,8 @@ def sgp4init(
                    satrec.xl3,  satrec.xl4,
                    satrec.zmol, satrec.zmos
                  );
-             ep, inclp, nodep, argpp, mp = _dpper(
+             (satrec.ecco, satrec.inclo, satrec.nodeo, satrec.argpo, satrec.mo
+              ) = _dpper(
                    satrec.e3, satrec.ee2, satrec.peo, satrec.pgho,
                    satrec.pho, satrec.pinco, satrec.plo, satrec.se2,
                    satrec.se3, satrec.sgh2, satrec.sgh3, satrec.sgh4,
@@ -1481,12 +1483,13 @@ def sgp4init(
              (
                  em,    argpm,  inclm, mm,
                  nm,    nodem,
-                 irez,
-                 atime, d2201, d2211,  d3210, d3222,
-                 d4410, d4422, d5220,  d5232, d5421,
-                 d5433, dedt,  didt,   dmdt,  dndt,
-                 dnodt, domdt, del1,   del2,  del3,
-                 xfact, xlamo, xli,    xni,
+                 satrec.irez,  satrec.atime,
+                 satrec.d2201, satrec.d2211, satrec.d3210, satrec.d3222,
+                 satrec.d4410, satrec.d4422, satrec.d5220, satrec.d5232,
+                 satrec.d5421, satrec.d5433, satrec.dedt,  satrec.didt,
+                 satrec.dmdt, dndt,  satrec.dnodt, satrec.domdt,
+                 satrec.del1,  satrec.del2,  satrec.del3,  satrec.xfact,
+                 satrec.xlamo, satrec.xli,   satrec.xni
              ) = _dsinit(
                    whichconst,
                    cosim, emsq, satrec.argpo, s1, s2, s3, s4, s5, sinim, ss1, ss2, ss3, ss4,
@@ -1746,7 +1749,7 @@ def sgp4(whichconst, satrec, tsince):
      cosip  = cosim;
      if satrec.method == 'd':
 
-         ep, inclp, nodep, argpp, mp = _dpper(
+         ep, xincp, nodep, argpp, mp = _dpper(
                satrec.e3,   satrec.ee2,  satrec.peo,
                satrec.pgho, satrec.pho,  satrec.pinco,
                satrec.plo,  satrec.se2,  satrec.se3,
