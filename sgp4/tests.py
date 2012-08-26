@@ -14,10 +14,6 @@ error = 2e-7
 rad = 180.0 / pi
 
 
-class SatRec(object):
-    pass
-
-
 class Tests(TestCase):
 
     def test_tle_verify(self):
@@ -107,8 +103,7 @@ def generate_test_output(whichconst):
             continue
 
         line2 = next(tlelines)
-        satrec = SatRec()
-        twoline2rv(line1, line2, 'c', None, 'i', whichconst, satrec)
+        satrec = twoline2rv(line1, line2, 'c', None, 'i', whichconst)
 
         yield '%ld xx\n' % (satrec.satnum,)
 

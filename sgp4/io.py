@@ -6,11 +6,13 @@ This is a minimally-edited copy of "sgp4io.cpp".
 import re
 from math import pi, pow
 from sgp4.ext import days2mdhms, jday
+from sgp4.model import Satellite
 from sgp4.propagation import getgravconst, sgp4init
 
 SPACE = ord(' ')
 INT_RE = re.compile(r'[+-]?\d*')
 FLOAT_RE = re.compile(r'[+-]?\d*(\.\d*)?')
+
 
 """
 /*     ----------------------------------------------------------------
@@ -89,7 +91,6 @@ def twoline2rv(
       longstr1, longstr2,
       typerun,  typeinput, opsmode,
       whichconst,
-      satrec,
       ):
 
        deg2rad  =   pi / 180.0;         #    0.0174532925199433
@@ -103,6 +104,7 @@ def twoline2rv(
 
        tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2 = getgravconst(whichconst)
 
+       satrec = Satellite()
        satrec.error = 0;
 
        # This is Python, so we make the strings mutable before setting
@@ -294,7 +296,7 @@ def twoline2rv(
                  satrec.ecco, satrec.argpo, satrec.inclo, satrec.mo, satrec.no,
                  satrec.nodeo, satrec);
 
-       return startmfe, stopmfe, deltamin
+       return satrec
 
 
 def sscanf(data, format):
