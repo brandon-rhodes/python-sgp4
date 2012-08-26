@@ -7,7 +7,7 @@ from sgp4.io import twoline2rv
 from sgp4.propagation import sgp4
 
 thisdir = os.path.dirname(__file__)
-finaldigit = re.compile(r'\d\b')
+finaldigit = re.compile(r'\d ')
 
 
 class SatRec(object):
@@ -39,8 +39,8 @@ class Tests(TestCase):
                 # sensitivity for now since my own run of the C++ code
                 # showed differences in the least-significant digits
                 # from the test file that came with the ZIP:
-                expected_line = finaldigit.sub('', expected_line)
-                actual_line = finaldigit.sub('', actual_line)
+                expected_line = finaldigit.sub(' ', expected_line)
+                actual_line = finaldigit.sub(' ', actual_line)
 
                 if actual_line != expected_line:
                     raise ValueError(
@@ -69,28 +69,37 @@ def generate_test_output(whichconst):
         twoline2rv(line1, line2, 'c', None, 'i', whichconst, satrec)
         yield '%ld xx\n' % (satrec.satnum,)
 
-        ro, vo = sgp4(whichconst, satrec, 0.0)
-        if ro:
-            yield format_test_line(satrec, ro, vo)
+        for line in generate_satellite_output(whichconst, satrec, line2):
+            yield line
 
-        tstart, tend, tstep = (float(field) for field in line2[69:].split())
 
-        tsince = tstart
-        while tsince <= tend:
-            if tsince == 0.0:
-                tsince += tstep
-                continue  # avoid duplicating the first line
+def generate_satellite_output(whichconst, satrec, line2):
 
-            ro, vo = sgp4(whichconst, satrec, tsince)
-            if ro:
-                yield format_test_line(satrec, ro, vo)
+    ro, vo = sgp4(whichconst, satrec, 0.0)
+    if not ro:
+        return
+    yield format_test_line(satrec, ro, vo)
 
+    tstart, tend, tstep = (float(field) for field in line2[69:].split())
+
+    tsince = tstart
+    while tsince <= tend:
+        if tsince == tstart == 0.0:
             tsince += tstep
+            continue  # avoid duplicating the first line
 
-        if tsince - tend < tstep - 1e-6:  # do not miss last line!
-            ro, vo = sgp4(whichconst, satrec, tend)
-            if ro:
-                yield format_test_line(satrec, ro, vo)
+        ro, vo = sgp4(whichconst, satrec, tsince)
+        if not ro:
+            return
+        yield format_test_line(satrec, ro, vo)
+
+        tsince += tstep
+
+    if tsince - tend < tstep - 1e-6:  # do not miss last line!
+        ro, vo = sgp4(whichconst, satrec, tend)
+        if not ro:
+            return
+        yield format_test_line(satrec, ro, vo)
 
 
 def format_test_line(satrec, ro, vo):
