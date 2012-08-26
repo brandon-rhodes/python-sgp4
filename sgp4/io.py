@@ -89,7 +89,7 @@ FLOAT_RE = re.compile(r'[+-]?\d*(\.\d*)?')
 
 def twoline2rv(
       longstr1, longstr2,
-      typeinput, opsmode,
+      opsmode,
       whichconst,
       ):
 

@@ -103,7 +103,7 @@ def generate_test_output(whichconst):
             continue
 
         line2 = next(tlelines)
-        satrec = twoline2rv(line1, line2, None, 'i', whichconst)
+        satrec = twoline2rv(line1, line2, 'i', whichconst)
 
         yield '%ld xx\n' % (satrec.satnum,)
 
