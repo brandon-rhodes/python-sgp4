@@ -688,36 +688,26 @@ def days2mdhms(year, days):
 *  references    :
 *    vallado       2007, 208, alg 22, ex 3-13
 * --------------------------------------------------------------------------- */
+"""
 
-void    invjday
-        (
-          double jd,
-          int& year, int& mon, int& day,
-          int& hr, int& minute, double& sec
-        )
-   {
-     int leapyrs;
-     double    days, tu, temp;
+def invjday(jd):
 
-     /* --------------- find year and days of the year --------------- */
+     #  --------------- find year and days of the year ---------------
      temp    = jd - 2415019.5;
      tu      = temp / 365.25;
-     year    = 1900 + (int)floor(tu);
-     leapyrs = (int)floor((year - 1901) * 0.25);
+     year    = 1900 + int(floor(tu));
+     leapyrs = int(floor((year - 1901) * 0.25));
 
-     // optional nudge by 8.64x10-7 sec to get even outputs
+     #  optional nudge by 8.64x10-7 sec to get even outputs
      days    = temp - ((year - 1900) * 365.0 + leapyrs) + 0.00000000001;
 
-     /* ------------ check for case of beginning of a year ----------- */
-     if (days < 1.0)
-       {
+     #  ------------ check for case of beginning of a year -----------
+     if (days < 1.0):
          year    = year - 1;
-         leapyrs = (int)floor((year - 1901) * 0.25);
+         leapyrs = int(floor((year - 1901) * 0.25));
          days    = temp - ((year - 1900) * 365.0 + leapyrs);
-       }
 
-     /* ----------------- find remaing data  ------------------------- */
-     days2mdhms(year, days, mon, day, hr, minute, sec);
+     #  ----------------- find remaing data  -------------------------
+     mon, day, hr, minute, sec = days2mdhms(year, days);
      sec = sec - 0.00000086400;
-   }  // end invjday
-"""
+     return year, mon, day, hr, minute, sec
