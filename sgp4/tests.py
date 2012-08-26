@@ -1,4 +1,4 @@
-"""Test suite for SPG4."""
+"""Test suite for SGP4."""
 
 import os
 from doctest import DocTestSuite

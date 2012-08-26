@@ -6,15 +6,16 @@ earth-orbiting satellite, given the satellite's TLE orbital elements
 from a source like `Celestrak <http://celestrak.com/>`_.  It implements
 the most recent version of SGP4, and has been tested to make sure that
 its satellite position predictions **agree to within 1 µm** of the
-standard C++ implementation of the algorithm.
+predictions of the standard C++ implementation of the algorithm.  This
+error is far less than the 1–3 km/day by which satellites themselves
+deviate from the ideal orbits describe in TLE files.
 
 The C++ function names have been retained, since users may already be
-familiar with this library from other languages.  The result looks
-somewhat clunky in Python, but should be easy to use.  Here are the
-x,y,z position and velocity for the Vanguard 1 satellite in 1958:
+familiar with this library in other languages.  Here is how to compute
+the x,y,z position and velocity for Vanguard 1 in mid-2000:
 
 >>> from sgp4.io import twoline2rv
->>> from sgp4.propagation import sgp4, wgs84
+>>> from sgp4.propagation import wgs84
 >>>
 >>> line1 = ('1 00005U 58002B   00179.78495062  '
 ...          '.00000023  00000-0  28098-4 0  4753')
@@ -22,11 +23,17 @@ x,y,z position and velocity for the Vanguard 1 satellite in 1958:
 ...          '331.7664  19.3264 10.82419157413667')
 >>>
 >>> satellite = twoline2rv(line1, line2, wgs84)
->>> position, velocity = sgp4(satellite, 0.0)
+>>> position, velocity = satellite.propagate(
+...     2000, 6, 29, 12, 50, 19)
+>>>
 >>> position
-[7022.46647249137, -1400.0665618178339, 0.05106558274635007]
+[5576.070755327816, -3999.346216343945, -1521.9435612588595]
 >>> velocity
-[1.8938310806788694, 6.405894872518269, 4.534806700953066]
+[4.772609860449032, 5.1198332464738625, 4.27555849674008]
+
+The position vector measures the satellite position in **meters** from
+the center of the earth.  The velocity is the rate at which those same
+three parameters are changing, expressed in **meters per second**.
 
 This implementation passes all of the automated tests in the August 2010
 release of the reference implementation of SGP4 by Vallado et al., who
@@ -41,7 +48,7 @@ this Python module (or other implementations) at `AIAA-2006-6753.zip
 <http://www.celestrak.com/publications/AIAA/2006-6753/AIAA-2006-6753.zip>`_.
 
 This module was adapted from Vallado's C++ code since its revision date
-was the most recently updated SPG4 implementation in their zip file:
+was the most recently updated SGP4 implementation in their zip file:
 
 * C++, August 2010
 * Fortran, August 2008
