@@ -117,6 +117,7 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
 
        satrec = Satellite()
        satrec.error = 0;
+       satrec.whichconst = whichconst  # Python extension: remembers its consts
 
        # This is Python, so we make the strings mutable before setting
        # the C++ code loose on them.

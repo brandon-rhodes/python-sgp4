@@ -117,7 +117,7 @@ def generate_satellite_output(whichconst, satrec, line2):
 
     mu = whichconst.mu
 
-    r, v = sgp4(whichconst, satrec, 0.0)
+    r, v = sgp4(satrec, 0.0)
     if r is None:
         yield '(Use previous data line)'
         return
@@ -131,7 +131,7 @@ def generate_satellite_output(whichconst, satrec, line2):
             tsince += tstep
             continue  # avoid duplicating the first line
 
-        r, v = sgp4(whichconst, satrec, tsince)
+        r, v = sgp4(satrec, tsince)
 
         if r is None:
             return
@@ -140,7 +140,7 @@ def generate_satellite_output(whichconst, satrec, line2):
         tsince += tstep
 
     if tsince - tend < tstep - 1e-6:  # do not miss last line!
-        r, v = sgp4(whichconst, satrec, tend)
+        r, v = sgp4(satrec, tend)
         if r is None:
             return
         yield format_long_line(satrec, mu, r, v)
