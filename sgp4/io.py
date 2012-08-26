@@ -100,9 +100,8 @@ def twoline2rv(
        elnum = 0;
 
        year = 0;
-       # int mon, day, hr, minute, nexp, ibexp;
 
-       tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2 = getgravconst(whichconst)
+       tumin = getgravconst(whichconst).tumin
 
        satrec = Satellite()
        satrec.error = 0;

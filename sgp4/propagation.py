@@ -647,7 +647,7 @@ def _dsinit(
      zns    = 1.19459e-5;
 
      #  sgp4fix identify constants and allow alternate values
-     tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2 = getgravconst(whichconst)
+     xke = getgravconst(whichconst).xke
 
      #  -------------------- deep space initialization ------------
      irez = 0;
