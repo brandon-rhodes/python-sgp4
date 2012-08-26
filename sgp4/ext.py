@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """Utility routines from "sgp4ext.cpp"."""
 
-from math import floor
+from math import (acos, atan2, cos, fabs, floor, fmod,
+                  log, pi, sin, sinh, sqrt, tan)
+
+undefined = None
 
 """
 /*     ----------------------------------------------------------------
@@ -28,26 +31,15 @@ from math import floor
 *              14 aug 06  david vallado
 *                           original baseline
 *       ----------------------------------------------------------------      */
+"""
 
-#include "sgp4ext.h"
-
-
-double  sgn
-        (
-          double x
-        )
-   {
-     if (x < 0.0)
-       {
+def sgn(x):
+     if x < 0.0:
           return -1.0;
-       }
-       else
-       {
+     else:
           return 1.0;
-       }
 
-   }  // end sgn
-
+"""
 /* -----------------------------------------------------------------------------
 *
 *                           function mag
@@ -69,15 +61,12 @@ double  sgn
 *  coupling      :
 *    none.
 * --------------------------------------------------------------------------- */
+"""
 
-double  mag
-        (
-          double x[3]
-        )
-   {
+def mag(x):
      return sqrt(x[0]*x[0] + x[1]*x[1] + x[2]*x[2]);
-   }  // end mag
 
+"""
 /* -----------------------------------------------------------------------------
 *
 *                           procedure cross
@@ -99,18 +88,14 @@ double  mag
 *  coupling      :
 *    mag           magnitude of a vector
  ---------------------------------------------------------------------------- */
+"""
 
-void    cross
-        (
-          double vec1[3], double vec2[3], double outvec[3]
-        )
-   {
+def cross(vec1, vec2, outvec):
      outvec[0]= vec1[1]*vec2[2] - vec1[2]*vec2[1];
      outvec[1]= vec1[2]*vec2[0] - vec1[0]*vec2[2];
      outvec[2]= vec1[0]*vec2[1] - vec1[1]*vec2[0];
-   }  // end cross
 
-
+"""
 /* -----------------------------------------------------------------------------
 *
 *                           function dot
@@ -133,15 +118,12 @@ void    cross
 *    none.
 *
 * --------------------------------------------------------------------------- */
+"""
 
-double  dot
-        (
-          double x[3], double y[3]
-        )
-   {
+def dot(x, y):
      return (x[0]*y[0] + x[1]*y[1] + x[2]*y[2]);
-   }  // end dot
 
+"""
 /* -----------------------------------------------------------------------------
 *
 *                           procedure angle
@@ -165,32 +147,27 @@ double  dot
 *  coupling      :
 *    dot           dot product of two vectors
 * --------------------------------------------------------------------------- */
+"""
 
-double  angle
-        (
-          double vec1[3],
-          double vec2[3]
-        )
-   {
-     double small, undefined, magv1, magv2, temp;
+def angle(vec1, vec2):
+
      small     = 0.00000001;
      undefined = 999999.1;
 
      magv1 = mag(vec1);
      magv2 = mag(vec2);
 
-     if (magv1*magv2 > small*small)
-       {
+     if magv1*magv2 > small*small:
+
          temp= dot(vec1,vec2) / (magv1*magv2);
-         if (fabs( temp ) > 1.0)
+         if fabs(temp) > 1.0:
              temp= sgn(temp) * 1.0;
          return acos( temp );
-       }
-       else
+
+     else:
          return undefined;
-   }  // end angle
 
-
+"""
 /* -----------------------------------------------------------------------------
 *
 *                           function asinh
@@ -212,16 +189,12 @@ double  angle
 *    none.
 *
 * --------------------------------------------------------------------------- */
+"""
 
-double  asinh
-        (
-          double xval
-        )
-   {
+def asinh(xval):
      return log( xval + sqrt( xval*xval + 1.0 ) );
-   }  // end asinh
 
-
+"""
 /* -----------------------------------------------------------------------------
 *
 *                           function newtonnu
@@ -256,64 +229,58 @@ double  asinh
 *  references    :
 *    vallado       2007, 85, alg 5
 * --------------------------------------------------------------------------- */
+"""
 
-void newtonnu
-     (
-       double ecc, double nu,
-       double& e0, double& m
-     )
-     {
-       double small, sine, cose;
+def newtonnu(ecc, nu):
 
-     // ---------------------  implementation   ---------------------
+     #  ---------------------  implementation   ---------------------
      e0= 999999.9;
      m = 999999.9;
      small = 0.00000001;
 
-     // --------------------------- circular ------------------------
-     if ( fabs( ecc ) < small  )
-       {
+     #  --------------------------- circular ------------------------
+     if fabs(ecc) < small:
+
          m = nu;
          e0= nu;
-       }
-       else
-         // ---------------------- elliptical -----------------------
-         if ( ecc < 1.0-small  )
-           {
+
+     else:
+         #  ---------------------- elliptical -----------------------
+         if ecc < 1.0-small:
+
              sine= ( sqrt( 1.0 -ecc*ecc ) * sin(nu) ) / ( 1.0 +ecc*cos(nu) );
              cose= ( ecc + cos(nu) ) / ( 1.0  + ecc*cos(nu) );
              e0  = atan2( sine,cose );
              m   = e0 - ecc*sin(e0);
-           }
-           else
-             // -------------------- hyperbolic  --------------------
-             if ( ecc > 1.0 + small  )
-               {
-                 if ((ecc > 1.0 ) && (fabs(nu)+0.00001 < pi-acos(1.0 /ecc)))
-                   {
+
+         else:
+             #  -------------------- hyperbolic  --------------------
+             if ecc > 1.0 + small:
+
+                 if ecc > 1.0 and fabs(nu)+0.00001 < pi-acos(1.0 /ecc):
+
                      sine= ( sqrt( ecc*ecc-1.0  ) * sin(nu) ) / ( 1.0  + ecc*cos(nu) );
                      e0  = asinh( sine );
                      m   = ecc*sinh(e0) - e0;
-                   }
-                }
-               else
-                 // ----------------- parabolic ---------------------
-                 if ( fabs(nu) < 168.0*pi/180.0  )
-                   {
+
+             else:
+                 #  ----------------- parabolic ---------------------
+                 if fabs(nu) < 168.0*pi/180.0:
+
                      e0= tan( nu*0.5  );
                      m = e0 + (e0*e0*e0)/3.0;
-                   }
 
-     if ( ecc < 1.0  )
-       {
+     if ecc < 1.0:
+
          m = fmod( m,2.0 *pi );
-         if ( m < 0.0  )
+         if m < 0.0:
              m = m + 2.0 *pi;
          e0 = fmod( e0,2.0 *pi );
-       }
-   }  // end newtonnu
+
+     return e0, m
 
 
+"""
 /* -----------------------------------------------------------------------------
 *
 *                           function rv2coe
@@ -370,19 +337,14 @@ void newtonnu
 *  references    :
 *    vallado       2007, 126, alg 9, ex 2-5
 * --------------------------------------------------------------------------- */
+"""
 
-void rv2coe
-     (
-       double r[3], double v[3], double mu,
-       double& p, double& a, double& ecc, double& incl, double& omega, double& argp,
-       double& nu, double& m, double& arglat, double& truelon, double& lonper
-     )
-     {
-       double undefined, small, hbar[3], nbar[3], magr, magv, magn, ebar[3], sme,
-              rdotv, infinite, temp, c1, hk, twopi, magh, halfpi, e;
+def rv2coe(r, v, mu):
 
-       int i;
-       char typeorbit[3];
+     hbar = [None, None, None]
+     nbar = [None, None, None]
+     ebar = [None, None, None]
+     typeorbit = [None, None, None];
 
      twopi  = 2.0 * pi;
      halfpi = 0.5 * pi;
@@ -390,137 +352,135 @@ void rv2coe
      undefined = 999999.1;
      infinite  = 999999.9;
 
-     // -------------------------  implementation   -----------------
+     #  -------------------------  implementation   -----------------
      magr = mag( r );
      magv = mag( v );
 
-     // ------------------  find h n and e vectors   ----------------
+     #  ------------------  find h n and e vectors   ----------------
      cross( r,v, hbar );
      magh = mag( hbar );
-     if ( magh > small )
-       {
+     if magh > small:
+
          nbar[0]= -hbar[1];
          nbar[1]=  hbar[0];
          nbar[2]=   0.0;
          magn = mag( nbar );
          c1 = magv*magv - mu /magr;
          rdotv = dot( r,v );
-         for (i= 0; i <= 2; i++)
+         for i in xrange(0, 3):
              ebar[i]= (c1*r[i] - rdotv*v[i])/mu;
          ecc = mag( ebar );
 
-         // ------------  find a e and semi-latus rectum   ----------
+         #  ------------  find a e and semi-latus rectum   ----------
          sme= ( magv*magv*0.5  ) - ( mu /magr );
-         if ( fabs( sme ) > small )
+         if fabs( sme ) > small:
              a= -mu  / (2.0 *sme);
-           else
+         else:
              a= infinite;
          p = magh*magh/mu;
 
-         // -----------------  find inclination   -------------------
+         #  -----------------  find inclination   -------------------
          hk= hbar[2]/magh;
          incl= acos( hk );
 
-         // --------  determine type of orbit for later use  --------
-         // ------ elliptical, parabolic, hyperbolic inclined -------
-         strcpy(typeorbit,"ei");
-         if ( ecc < small )
-           {
-             // ----------------  circular equatorial ---------------
-             if  ((incl<small) | (fabs(incl-pi)<small))
-                 strcpy(typeorbit,"ce");
-               else
-                 // --------------  circular inclined ---------------
-                 strcpy(typeorbit,"ci");
-           }
-           else
-           {
-             // - elliptical, parabolic, hyperbolic equatorial --
-             if  ((incl<small) | (fabs(incl-pi)<small))
-                 strcpy(typeorbit,"ee");
-           }
+         #  --------  determine type of orbit for later use  --------
+         #  ------ elliptical, parabolic, hyperbolic inclined -------
+         typeorbit = 'ei'
+         if ecc < small:
 
-         // ----------  find longitude of ascending node ------------
-         if ( magn > small )
-           {
+             #  ----------------  circular equatorial ---------------
+             if  incl < small or fabs(incl-pi) < small:
+                 typeorbit = 'ce'
+             else:
+                 #  --------------  circular inclined ---------------
+                 typeorbit = 'ci'
+
+         else:
+
+             #  - elliptical, parabolic, hyperbolic equatorial --
+             if incl < small or fabs(incl-pi) < small:
+                 typeorbit = 'ee'
+
+         #  ----------  find longitude of ascending node ------------
+         if magn > small:
+
              temp= nbar[0] / magn;
-             if ( fabs(temp) > 1.0  )
+             if fabs(temp) > 1.0:
                  temp= sgn(temp);
              omega= acos( temp );
-             if ( nbar[1] < 0.0  )
+             if nbar[1] < 0.0:
                  omega= twopi - omega;
-           }
-           else
+
+         else:
              omega= undefined;
 
-         // ---------------- find argument of perigee ---------------
-         if ( strcmp(typeorbit,"ei") == 0 )
-           {
+         #  ---------------- find argument of perigee ---------------
+         if typeorbit == 'ei':
+
              argp = angle( nbar,ebar);
-             if ( ebar[2] < 0.0  )
+             if ebar[2] < 0.0:
                  argp= twopi - argp;
-           }
-           else
+
+         else:
              argp= undefined;
 
-         // ------------  find true anomaly at epoch    -------------
-         if ( typeorbit[0] == 'e' )
-           {
+         #  ------------  find true anomaly at epoch    -------------
+         if typeorbit[0] == 'e':
+
              nu =  angle( ebar,r);
-             if ( rdotv < 0.0  )
+             if rdotv < 0.0:
                  nu= twopi - nu;
-           }
-           else
+
+         else:
              nu= undefined;
 
-         // ----  find argument of latitude - circular inclined -----
-         if ( strcmp(typeorbit,"ci") == 0 )
-           {
+         #  ----  find argument of latitude - circular inclined -----
+         if typeorbit == 'ci':
+
              arglat = angle( nbar,r );
-             if ( r[2] < 0.0  )
+             if r[2] < 0.0:
                  arglat= twopi - arglat;
              m = arglat;
-           }
-           else
+
+         else:
              arglat= undefined;
 
-         // -- find longitude of perigee - elliptical equatorial ----
-         if  (( ecc>small ) && (strcmp(typeorbit,"ee") == 0))
-           {
+         #  -- find longitude of perigee - elliptical equatorial ----
+         if ecc > small and typeorbit == 'ee':
+
              temp= ebar[0]/ecc;
-             if ( fabs(temp) > 1.0  )
+             if fabs(temp) > 1.0:
                  temp= sgn(temp);
              lonper= acos( temp );
-             if ( ebar[1] < 0.0  )
+             if ebar[1] < 0.0:
                  lonper= twopi - lonper;
-             if ( incl > halfpi )
+             if incl > halfpi:
                  lonper= twopi - lonper;
-           }
-           else
+
+         else:
              lonper= undefined;
 
-         // -------- find true longitude - circular equatorial ------
-         if  (( magr>small ) && ( strcmp(typeorbit,"ce") == 0 ))
-           {
+         #  -------- find true longitude - circular equatorial ------
+         if magr > small and typeorbit == 'ce':
+
              temp= r[0]/magr;
-             if ( fabs(temp) > 1.0  )
+             if fabs(temp) > 1.0:
                  temp= sgn(temp);
              truelon= acos( temp );
-             if ( r[1] < 0.0  )
+             if r[1] < 0.0:
                  truelon= twopi - truelon;
-             if ( incl > halfpi )
+             if incl > halfpi:
                  truelon= twopi - truelon;
              m = truelon;
-           }
-           else
+
+         else:
              truelon= undefined;
 
-         // ------------ find mean anomaly for all orbits -----------
-         if ( typeorbit[0] == 'e' )
-             newtonnu(ecc,nu,  e, m);
-     }
-      else
-     {
+         #  ------------ find mean anomaly for all orbits -----------
+         if typeorbit[0] == 'e':
+             e, m = newtonnu(ecc, nu);
+
+     else:
         p    = undefined;
         a    = undefined;
         ecc  = undefined;
@@ -532,9 +492,10 @@ void rv2coe
         arglat = undefined;
         truelon= undefined;
         lonper = undefined;
-     }
-   }  // end rv2coe
 
+     return p, a, ecc, incl, omega, argp, nu, m, arglat, truelon, lonper
+
+"""
 /* -----------------------------------------------------------------------------
 *
 *                           procedure jday
