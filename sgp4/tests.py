@@ -80,6 +80,10 @@ def generate_test_output(whichconst):
 
             tsince += tstep
 
+        if tsince - tend < tstep - 1e-6:  # do not miss last line!
+            ro, vo = sgp4(whichconst, satrec, tend)
+            yield format_test_line(satrec, ro, vo)
+
 
 def format_test_line(satrec, ro, vo):
     return ' %16.8f %16.8f %16.8f %16.8f %12.9f %12.9f %12.9f\n' % (
