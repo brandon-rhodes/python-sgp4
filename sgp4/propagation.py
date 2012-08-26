@@ -1323,7 +1323,7 @@ def sgp4init(
      satrec.t	 = 0.0;
 
      (
-       no,
+       satrec.no,
        method,
        ainv,  ao,    satrec.con41,  con42, cosio,
        cosio2,eccsq, omeosq, posq,
