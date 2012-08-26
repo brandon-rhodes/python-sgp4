@@ -21,6 +21,11 @@ class Tests(TestCase):
         tcppath = os.path.join(thisdir, 'tcppver.out')
         with open(tcppath) as tcpfile:
             for i, expected_line in enumerate(tcpfile):
+                if i:
+                    print i,
+                    import sys
+                    sys.stdout.flush()
+
                 # TODO: what are we supposed to do with the extra fields
                 # that lie past character 107?
                 if len(expected_line) > 107:
@@ -59,14 +64,28 @@ def generate_test_output(whichconst):
         twoline2rv(line1, line2, 'c', None, 'i', whichconst, satrec)
         yield '%ld xx\n' % (satrec.satnum,)
 
-        # Call the propagator to get the initial state vector value.
-        tsince = 0.00
-        while tsince <= 4320.0:
+        ro = [0.0, 0.0, 0.0]
+        vo = [0.0, 0.0, 0.0]
+        sgp4(whichconst, satrec, 0.0, ro, vo)
+        yield format_test_line(satrec, ro, vo)
+
+        tstart, tend, tstep = (float(field) for field in line2[69:].split())
+
+        tsince = tstart
+        while tsince <= tend:
+            if tsince == 0.0:
+                tsince += tstep
+                continue  # avoid duplicating the first line
+
             ro = [0.0, 0.0, 0.0]
             vo = [0.0, 0.0, 0.0]
             sgp4(whichconst, satrec, tsince, ro, vo)
 
-            yield ' %16.8f %16.8f %16.8f %16.8f %12.9f %12.9f %12.9f\n' % (
-                satrec.t, ro[0], ro[1], ro[2], vo[0], vo[1], vo[2])
+            yield format_test_line(satrec, ro, vo)
 
-            tsince += 360.00
+            tsince += tstep
+
+
+def format_test_line(satrec, ro, vo):
+    return ' %16.8f %16.8f %16.8f %16.8f %12.9f %12.9f %12.9f\n' % (
+        satrec.t, ro[0], ro[1], ro[2], vo[0], vo[1], vo[2])
