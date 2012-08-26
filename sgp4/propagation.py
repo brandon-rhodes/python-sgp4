@@ -20,7 +20,7 @@ code for the first time here in its Python form.
 from math import atan2, cos, fabs, floor, fmod, pi, sin, sqrt
 
 deg2rad = pi / 180.0;
-false = False
+false = None
 true = True
 twopi = 2.0 * pi
 
