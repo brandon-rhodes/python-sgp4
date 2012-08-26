@@ -7,7 +7,7 @@ from sgp4.io import twoline2rv
 from sgp4.propagation import sgp4
 
 thisdir = os.path.dirname(__file__)
-finaldigit = re.compile(r'\d ')
+finaldigits = re.compile(r'\d ')
 
 
 class SatRec(object):
@@ -19,10 +19,11 @@ class Tests(TestCase):
     def test_tle_verify(self):
         whichconst = 'wgs72'
         actual = generate_test_output(whichconst)
+        previous_data_line = None
 
         tcppath = os.path.join(thisdir, 'tcppver.out')
         with open(tcppath) as tcpfile:
-            for i, expected_line in enumerate(tcpfile):
+            for i, expected_line in enumerate(tcpfile, start = 1):
 
                 # TODO: what are we supposed to do with the extra fields
                 # that lie past character 107?
@@ -32,23 +33,29 @@ class Tests(TestCase):
                 try:
                     actual_line = next(actual)
                 except StopIteration:
-                    print 'WARNING: our output ended early, on line %d' % (i+1)
+                    print 'WARNING: our output ended early, on line %d' % (i,)
                     break
+
+                if actual_line == '(Use previous data line)':
+                    actual_line = '       0.00000000' + previous_data_line[17:]
 
                 # Trim final digit from each number, to reduce
                 # sensitivity for now since my own run of the C++ code
                 # showed differences in the least-significant digits
                 # from the test file that came with the ZIP:
-                expected_line = finaldigit.sub(' ', expected_line)
-                actual_line = finaldigit.sub(' ', actual_line)
+                expected_trimmed = finaldigits.sub(' ', expected_line)
+                actual_trimmed = finaldigits.sub(' ', actual_line)
 
-                if actual_line != expected_line:
+                if actual_trimmed != expected_trimmed:
                     raise ValueError(
                         'Line %d of output does not match:\n'
                         '\n'
                         'Expect: %s'
                         'Actual: %s'
-                        % (i + 1, expected_line, actual_line))
+                        % (i, expected_line, actual_line))
+
+                if 'xx' not in actual_line:
+                    previous_data_line = actual_line
 
 
 def generate_test_output(whichconst):
@@ -76,7 +83,8 @@ def generate_test_output(whichconst):
 def generate_satellite_output(whichconst, satrec, line2):
 
     ro, vo = sgp4(whichconst, satrec, 0.0)
-    if not ro:
+    if ro is None:
+        yield '(Use previous data line)'
         return
     yield format_test_line(satrec, ro, vo)
 
@@ -89,7 +97,7 @@ def generate_satellite_output(whichconst, satrec, line2):
             continue  # avoid duplicating the first line
 
         ro, vo = sgp4(whichconst, satrec, tsince)
-        if not ro:
+        if ro is None:
             return
         yield format_test_line(satrec, ro, vo)
 
@@ -97,7 +105,7 @@ def generate_satellite_output(whichconst, satrec, line2):
 
     if tsince - tend < tstep - 1e-6:  # do not miss last line!
         ro, vo = sgp4(whichconst, satrec, tend)
-        if not ro:
+        if ro is None:
             return
         yield format_test_line(satrec, ro, vo)
 
