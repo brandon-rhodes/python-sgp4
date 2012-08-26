@@ -1707,7 +1707,7 @@ def sgp4(whichconst, satrec, tsince):
 #          printf("# error nm %f\n", nm);
          satrec.error = 2;
          #  sgp4fix add return
-         return false;
+         return false, false;
 
      am = pow((xke / nm),x2o3) * tempa * tempa;
      nm = xke / pow(am, 1.5);
@@ -1720,7 +1720,7 @@ def sgp4(whichconst, satrec, tsince):
 #          printf("# error em %f\n", em);
          satrec.error = 1;
          #  sgp4fix to return if there is an error in eccentricity
-         return false;
+         return false, false;
 
      #  sgp4fix fix tolerance to avoid a divide by zero
      if em < 1.0e-6:
@@ -1774,7 +1774,7 @@ def sgp4(whichconst, satrec, tsince):
 #             printf("# error ep %f\n", ep);
              satrec.error = 3;
              #  sgp4fix add return
-             return false;
+             return false, false;
 
      #  -------------------- long period periodics ------------------
      if satrec.method == 'd':
@@ -1821,7 +1821,7 @@ def sgp4(whichconst, satrec, tsince):
 #          printf("# error pl %f\n", pl);
          satrec.error = 4;
          #  sgp4fix add return
-         return false;
+         return false, false;
 
      else:
 
@@ -1887,7 +1887,7 @@ def sgp4(whichconst, satrec, tsince):
 
 #          printf("# decay condition %11.6f \n",mrt);
          satrec.error = 6;
-         return false;
+         return false, false;
 
      return r, v;
 
