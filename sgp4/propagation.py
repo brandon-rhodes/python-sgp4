@@ -17,6 +17,7 @@ code for the first time here in its Python form.
 |   On a very hot August day in 2012
 """
 
+from collections import namedtuple
 from math import atan2, cos, fabs, floor, fmod, pi, sin, sqrt
 
 deg2rad = pi / 180.0;
@@ -1964,7 +1965,7 @@ def _gstime(jdut1):
   --------------------------------------------------------------------------- */
 """
 
-def getgravconst(whichconst):
+def _getgravconst(whichconst):
 
        if whichconst == 'wgs72old':
            mu     = 398600.79964;        #  in km3 / s2
@@ -1998,9 +1999,17 @@ def getgravconst(whichconst):
            j4     =  -0.00000161098761;
            j3oj2  =  j3 / j2;
 
-       else:
-           # TODO: logging module?
-           import sys
-           print >>sys.stderr, 'unknown gravity option %r\n' % whichconst
-
        return tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2
+
+# For Python, precompute and store all three sets of constants.
+
+GravityConstants = namedtuple('GravityConstants',
+                              'tumin mu radiusearthkm xke j2 j3 j4 j3oj2')
+
+_gravconsts = {
+     'wgs72old': GravityConstants(*_getgravconst('wgs72old')),
+     'wgs72': GravityConstants(*_getgravconst('wgs72')),
+     'wgs84': GravityConstants(*_getgravconst('wgs84')),
+     }
+
+getgravconst = _gravconsts.get
