@@ -1525,9 +1525,7 @@ def sgp4init(
        // sgp4fix take out check to let satellites process until they are actually below earth surface
 //       if(satrec.error == 0)
      """
-     r = [None, None, None]
-     v = [None, None, None]
-     sgp4(whichconst, satrec, 0.0, r, v);
+     sgp4(whichconst, satrec, 0.0);
 
      satrec.init = 'n';
 
@@ -1624,9 +1622,7 @@ def sgp4init(
   ----------------------------------------------------------------------------*/
 """
 
-def sgp4(
-       whichconst, satrec,  tsince, r, v,
-       ):
+def sgp4(whichconst, satrec, tsince):
 
      mrt = 0.0
 
@@ -1874,9 +1870,11 @@ def sgp4(
          vz    =  sini * cossu;
 
          #  --------- position and velocity (in km and km/sec) ----------
+         r = [None, None, None]
          r[0] = (mrt * ux)* radiusearthkm;
          r[1] = (mrt * uy)* radiusearthkm;
          r[2] = (mrt * uz)* radiusearthkm;
+         v = [None, None, None]
          v[0] = (mvt * ux + rvdot * vx) * vkmpersec;
          v[1] = (mvt * uy + rvdot * vy) * vkmpersec;
          v[2] = (mvt * uz + rvdot * vz) * vkmpersec;
@@ -1888,7 +1886,7 @@ def sgp4(
          satrec.error = 6;
          return false;
 
-     return true;
+     return r, v;
 
 """
 /* -----------------------------------------------------------------------------

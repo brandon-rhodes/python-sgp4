@@ -64,9 +64,7 @@ def generate_test_output(whichconst):
         twoline2rv(line1, line2, 'c', None, 'i', whichconst, satrec)
         yield '%ld xx\n' % (satrec.satnum,)
 
-        ro = [0.0, 0.0, 0.0]
-        vo = [0.0, 0.0, 0.0]
-        sgp4(whichconst, satrec, 0.0, ro, vo)
+        ro, vo = sgp4(whichconst, satrec, 0.0)
         yield format_test_line(satrec, ro, vo)
 
         tstart, tend, tstep = (float(field) for field in line2[69:].split())
@@ -77,10 +75,7 @@ def generate_test_output(whichconst):
                 tsince += tstep
                 continue  # avoid duplicating the first line
 
-            ro = [0.0, 0.0, 0.0]
-            vo = [0.0, 0.0, 0.0]
-            sgp4(whichconst, satrec, tsince, ro, vo)
-
+            ro, vo = sgp4(whichconst, satrec, tsince)
             yield format_test_line(satrec, ro, vo)
 
             tsince += tstep
