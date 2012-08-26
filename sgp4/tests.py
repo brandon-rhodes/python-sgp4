@@ -21,11 +21,17 @@ class Tests(TestCase):
         tcppath = os.path.join(thisdir, 'tcppver.out')
         with open(tcppath) as tcpfile:
             for i, expected_line in enumerate(tcpfile):
+                # TODO: what are we supposed to do with the extra fields
+                # that lie past character 107?
+                if len(expected_line) > 107:
+                    expected_line = expected_line[:107] + expected_line[-1:]
+
                 try:
                     actual_line = next(actual)
                 except StopIteration:
                     print 'WARNING: our output ended early, on line %d' % (i+1)
                     break
+
                 if actual_line != expected_line:
                     raise ValueError(
                         'Line %d of output does not match:\n'
@@ -51,14 +57,16 @@ def generate_test_output(whichconst):
 
         satrec = SatRec()
         twoline2rv(line1, line2, 'c', None, 'i', whichconst, satrec)
+        yield '%ld xx\n' % (satrec.satnum,)
 
         # Call the propagator to get the initial state vector value.
-        ro = [0.0, 0.0, 0.0]
-        vo = [0.0, 0.0, 0.0]
-        sgp4(whichconst, satrec,  0.0, ro,  vo)
+        tsince = 0.00
+        while tsince <= 4320.0:
+            ro = [0.0, 0.0, 0.0]
+            vo = [0.0, 0.0, 0.0]
+            sgp4(whichconst, satrec, tsince, ro, vo)
 
-        yield '%ld xx\n' % (satrec.satnum,)
-        yield ' %16.8f %16.8f %16.8f %16.8f %12.9f %12.9f %12.9f\n' % (
-            satrec.t, ro[0], ro[1], ro[2], vo[0], vo[1], vo[2])
-        return
-        sgp4(whichconst, satrec,  360.0, ro,  vo);
+            yield ' %16.8f %16.8f %16.8f %16.8f %12.9f %12.9f %12.9f\n' % (
+                satrec.t, ro[0], ro[1], ro[2], vo[0], vo[1], vo[2])
+
+            tsince += 360.00
