@@ -108,14 +108,14 @@ def generate_test_output(whichconst):
 
         yield '%ld xx\n' % (satrec.satnum,)
 
-        for line in generate_satellite_output(whichconst, satrec, line2):
+        for line in generate_satellite_output(satrec, line2):
             yield line
 
 
-def generate_satellite_output(whichconst, satrec, line2):
+def generate_satellite_output(satrec, line2):
     """Print a data line for each time in line2's start/stop/step field."""
 
-    mu = whichconst.mu
+    mu = satrec.whichconst.mu
 
     r, v = sgp4(satrec, 0.0)
     if r is None:
