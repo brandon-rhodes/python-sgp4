@@ -1,6 +1,7 @@
 """Test suite for SPG4."""
 
 import os
+from doctest import DocTestSuite
 from unittest import TestCase
 from math import pi
 
@@ -171,3 +172,8 @@ def format_long_line(satrec, mu, r, v):
                     ' %5i%3i%3i %2i:%2i:%9.6f\n') % (
         a, ecc, incl*rad, node*rad, argp*rad, nu*rad,
         m*rad, year, mon, day, hr, minute, sec)
+
+
+def load_tests(loader, tests, ignore):
+    tests.addTests(DocTestSuite('sgp4'))
+    return tests
