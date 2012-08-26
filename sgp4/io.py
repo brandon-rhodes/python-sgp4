@@ -3,9 +3,14 @@
 This is a minimally-edited copy of "sgp4io.cpp".
 
 """
+import re
 from math import pi, pow
 from sgp4.ext import days2mdhms, jday
 from sgp4.propagation import getgravconst, sgp4init
+
+SPACE = ord(' ')
+INT_RE = re.compile(r'[+-]?\d*')
+FLOAT_RE = re.compile(r'[+-]?\d*(\.\d*)?')
 
 """
 /*     ----------------------------------------------------------------
@@ -105,9 +110,6 @@ def twoline2rv(
        longstr1 = bytearray(longstr1)
        longstr2 = bytearray(longstr2)
 
-       SPACE = 32
-       PERIOD = 46
-
        #  set the implied decimal points since doing a formated read
        #  fixes for bad input data values (missing, ...)
        for j in xrange(10, 16):
@@ -138,6 +140,10 @@ def twoline2rv(
        if longstr1[68] == SPACE:
            longstr1[68] = '0';
 
+       # Convert mutable but inconvenient bytearrays into real strings.
+       longstr1 = longstr1.decode('ascii')
+       longstr2 = longstr2.decode('ascii')
+
        (cardnumb,satrec.satnum,classification, intldesg, satrec.epochyr,
         satrec.epochdays,satrec.ndot, satrec.nddot, nexp, satrec.bstar,
         ibexp, numb, elnum) = \
@@ -146,7 +152,7 @@ def twoline2rv(
 
        if typerun == 'v':  #  run for specified times from the file
 
-           if longstr2[52] == SPACE:
+           if longstr2[52] == ' ':
                (cardnumb,satrec.satnum, satrec.inclo,
                 satrec.nodeo,satrec.ecco, satrec.argpo, satrec.mo, satrec.no,
                 revnum, startmfe, stopmfe, deltamin) = \
@@ -162,7 +168,7 @@ def twoline2rv(
 
        else:  #  simply run -1 day to +1 day or user input times
 
-           if longstr2[52] == SPACE:
+           if longstr2[52] == ' ':
                (cardnumb,satrec.satnum, satrec.inclo,
                 satrec.nodeo,satrec.ecco, satrec.argpo, satrec.mo, satrec.no,
                 revnum) = \
@@ -300,17 +306,32 @@ def sscanf(data, format):
 
     for directive in directives:
         conversion = directive[-1]
-        lengthstr = directive[1 : -2 if directive[-2] == 'l' else -1]
+        fieldwidthstr = directive[1:-1].strip('l')
+        fieldwidth = int(fieldwidthstr) if fieldwidthstr else 999
 
-        if lengthstr:
-            length = int(lengthstr)
-            source = data[start:start + length]
+        # scanf(3) skips "any amount of white space, including none"
+        while start < len(data) and data[start] == ' ':  # space
+            start += 1
+
+        if start == len(data):
+            break
+
+        # Field will end early if whitespace, or an illegal character,
+        # is encountered.
+        if conversion == 'd':
+            source = INT_RE.match(data[start:]).group(0)
+            end = start + min(len(source), fieldwidth)
+        elif conversion == 'f':
+            source = FLOAT_RE.match(data[start:]).group(0)
+            end = start + min(len(source), fieldwidth)
         else:
-            while data[start] == 32:  # space
-                start += 1
-            while not source[start + length].isspace():
-                length += 1
+            for end in range(start + 1, start + fieldwidth + 1):
+                if data[end].isspace():
+                    break
 
+        source = data[start:end]
+
+        # Convert!
         if conversion in ('c', 's'):
             values.append(source)
         elif conversion == 'd':
@@ -320,6 +341,7 @@ def sscanf(data, format):
         else:
             raise ValueError('unknown format specifier %r' % (conversion,))
 
-        start += length
+        # Start over with the next token.
+        start = end
 
     return values
