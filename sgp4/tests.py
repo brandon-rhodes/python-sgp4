@@ -35,15 +35,17 @@ class Tests(TestCase):
             ro = [0.0, 0.0, 0.0]
             vo = [0.0, 0.0, 0.0]
             sgp4(whichconst, satrec,  0.0, ro,  vo);
-            print satrec.t, ro[0], ro[1], ro[2], vo[0], vo[1], vo[2]
 
             tcppath = os.path.join(dirpath, 'tcppver.out')
             with open(tcppath) as tcpfile:
                 tcplines = tcpfile.readlines()
 
-            print ' '.join(repr(float(field)) for field
-                           in tcplines[1].split()[:7])
-
+            line0 = '%ld xx\n' % (satrec.satnum,)
+            line1 = ' %16.8f %16.8f %16.8f %16.8f %12.9f %12.9f %12.9f\n' % (
+                satrec.t, ro[0], ro[1], ro[2], vo[0], vo[1], vo[2])
+            print tcplines[0] == line0
+            print tcplines[1] == line1
+            break
             sgp4(whichconst, satrec,  360.0, ro,  vo);
             print satrec.t, ro[0], ro[1], ro[2], vo[0], vo[1], vo[2]
             print ' '.join(repr(float(field)) for field
