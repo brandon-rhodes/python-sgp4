@@ -7,7 +7,7 @@ from math import pi
 
 from sgp4.ext import invjday, rv2coe
 from sgp4.io import twoline2rv
-from sgp4.propagation import getgravconst, sgp4
+from sgp4.propagation import sgp4, wgs72
 
 thisdir = os.path.dirname(__file__)
 error = 2e-7
@@ -93,6 +93,7 @@ def generate_test_output(whichconst):
     supposed to print results.
 
     """
+    whichconst = wgs72
     tlepath = os.path.join(thisdir, 'SGP4-VER.TLE')
     with open(tlepath) as tlefile:
         tlelines = iter(tlefile.readlines())
@@ -103,7 +104,7 @@ def generate_test_output(whichconst):
             continue
 
         line2 = next(tlelines)
-        satrec = twoline2rv(line1, line2, 'i', whichconst)
+        satrec = twoline2rv(line1, line2, whichconst)
 
         yield '%ld xx\n' % (satrec.satnum,)
 
@@ -114,7 +115,7 @@ def generate_test_output(whichconst):
 def generate_satellite_output(whichconst, satrec, line2):
     """Print a data line for each time in line2's start/stop/step field."""
 
-    mu = getgravconst(whichconst)[1]
+    mu = whichconst.mu
 
     r, v = sgp4(whichconst, satrec, 0.0)
     if r is None:

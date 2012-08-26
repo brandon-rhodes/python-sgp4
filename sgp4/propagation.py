@@ -647,7 +647,7 @@ def _dsinit(
      zns    = 1.19459e-5;
 
      #  sgp4fix identify constants and allow alternate values
-     xke = getgravconst(whichconst).xke
+     xke = whichconst.xke
 
      #  -------------------- deep space initialization ------------
      irez = 0;
@@ -1107,7 +1107,7 @@ def _initl(
 
      #  ----------------------- earth constants ----------------------
      #  sgp4fix identify constants and allow alternate values
-     tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2 = getgravconst(whichconst)
+     tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2 = whichconst
      x2o3   = 2.0 / 3.0;
 
      #  ------------- calculate auxillary epoch quantities ----------
@@ -1314,7 +1314,7 @@ def sgp4init(
 
      #  ------------------------ earth constants -----------------------
      #  sgp4fix identify constants and allow alternate values
-     tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2 = getgravconst(whichconst)
+     tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2 = whichconst
      ss     = 78.0 / radiusearthkm + 1.0;
      #  sgp4fix use multiply for speed instead of pow
      qzms2ttemp = (120.0 - 78.0) / radiusearthkm;
@@ -1640,7 +1640,7 @@ def sgp4(whichconst, satrec, tsince):
      twopi = 2.0 * pi;
      x2o3  = 2.0 / 3.0;
      #  sgp4fix identify constants and allow alternate values
-     tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2 = getgravconst(whichconst)
+     tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2 = whichconst
      vkmpersec     = radiusearthkm * xke/60.0;
 
      #  --------------------- clear sgp4 error flag -----------------
@@ -1965,7 +1965,7 @@ def _gstime(jdut1):
   --------------------------------------------------------------------------- */
 """
 
-def _getgravconst(whichconst):
+def getgravconst(whichconst):
 
        if whichconst == 'wgs72old':
            mu     = 398600.79964;        #  in km3 / s2
@@ -2006,10 +2006,6 @@ def _getgravconst(whichconst):
 GravityConstants = namedtuple('GravityConstants',
                               'tumin mu radiusearthkm xke j2 j3 j4 j3oj2')
 
-_gravconsts = {
-     'wgs72old': GravityConstants(*_getgravconst('wgs72old')),
-     'wgs72': GravityConstants(*_getgravconst('wgs72')),
-     'wgs84': GravityConstants(*_getgravconst('wgs84')),
-     }
-
-getgravconst = _gravconsts.get
+wgs72old = GravityConstants(*getgravconst('wgs72old'))
+wgs72 = GravityConstants(*getgravconst('wgs72'))
+wgs84 = GravityConstants(*getgravconst('wgs84'))

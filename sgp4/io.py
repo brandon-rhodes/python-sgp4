@@ -7,7 +7,7 @@ import re
 from math import pi, pow
 from sgp4.ext import days2mdhms, jday
 from sgp4.model import Satellite
-from sgp4.propagation import getgravconst, sgp4init
+from sgp4.propagation import sgp4init
 
 SPACE = ord(' ')
 INT_RE = re.compile(r'[+-]?\d*')
@@ -87,11 +87,23 @@ FLOAT_RE = re.compile(r'[+-]?\d*(\.\d*)?')
   --------------------------------------------------------------------------- */
 """
 
-def twoline2rv(
-      longstr1, longstr2,
-      opsmode,
-      whichconst,
-      ):
+def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
+       """Return a Satellite imported from two lines of TLE data.
+
+       Provide the two TLE lines as strings `longstr1` and `longstr2`,
+       and select which standard set of gravitational constants you want
+       by providing `gravity_constants`:
+
+       `sgp4.propagation.wgs72` - Standard WGS 72 model
+       `sgp4.propagation.wgs84` - More recent WGS 84 model
+       `sgp4.propagation.wgs72old` - Legacy support for old SGP4 behavior
+
+       Normally, computations are made using various recent improvements
+       to the algorithm.  If you want to turn some of these off and go
+       back into "afspc" mode, then set `afspc_mode` to `True`.
+
+       """
+       opsmode = 'a' if afspc_mode else 'i'
 
        deg2rad  =   pi / 180.0;         #    0.0174532925199433
        xpdotp   =  1440.0 / (2.0 *pi);  #  229.1831180523293
@@ -101,7 +113,7 @@ def twoline2rv(
 
        year = 0;
 
-       tumin = getgravconst(whichconst).tumin
+       tumin = whichconst.tumin
 
        satrec = Satellite()
        satrec.error = 0;

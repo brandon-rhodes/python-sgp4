@@ -14,15 +14,15 @@ somewhat clunky in Python, but should be easy to use.  Here are the
 x,y,z position and velocity for the Vanguard 1 satellite in 1958:
 
 >>> from sgp4.io import twoline2rv
->>> from sgp4.propagation import sgp4
+>>> from sgp4.propagation import sgp4, wgs84
 >>>
 >>> line1 = ('1 00005U 58002B   00179.78495062  '
 ...          '.00000023  00000-0  28098-4 0  4753')
 >>> line2 = ('2 00005  34.2682 348.7242 1859667 '
 ...          '331.7664  19.3264 10.82419157413667')
 >>>
->>> satellite = twoline2rv(line1, line2, 'i', 'wgs84')
->>> position, velocity = sgp4('wgs84', satellite, 0.0)
+>>> satellite = twoline2rv(line1, line2, wgs84)
+>>> position, velocity = sgp4(wgs84, satellite, 0.0)
 >>> position
 [7022.46647249137, -1400.0665618178339, 0.05106558274635007]
 >>> velocity
