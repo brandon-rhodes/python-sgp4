@@ -1,13 +1,12 @@
 """Test suite for SPG4."""
 
-import re
 import os
 from unittest import TestCase
 from sgp4.io import twoline2rv
 from sgp4.propagation import sgp4
 
 thisdir = os.path.dirname(__file__)
-finaldigits = re.compile(r'\d ')
+error = 2e-7
 
 
 class SatRec(object):
@@ -39,15 +38,18 @@ class Tests(TestCase):
                 if actual_line == '(Use previous data line)':
                     actual_line = '       0.00000000' + previous_data_line[17:]
 
-                # Trim final digit from each number, to reduce
-                # sensitivity for now since my own run of the C++ code
-                # showed differences in the least-significant digits
-                # from the test file that came with the ZIP:
-                expected_trimmed = finaldigits.sub(' ', expected_line)
-                actual_trimmed = finaldigits.sub(' ', actual_line)
+                # Compare the lines.
 
-                if actual_trimmed != expected_trimmed:
-                    raise ValueError(
+                if 'xx' in actual_line:
+                    similar = (actual_line == expected_line)
+                else:
+                    actuals = (float(a) for a in actual_line.split())
+                    expecteds = (float(e) for e in expected_line.split())
+                    similar = all(-error < (a - e) < error
+                                   for a, e in zip(actuals, expecteds))
+
+                if not similar:
+                    print(
                         'Line %d of output does not match:\n'
                         '\n'
                         'Expect: %s'
@@ -56,6 +58,13 @@ class Tests(TestCase):
 
                 if 'xx' not in actual_line:
                     previous_data_line = actual_line
+
+        missing_count = 0
+        for actual_line in actual:
+            missing_count += 1
+
+        if missing_count > 0:
+            raise ValueError('we produced %d extra lines' % (missing_count,))
 
 
 def generate_test_output(whichconst):
