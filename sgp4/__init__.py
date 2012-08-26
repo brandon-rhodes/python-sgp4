@@ -21,7 +21,7 @@ x,y,z position and velocity for the Vanguard 1 satellite in 1958:
 >>> line2 = ('2 00005  34.2682 348.7242 1859667 '
 ...          '331.7664  19.3264 10.82419157413667')
 >>>
->>> satellite = twoline2rv(line1, line2, 'c', None, 'i', 'wgs84')
+>>> satellite = twoline2rv(line1, line2, None, 'i', 'wgs84')
 >>> position, velocity = sgp4('wgs84', satellite, 0.0)
 >>> position
 [7022.46647249137, -1400.0665618178339, 0.05106558274635007]

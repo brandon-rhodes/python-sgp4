@@ -89,7 +89,7 @@ FLOAT_RE = re.compile(r'[+-]?\d*(\.\d*)?')
 
 def twoline2rv(
       longstr1, longstr2,
-      typerun,  typeinput, opsmode,
+      typeinput, opsmode,
       whichconst,
       ):
 
@@ -151,34 +151,16 @@ def twoline2rv(
        sscanf(longstr1,"%2d %5ld %1c %10s %2d %12lf %11lf %7lf %2d %7lf %2d %2d %6ld ",
            )
 
-       if typerun == 'v':  #  run for specified times from the file
-
-           if longstr2[52] == ' ':
-               (cardnumb,satrec.satnum, satrec.inclo,
-                satrec.nodeo,satrec.ecco, satrec.argpo, satrec.mo, satrec.no,
-                revnum, startmfe, stopmfe, deltamin) = \
-               sscanf(longstr2,"%2d %5ld %9lf %9lf %8lf %9lf %9lf %10lf %6ld %lf %lf %lf \n",
-                   );
-
-           else:
-               (cardnumb,satrec.satnum, satrec.inclo,
-                satrec.nodeo,satrec.ecco, satrec.argpo, satrec.mo, satrec.no,
-                revnum, startmfe, stopmfe, deltamin) = \
-               sscanf(longstr2,"%2d %5ld %9lf %9lf %8lf %9lf %9lf %11lf %6ld %lf %lf %lf \n",
-                   );
-
-       else:  #  simply run -1 day to +1 day or user input times
-
-           if longstr2[52] == ' ':
-               (cardnumb,satrec.satnum, satrec.inclo,
-                satrec.nodeo,satrec.ecco, satrec.argpo, satrec.mo, satrec.no,
-                revnum) = \
+       if longstr2[52] == ' ':
+           (cardnumb,satrec.satnum, satrec.inclo,
+            satrec.nodeo,satrec.ecco, satrec.argpo, satrec.mo, satrec.no,
+            revnum) = \
                sscanf(longstr2,"%2d %5ld %9lf %9lf %8lf %9lf %9lf %10lf %6ld \n",
                       )
-           else:
-               (cardnumb,satrec.satnum, satrec.inclo,
-                satrec.nodeo,satrec.ecco, satrec.argpo, satrec.mo, satrec.no,
-                revnum) = \
+       else:
+           (cardnumb,satrec.satnum, satrec.inclo,
+            satrec.nodeo,satrec.ecco, satrec.argpo, satrec.mo, satrec.no,
+            revnum) = \
                sscanf(longstr2,"%2d %5ld %9lf %9lf %8lf %9lf %9lf %11lf %6ld \n",
                       )
 
@@ -218,77 +200,6 @@ def twoline2rv(
 
        mon,day,hr,minute,sec = days2mdhms(year, satrec.epochdays);
        satrec.jdsatepoch = jday(year,mon,day,hr,minute,sec);
-
-       #  ---- input start stop times manually
-       if typerun != 'v' and typerun != 'c':
-
-         #  ------------- enter start/stop ymd hms values --------------------
-           if typeinput == 'e':
-
-               printf("input start prop year mon day hr min sec \n");
-               #  make sure there is no space at the end of the format specifiers in scanf!
-               """
-               scanf( "%i %i %i %i %i %lf",startyear, startmon, startday, starthr, startmin, startsec);
-               """
-               fflush(stdin);
-               jdstart = jday(
-                   startyear,startmon,startday,starthr,startmin,startsec);
-
-               printf("input stop prop year mon day hr min sec \n");
-               """
-               scanf( "%i %i %i %i %i %lf",stopyear, stopmon, stopday, stophr, stopmin, stopsec);
-               """
-               fflush(stdin);
-               jdstop = jday(stopyear,stopmon,stopday,stophr,stopmin,stopsec);
-
-               startmfe = (jdstart - satrec.jdsatepoch) * 1440.0;
-               stopmfe  = (jdstop - satrec.jdsatepoch) * 1440.0;
-
-               printf("input time step in minutes \n");
-               """
-               scanf( "%lf",deltamin );
-               """
-
-           #  -------- enter start/stop year and days of year values -----------
-           if typeinput == 'd':
-
-               """
-               printf("input start year dayofyr \n");
-               scanf( "%i %lf",startyear, startdayofyr );
-               printf("input stop year dayofyr \n");
-               scanf( "%i %lf",stopyear, stopdayofyr );
-               """
-               mon,day,hr,minute,sec = days2mdhms(startyear, startdayofyr);
-               jdstart = jday(startyear,mon,day,hr,minute,sec);
-               mon,day,hr,minute,sec = days2mdhms(stopyear, stopdayofyr);
-               jdstop = jday(stopyear,mon,day,hr,minute,sec);
-
-               startmfe = (jdstart - satrec.jdsatepoch) * 1440.0;
-               stopmfe  = (jdstop - satrec.jdsatepoch) * 1440.0;
-
-               printf("input time step in minutes \n");
-               """
-               scanf( "%lf",deltamin );
-               """
-
-           #  ------------------ enter start/stop mfe values -------------------
-           if typeinput == 'm':
-
-               """
-               printf("input start min from epoch \n");
-               scanf( "%lf",startmfe );
-               printf("input stop min from epoch \n");
-               scanf( "%lf",stopmfe );
-               printf("input time step in minutes \n");
-               scanf( "%lf",deltamin );
-               """
-
-       #  ------------ perform complete catalog evaluation, -+ 1 day -----------
-       if typerun == 'c':
-
-           startmfe = -1440.0;
-           stopmfe  =  1440.0;
-           deltamin =    10.0;
 
        #  ---------------- initialize the orbit at sgp4epoch -------------------
        sgp4init( whichconst, opsmode, satrec.satnum, satrec.jdsatepoch-2433281.5, satrec.bstar,
