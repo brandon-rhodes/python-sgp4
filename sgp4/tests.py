@@ -20,18 +20,19 @@ class SatRec(object):
 class Tests(TestCase):
 
     def test_tle_verify(self):
+        # Check whether a test run produces the output in tcppver.out
+
         whichconst = 'wgs72'
         actual = generate_test_output(whichconst)
         previous_data_line = None
 
+        # Iterate across "tcppver.out", making sure that we ourselves
+        # produce a line that looks very much like the corresponding
+        # line in that file.
+
         tcppath = os.path.join(thisdir, 'tcppver.out')
         with open(tcppath) as tcpfile:
             for i, expected_line in enumerate(tcpfile, start = 1):
-
-                # TODO: what are we supposed to do with the extra fields
-                # that lie past character 107?
-                # if len(expected_line) > 107:
-                #     expected_line = expected_line[:107] + expected_line[-1:]
 
                 try:
                     actual_line = next(actual)
@@ -43,7 +44,10 @@ class Tests(TestCase):
                     actual_line = ('       0.00000000' +
                                    previous_data_line[17:107])
 
-                # Compare the lines.
+                # Compare the lines.  The first seven fields are printed
+                # to very high precision, so we allow a small error due
+                # to rounding differences; the rest are printed to lower
+                # precision, and so can be compared textually.
 
                 if 'xx' in actual_line:
                     similar = (actual_line == expected_line)
@@ -74,6 +78,8 @@ class Tests(TestCase):
                 if 'xx' not in actual_line:
                     previous_data_line = actual_line
 
+        # Make sure the test file is not missing lines.
+
         missing_count = 0
         for actual_line in actual:
             missing_count += 1
@@ -83,8 +89,13 @@ class Tests(TestCase):
 
 
 def generate_test_output(whichconst):
-    """Generate lines like those in the test file tcppver.out."""
+    """Generate lines like those in the test file tcppver.out.
 
+    This iterates through the satellites in "SGP4-VER.TLE", which are
+    each supplemented with a time start/stop/step over which we are
+    supposed to print results.
+
+    """
     tlepath = os.path.join(thisdir, 'SGP4-VER.TLE')
     with open(tlepath) as tlefile:
         tlelines = iter(tlefile.readlines())
@@ -95,9 +106,9 @@ def generate_test_output(whichconst):
             continue
 
         line2 = next(tlelines)
-
         satrec = SatRec()
         twoline2rv(line1, line2, 'c', None, 'i', whichconst, satrec)
+
         yield '%ld xx\n' % (satrec.satnum,)
 
         for line in generate_satellite_output(whichconst, satrec, line2):
@@ -105,6 +116,7 @@ def generate_test_output(whichconst):
 
 
 def generate_satellite_output(whichconst, satrec, line2):
+    """Print a data line for each time in line2's start/stop/step field."""
 
     mu = getgravconst(whichconst)[1]
 
@@ -137,14 +149,16 @@ def generate_satellite_output(whichconst, satrec, line2):
         yield format_long_line(satrec, mu, r, v)
 
 
-def format_short_line(satrec, ro, vo):
-    """Format a test line with the same format string that testcpp.cpp uses."""
+def format_short_line(satrec, r, v):
+    """Short line, using the same format string that testcpp.cpp uses."""
 
     return ' %16.8f %16.8f %16.8f %16.8f %12.9f %12.9f %12.9f\n' % (
-        satrec.t, ro[0], ro[1], ro[2], vo[0], vo[1], vo[2])
+        satrec.t, r[0], r[1], r[2], v[0], v[1], v[2])
 
 
 def format_long_line(satrec, mu, r, v):
+    """Long line, using the same format string that testcpp.cpp uses."""
+
     short = format_short_line(satrec, r, v).strip('\n')
 
     jd = satrec.jdsatepoch + satrec.t / 1440.0
