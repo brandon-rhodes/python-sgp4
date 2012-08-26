@@ -120,11 +120,11 @@ def generate_satellite_output(whichconst, satrec, line2):
 
     mu = getgravconst(whichconst)[1]
 
-    ro, vo = sgp4(whichconst, satrec, 0.0)
-    if ro is None:
+    r, v = sgp4(whichconst, satrec, 0.0)
+    if r is None:
         yield '(Use previous data line)'
         return
-    yield format_short_line(satrec, ro, vo)
+    yield format_short_line(satrec, r, v)
 
     tstart, tend, tstep = (float(field) for field in line2[69:].split())
 
