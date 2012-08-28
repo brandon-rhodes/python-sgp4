@@ -4,7 +4,7 @@ module = __import__('sgp4')
 description, long_description = module.__doc__.split('\n', 1)
 
 setup(name = 'sgp4',
-      version = '1.0',
+      version = '1.1-dev',
       description = description,
       long_description = long_description,
       license = 'MIT',
