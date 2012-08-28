@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """Utility routines from "sgp4ext.cpp"."""
 
-from math import (acos, atan2, cos, fabs, floor, fmod,
-                  log, pi, sin, sinh, sqrt, tan)
+from math import (acos, asinh, atan2, cos, fabs, floor, fmod,
+                  pi, sin, sinh, sqrt, tan)
 
 undefined = None
 
@@ -166,33 +166,6 @@ def angle(vec1, vec2):
 
      else:
          return undefined;
-
-"""
-/* -----------------------------------------------------------------------------
-*
-*                           function asinh
-*
-*  this function evaluates the inverse hyperbolic sine function.
-*
-*  author        : david vallado                  719-573-2600    1 mar 2001
-*
-*  inputs          description                    range / units
-*    xval        - angle value                                  any real
-*
-*  outputs       :
-*    arcsinh     - result                                       any real
-*
-*  locals        :
-*    none.
-*
-*  coupling      :
-*    none.
-*
-* --------------------------------------------------------------------------- */
-"""
-
-def asinh(xval):
-     return log( xval + sqrt( xval*xval + 1.0 ) );
 
 """
 /* -----------------------------------------------------------------------------
