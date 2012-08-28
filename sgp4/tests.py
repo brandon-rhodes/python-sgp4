@@ -6,7 +6,7 @@ from unittest import TestCase
 from math import pi
 
 from sgp4.earth_gravity import wgs72
-from sgp4.ext import invjday, rv2coe
+from sgp4.ext import invjday, newtonnu, rv2coe
 from sgp4.io import twoline2rv
 from sgp4.propagation import sgp4
 
@@ -84,6 +84,16 @@ class Tests(TestCase):
 
         if missing_count > 0:
             raise ValueError('we produced %d extra lines' % (missing_count,))
+
+    def test_hyperbolic_orbit(self):
+        # Exercise the newtonnu() code path with asinh() to see whether
+        # we can replace it with the one from Python's math module.
+
+        self.assertEqual(newtonnu(1.0, 2.9),   # parabolic
+                         (8.238092752965605, 194.60069989482898))
+
+        self.assertEqual(newtonnu(1.1, 2.7),   # hyperbolic
+                         (4.262200676156417, 34.76134082028372))
 
 
 def generate_test_output(whichconst):
@@ -172,5 +182,7 @@ def format_long_line(satrec, mu, r, v):
 
 
 def load_tests(loader, tests, ignore):
+    """Run our main documentation as a test."""
+
     tests.addTests(DocTestSuite('sgp4'))
     return tests
