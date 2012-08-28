@@ -1,7 +1,11 @@
 from distutils.core import setup
+from textwrap import dedent
 
-module = __import__('sgp4')
-description, long_description = module.__doc__.split('\n', 1)
+import sgp4, sgp4.model
+
+description, long_description = sgp4.__doc__.split('\n', 1)
+satdoc = dedent(sgp4.model.Satellite.__doc__.split('\n', 1)[1])
+long_description = long_description.replace('entry.', 'entry.' + satdoc)
 
 setup(name = 'sgp4',
       version = '1.1-dev',

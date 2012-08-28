@@ -48,6 +48,9 @@ The ``wgs72`` model seems to be the most commonly used in the satellite
 tracking community, and is probably the model behind most TLE elements
 that are available for download.
 
+The ``twoline2rv()`` function returns a ``Satellite`` object whose
+attributes carry the data loaded from the TLE entry.
+
 This implementation passes all of the automated tests in the August 2010
 release of the reference implementation of SGP4 by Vallado et al., who
 originally published their revision of SGP4 in 2006:
