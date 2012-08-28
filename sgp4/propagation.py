@@ -146,18 +146,43 @@ twopi = 2.0 * pi
   ----------------------------------------------------------------------------*/
 """
 
-def _dpper(
-       e3,     ee2,    peo,     pgho,   pho,
-       pinco,  plo,    se2,     se3,    sgh2,
-       sgh3,   sgh4,   sh2,     sh3,    si2,
-       si3,    sl2,    sl3,     sl4,    t,
-       xgh2,   xgh3,   xgh4,    xh2,    xh3,
-       xi2,    xi3,    xl2,     xl3,    xl4,
-       zmol,   zmos,   inclo,
-       init,
-       ep,    inclp, nodep,  argpp, mp,
-       opsmode,
-       ):
+def _dpper(satrec, inclo, init, ep, inclp, nodep, argpp, mp, opsmode):
+
+     # Copy satellite attributes into local variables for convenience
+     # and symmetry in writing formulae.
+
+     e3 = satrec.e3
+     ee2 = satrec.ee2
+     peo = satrec.peo
+     pgho = satrec.pgho
+     pho = satrec.pho
+     pinco = satrec.pinco
+     plo = satrec.plo
+     se2 = satrec.se2
+     se3 = satrec.se3
+     sgh2 = satrec.sgh2
+     sgh3 = satrec.sgh3
+     sgh4 = satrec.sgh4
+     sh2 = satrec.sh2
+     sh3 = satrec.sh3
+     si2 = satrec.si2
+     si3 = satrec.si3
+     sl2 = satrec.sl2
+     sl3 = satrec.sl3
+     sl4 = satrec.sl4
+     t = satrec.t
+     xgh2 = satrec.xgh2
+     xgh3 = satrec.xgh3
+     xgh4 = satrec.xgh4
+     xh2 = satrec.xh2
+     xh3 = satrec.xh3
+     xi2 = satrec.xi2
+     xi3 = satrec.xi3
+     xl2 = satrec.xl2
+     xl3 = satrec.xl3
+     xl4 = satrec.xl4
+     zmol = satrec.zmol
+     zmos = satrec.zmos
 
      #  ---------------------- constants -----------------------------
      zns   = 1.19459e-5;
@@ -1464,14 +1489,7 @@ def sgp4init(
                  );
              (satrec.ecco, satrec.inclo, satrec.nodeo, satrec.argpo, satrec.mo
               ) = _dpper(
-                   satrec.e3, satrec.ee2, satrec.peo, satrec.pgho,
-                   satrec.pho, satrec.pinco, satrec.plo, satrec.se2,
-                   satrec.se3, satrec.sgh2, satrec.sgh3, satrec.sgh4,
-                   satrec.sh2, satrec.sh3, satrec.si2,  satrec.si3,
-                   satrec.sl2, satrec.sl3, satrec.sl4,  satrec.t,
-                   satrec.xgh2,satrec.xgh3,satrec.xgh4, satrec.xh2,
-                   satrec.xh3, satrec.xi2, satrec.xi3,  satrec.xl2,
-                   satrec.xl3, satrec.xl4, satrec.zmol, satrec.zmos, inclm, satrec.init,
+                   satrec, inclm, satrec.init,
                    satrec.ecco, satrec.inclo, satrec.nodeo, satrec.argpo, satrec.mo,
                    satrec.operationmode
                  );
@@ -1752,17 +1770,7 @@ def sgp4(satrec, tsince, whichconst=None):
      if satrec.method == 'd':
 
          ep, xincp, nodep, argpp, mp = _dpper(
-               satrec.e3,   satrec.ee2,  satrec.peo,
-               satrec.pgho, satrec.pho,  satrec.pinco,
-               satrec.plo,  satrec.se2,  satrec.se3,
-               satrec.sgh2, satrec.sgh3, satrec.sgh4,
-               satrec.sh2,  satrec.sh3,  satrec.si2,
-               satrec.si3,  satrec.sl2,  satrec.sl3,
-               satrec.sl4,  satrec.t,    satrec.xgh2,
-               satrec.xgh3, satrec.xgh4, satrec.xh2,
-               satrec.xh3,  satrec.xi2,  satrec.xi3,
-               satrec.xl2,  satrec.xl3,  satrec.xl4,
-               satrec.zmol, satrec.zmos, satrec.inclo,
+               satrec, satrec.inclo,
                'n', ep, xincp, nodep, argpp, mp, satrec.operationmode
              );
          if xincp < 0.0:
