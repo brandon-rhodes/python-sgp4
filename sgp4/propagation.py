@@ -17,7 +17,6 @@ code for the first time here in its Python form.
 |   On a very hot August day in 2012
 """
 
-from collections import namedtuple
 from math import atan2, cos, fabs, floor, fmod, pi, sin, sqrt
 
 deg2rad = pi / 180.0;
@@ -2002,12 +2001,3 @@ def getgravconst(whichconst):
            j3oj2  =  j3 / j2;
 
        return tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2
-
-# For Python, precompute and store all three sets of constants.
-
-GravityConstants = namedtuple('GravityConstants',
-                              'tumin mu radiusearthkm xke j2 j3 j4 j3oj2')
-
-wgs72old = GravityConstants(*getgravconst('wgs72old'))
-wgs72 = GravityConstants(*getgravconst('wgs72'))
-wgs84 = GravityConstants(*getgravconst('wgs84'))

@@ -5,9 +5,10 @@ from doctest import DocTestSuite
 from unittest import TestCase
 from math import pi
 
+from sgp4.earth_gravity import wgs72
 from sgp4.ext import invjday, rv2coe
 from sgp4.io import twoline2rv
-from sgp4.propagation import sgp4, wgs72
+from sgp4.propagation import sgp4
 
 thisdir = os.path.dirname(__file__)
 error = 2e-7
