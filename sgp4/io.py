@@ -9,7 +9,6 @@ from sgp4.ext import days2mdhms, jday
 from sgp4.model import Satellite
 from sgp4.propagation import sgp4init
 
-SPACE = ord(' ')
 INT_RE = re.compile(r'[+-]?\d*')
 FLOAT_RE = re.compile(r'[+-]?\d*(\.\d*)?')
 
@@ -119,44 +118,44 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
        satrec.error = 0;
        satrec.whichconst = whichconst  # Python extension: remembers its consts
 
-       # This is Python, so we make the strings mutable before setting
-       # the C++ code loose on them.
-       longstr1 = bytearray(longstr1)
-       longstr2 = bytearray(longstr2)
+       # This is Python, so we convert the strings into mutable lists of
+       # characters before setting the C++ code loose on them.
+       longstr1 = [ c for c in longstr1 ]
+       longstr2 = [ c for c in longstr2 ]
 
        #  set the implied decimal points since doing a formated read
        #  fixes for bad input data values (missing, ...)
-       for j in xrange(10, 16):
-           if longstr1[j] == SPACE:
+       for j in range(10, 16):
+           if longstr1[j] == ' ':
                longstr1[j] = '_';
 
-       if longstr1[44] != SPACE:
+       if longstr1[44] != ' ':
            longstr1[43] = longstr1[44];
        longstr1[44] = '.';
-       if longstr1[7] == SPACE:
+       if longstr1[7] == ' ':
            longstr1[7] = 'U';
-       if longstr1[9] == SPACE:
+       if longstr1[9] == ' ':
            longstr1[9] = '.';
-       for j in xrange(45, 50):
-           if longstr1[j] == SPACE:
+       for j in range(45, 50):
+           if longstr1[j] == ' ':
                longstr1[j] = '0';
-       if longstr1[51] == SPACE:
+       if longstr1[51] == ' ':
            longstr1[51] = '0';
-       if longstr1[53] != SPACE:
+       if longstr1[53] != ' ':
            longstr1[52] = longstr1[53];
        longstr1[53] = '.';
        longstr2[25] = '.';
-       for j in xrange(26, 33):
-           if longstr2[j] == SPACE:
+       for j in range(26, 33):
+           if longstr2[j] == ' ':
                longstr2[j] = '0';
-       if longstr1[62] == SPACE:
+       if longstr1[62] == ' ':
            longstr1[62] = '0';
-       if longstr1[68] == SPACE:
+       if longstr1[68] == ' ':
            longstr1[68] = '0';
 
-       # Convert mutable but inconvenient bytearrays into real strings.
-       longstr1 = longstr1.decode('ascii')
-       longstr2 = longstr2.decode('ascii')
+       # Concatenate lists back into real strings.
+       longstr1 = ''.join(longstr1)
+       longstr2 = ''.join(longstr2)
 
        (cardnumb,satrec.satnum,classification, intldesg, satrec.epochyr,
         satrec.epochdays,satrec.ndot, satrec.nddot, nexp, satrec.bstar,

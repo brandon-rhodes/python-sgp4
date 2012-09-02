@@ -340,7 +340,7 @@ def rv2coe(r, v, mu):
          magn = mag( nbar );
          c1 = magv*magv - mu /magr;
          rdotv = dot( r,v );
-         for i in xrange(0, 3):
+         for i in range(0, 3):
              ebar[i]= (c1*r[i] - rdotv*v[i])/mu;
          ecc = mag( ebar );
 
