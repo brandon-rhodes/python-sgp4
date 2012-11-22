@@ -1,43 +1,10 @@
 # -*- coding: utf-8 -*-
 """Utility routines from "sgp4ext.cpp"."""
 
-from math import (acos, asinh, atan2, cos, fabs, floor, fmod,
+from math import (acos, asinh, atan2, copysign, cos, fabs, floor, fmod,
                   pi, sin, sinh, sqrt, tan)
 
 undefined = None
-
-"""
-/*     ----------------------------------------------------------------
-*
-*                               sgp4ext.cpp
-*
-*    this file contains extra routines needed for the main test program for sgp4.
-*    these routines are derived from the astro libraries.
-*
-*                            companion code for
-*               fundamentals of astrodynamics and applications
-*                                    2007
-*                              by david vallado
-*
-*       (w) 719-573-2600, email dvallado@agi.com
-*
-*    current :
-*               7 may 08  david vallado
-*                           fix sgn
-*    changes :
-*               2 apr 07  david vallado
-*                           fix jday floor and str lengths
-*                           updates for constants
-*              14 aug 06  david vallado
-*                           original baseline
-*       ----------------------------------------------------------------      */
-"""
-
-def sgn(x):
-     if x < 0.0:
-          return -1.0;
-     else:
-          return 1.0;
 
 """
 /* -----------------------------------------------------------------------------
@@ -161,7 +128,7 @@ def angle(vec1, vec2):
 
          temp= dot(vec1,vec2) / (magv1*magv2);
          if fabs(temp) > 1.0:
-             temp= sgn(temp) * 1.0;
+             temp = copysign(1.0, temp)
          return acos( temp );
 
      else:
@@ -379,7 +346,7 @@ def rv2coe(r, v, mu):
 
              temp= nbar[0] / magn;
              if fabs(temp) > 1.0:
-                 temp= sgn(temp);
+                 temp = copysign(1.0, temp)
              omega= acos( temp );
              if nbar[1] < 0.0:
                  omega= twopi - omega;
@@ -423,7 +390,7 @@ def rv2coe(r, v, mu):
 
              temp= ebar[0]/ecc;
              if fabs(temp) > 1.0:
-                 temp= sgn(temp);
+                 temp = copysign(1.0, temp)
              lonper= acos( temp );
              if ebar[1] < 0.0:
                  lonper= twopi - lonper;
@@ -438,7 +405,7 @@ def rv2coe(r, v, mu):
 
              temp= r[0]/magr;
              if fabs(temp) > 1.0:
-                 temp= sgn(temp);
+                 temp = copysign(1.0, temp)
              truelon= acos( temp );
              if r[1] < 0.0:
                  truelon= twopi - truelon;
