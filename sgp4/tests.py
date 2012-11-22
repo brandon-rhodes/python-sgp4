@@ -1,6 +1,7 @@
 """Test suite for SGP4."""
 
 import os
+import sys
 from doctest import DocTestSuite
 from unittest import TestCase
 from math import pi
@@ -184,5 +185,9 @@ def format_long_line(satrec, mu, r, v):
 def load_tests(loader, tests, ignore):
     """Run our main documentation as a test."""
 
-    tests.addTests(DocTestSuite('sgp4'))
+    # Python 2.6 formats floating-point numbers a bit differently and
+    # breaks the doctest.
+    if sys.version_info >= (2, 7):
+        tests.addTests(DocTestSuite('sgp4'))
+
     return tests
