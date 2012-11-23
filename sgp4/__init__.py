@@ -72,4 +72,10 @@ was the most recently updated SGP4 implementation in their zip file:
 * Matlab, May 2008
 * Java, July 2005
 
+Changelog
+---------
+
+| 2012-11-22 — 1.1 — Python 3 compatibility; more documentation
+| 2012-08-27 — 1.0 — Initial release
+
 """
