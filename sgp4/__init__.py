@@ -6,7 +6,7 @@ earth-orbiting satellite, given the satellite's TLE orbital elements
 from a source like `Celestrak <http://celestrak.com/>`_.  It implements
 the most recent version of SGP4, and is regularly run against the SGP4
 test suite to make sure that its satellite position predictions **agree
-to within 1 µm** of the predictions of the standard C++ implementation
+to within 0.1 mm** of the predictions of the standard C++ implementation
 of the algorithm.  This error is far less than the 1–3 km/day by which
 satellites themselves deviate from the ideal orbits described in TLE
 files.
@@ -33,9 +33,9 @@ June 2000:
 >>> velocity
 [4.772627303379319, 5.119817120959591, 4.275553909172126]
 
-The position vector measures the satellite position in **meters** from
-the center of the earth.  The velocity is the rate at which those same
-three parameters are changing, expressed in **meters per second**.
+The position vector measures the satellite position in **kilometers**
+from the center of the earth.  The velocity is the rate at which those
+three parameters are changing, expressed in **kilometers per second**.
 
 There are three gravity models available that you can import from the
 ``earth_gravity`` module:
