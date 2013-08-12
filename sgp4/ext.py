@@ -470,17 +470,23 @@ def rv2coe(r, v, mu):
 * --------------------------------------------------------------------------- */
 """
 
-def jday(
-          year, mon, day, hr, minute, sec,
-        ):
+def jday(date):
+    if isinstance(date, datetime.datetime):
+        year, mon, day, hr, minute, sec = date.year, date.month, date.day, date.hour, date.minute, date.second
+    elif isinstance(date, list):
+        year, mon, day, hr, minute, sec = date[0], date[1], date[2], date[3], date[4], date[5]
+    else:
+        raise TypeError('jday requires either a datetime object'
+                        ' or a list of integers of the following form:'
+                        ' [year, month, day, hour, minute, second]')
 
-  return (367.0 * year -
-          floor((7 * (year + floor((mon + 9) / 12.0))) * 0.25) +
-          floor( 275 * mon / 9.0 ) +
-          day + 1721013.5 +
-          ((sec / 60.0 + minute) / 60.0 + hr) / 24.0  #  ut in days
-          #  - 0.5*sgn(100.0*year + mon - 190002.5) + 0.5;
-          )
+    return (367.0 * year -
+            floor((7 * (year + floor((mon + 9) / 12.0))) * 0.25) +
+            floor( 275 * mon / 9.0 ) +
+            day + 1721013.5 +
+            ((sec / 60.0 + minute) / 60.0 + hr) / 24.0  #  ut in days
+            #  - 0.5*sgn(100.0*year + mon - 190002.5) + 0.5;
+            )
 
 """
 /* -----------------------------------------------------------------------------
