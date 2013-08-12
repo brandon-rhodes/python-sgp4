@@ -18,8 +18,8 @@ FLOAT_RE = re.compile(r'[+-]?\d*(\.\d*)?')
 *
 *                               sgp4io.cpp
 *
-*    this file contains a function to read two line element sets. while 
-*    not formerly part of the sgp4 mathematical theory, it is 
+*    this file contains a function to read two line element sets. while
+*    not formerly part of the sgp4 mathematical theory, it is
 *    required for practical implemenation.
 *
 *                            companion code for
@@ -65,7 +65,7 @@ FLOAT_RE = re.compile(r'[+-]?\d*(\.\d*)?')
 *  inputs        :
 *    longstr1    - first line of the tle
 *    longstr2    - second line of the tle
-*    typerun     - type of run                    verification 'v', catalog 'c', 
+*    typerun     - type of run                    verification 'v', catalog 'c',
 *                                                 manual 'm'
 *    typeinput   - type of manual input           mfe 'm', epoch 'e', dayofyr 'd'
 *    opsmode     - mode of operation afspc or improved 'a', 'i'
@@ -211,7 +211,7 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
            year= satrec.epochyr + 1900;
 
        mon,day,hr,minute,sec = days2mdhms(year, satrec.epochdays);
-       satrec.jdsatepoch = jday(year,mon,day,hr,minute,sec);
+       satrec.jdsatepoch = jday([year, mon, day, hr, minute, sec]);
 
        #  ---------------- initialize the orbit at sgp4epoch -------------------
        sgp4init( whichconst, opsmode, satrec.satnum, satrec.jdsatepoch-2433281.5, satrec.bstar,
