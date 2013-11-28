@@ -49,7 +49,25 @@ tracking community, and is probably the model behind most TLE elements
 that are available for download.
 
 The ``twoline2rv()`` function returns a ``Satellite`` object whose
-attributes carry the data loaded from the TLE entry.
+attributes carry the data loaded from the TLE entry:
+
+* Unique satellite number, as given in the TLE file.
+
+  >>> satellite.satnum
+  5
+
+* The epoch of the element set, expressed three ways:
+  as the integer year plus the floating point number of days into the year;
+  as a floating-point Julian date; and as Python ``datetime`` object.
+
+  >>> satellite.epochyr
+  2000
+  >>> satellite.epochdays
+  179.78495062
+  >>> satellite.jdsatepoch
+  2451723.28495062
+  >>> satellite.epoch
+  datetime.datetime(2000, 6, 27, 18, 50, 19, 733567)
 
 This implementation passes all of the automated tests in the August 2010
 release of the reference implementation of SGP4 by Vallado et al., who

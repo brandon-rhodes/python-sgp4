@@ -4,6 +4,7 @@ This is a minimally-edited copy of "sgp4io.cpp".
 
 """
 import re
+from datetime import datetime
 from math import pi, pow
 from sgp4.ext import days2mdhms, jday
 from sgp4.model import Satellite
@@ -110,8 +111,6 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
        revnum = 0;
        elnum = 0;
 
-       year = 0;
-
        tumin = whichconst.tumin
 
        satrec = Satellite()
@@ -157,7 +156,7 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
        longstr1 = ''.join(longstr1)
        longstr2 = ''.join(longstr2)
 
-       (cardnumb,satrec.satnum,classification, intldesg, satrec.epochyr,
+       (cardnumb,satrec.satnum,classification, intldesg, two_digit_year,
         satrec.epochdays,satrec.ndot, satrec.nddot, nexp, satrec.bstar,
         ibexp, numb, elnum) = \
        sscanf(longstr1,"%2d %5ld %1c %10s %2d %12lf %11lf %7lf %2d %7lf %2d %2d %6ld ",
@@ -205,13 +204,18 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
        // ---------------- temp fix for years from 1957-2056 -------------------
        // --------- correct fix will occur when year is 4-digit in tle ---------
        """
-       if satrec.epochyr < 57:
-           year= satrec.epochyr + 2000;
+       if two_digit_year < 57:
+           year = two_digit_year + 2000;
        else:
-           year= satrec.epochyr + 1900;
+           year = two_digit_year + 1900;
 
        mon,day,hr,minute,sec = days2mdhms(year, satrec.epochdays);
+       sec_whole, sec_fraction = divmod(sec, 1.0)
+
+       satrec.epochyr = year
        satrec.jdsatepoch = jday(year,mon,day,hr,minute,sec);
+       satrec.epoch = datetime(year, mon, day, hr, minute, int(sec_whole),
+                               int(sec_fraction * 1000000.0 // 1.0))
 
        #  ---------------- initialize the orbit at sgp4epoch -------------------
        sgp4init( whichconst, opsmode, satrec.satnum, satrec.jdsatepoch-2433281.5, satrec.bstar,
