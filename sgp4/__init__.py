@@ -93,6 +93,7 @@ was the most recently updated SGP4 implementation in their zip file:
 Changelog
 ---------
 
+| 2013-11-29 — 1.2 — Made ``epochyr`` 4 digits; add ``datetime`` for ``.epoch``.
 | 2012-11-22 — 1.1 — Python 3 compatibility; more documentation
 | 2012-08-27 — 1.0 — Initial release
 
