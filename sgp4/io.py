@@ -94,9 +94,9 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
        and select which standard set of gravitational constants you want
        by providing `gravity_constants`:
 
-       `sgp4.propagation.wgs72` - Standard WGS 72 model
-       `sgp4.propagation.wgs84` - More recent WGS 84 model
-       `sgp4.propagation.wgs72old` - Legacy support for old SGP4 behavior
+       `sgp4.earth_gravity.wgs72` - Standard WGS 72 model
+       `sgp4.earth_gravity.wgs84` - More recent WGS 84 model
+       `sgp4.earth_gravity.wgs72old` - Legacy support for old SGP4 behavior
 
        Normally, computations are made using various recent improvements
        to the algorithm.  If you want to turn some of these off and go
