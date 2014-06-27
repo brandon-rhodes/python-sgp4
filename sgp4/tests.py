@@ -88,19 +88,19 @@ class Tests(TestCase):
             raise ValueError('we produced %d extra lines' % (missing_count,))
 
         self.assertEqual(error_list, [
-            (1, 'mean eccentricity -0.00132929133395'
+            (1, 'mean eccentricity -0.001329'
              ' not within range 0.0 <= e < 1.0'),
-            (1, 'mean eccentricity -0.00120815606291'
+            (1, 'mean eccentricity -0.001208'
              ' not within range 0.0 <= e < 1.0'),
-            (6, 'satellite orbit has decayed: mrt=0.996159410066'
-             ' is less than 1.0'),
-            (6, 'satellite orbit has decayed: mrt=0.996251516685'
-             ' is less than 1.0'),
-            (4, 'semilatus rectum -0.103222890658 is negative'),
-            (3, 'perturbed eccentricity -122.217192544'
+            (6, 'mrt 0.996159 is less than 1.0'
+             ' indicating the satellite has decayed'),
+            (6, 'mrt 0.996252 is less than 1.0'
+             ' indicating the satellite has decayed'),
+            (4, 'semilatus rectum -0.103223 is less than zero'),
+            (3, 'perturbed eccentricity -122.217193'
              ' not within range 0.0 <= e <= 1.0'),
-            (6, 'satellite orbit has decayed: mrt=0.830534348077'
-             ' is less than 1.0'),
+            (6, 'mrt 0.830534 is less than 1.0'
+             ' indicating the satellite has decayed'),
             ])
 
     def test_hyperbolic_orbit(self):
