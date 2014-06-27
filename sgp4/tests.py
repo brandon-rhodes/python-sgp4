@@ -2,7 +2,7 @@
 
 import os
 import sys
-from doctest import DocTestSuite
+from doctest import DocTestSuite, ELLIPSIS
 from unittest import TestCase
 from math import pi, isnan
 
@@ -208,6 +208,6 @@ def load_tests(loader, tests, ignore):
     # Python 2.6 formats floating-point numbers a bit differently and
     # breaks the doctest.
     if sys.version_info >= (2, 7):
-        tests.addTests(DocTestSuite('sgp4'))
+        tests.addTests(DocTestSuite('sgp4', optionflags=ELLIPSIS))
 
     return tests
