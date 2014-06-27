@@ -28,9 +28,13 @@ June 2000:
 >>> position, velocity = satellite.propagate(
 ...     2000, 6, 29, 12, 50, 19)
 >>>
->>> position
+>>> print(satellite.error)    # nonzero on error
+0
+>>> print(satellite.error_message)
+None
+>>> print(position)
 [5576.056952400586, -3999.371134576452, -1521.9571594376037]
->>> velocity
+>>> print(velocity)
 [4.772627303379319, 5.119817120959591, 4.275553909172126]
 
 The position vector measures the satellite position in **kilometers**
@@ -93,7 +97,8 @@ was the most recently updated SGP4 implementation in their zip file:
 Changelog
 ---------
 
-| 2013-11-29 — 1.2 — Made ``epochyr`` 4 digits; add ``datetime`` for ``.epoch``.
+| 2014-06-26 — 1.3 — Return ``(NaN,NaN,NaN)`` vectors on error and set ``.error_message``
+| 2013-11-29 — 1.2 — Made ``epochyr`` 4 digits; add ``datetime`` for ``.epoch``
 | 2012-11-22 — 1.1 — Python 3 compatibility; more documentation
 | 2012-08-27 — 1.0 — Initial release
 

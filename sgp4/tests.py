@@ -4,7 +4,7 @@ import os
 import sys
 from doctest import DocTestSuite
 from unittest import TestCase
-from math import pi
+from math import pi, isnan
 
 from sgp4.earth_gravity import wgs72
 from sgp4.ext import invjday, newtonnu, rv2coe
@@ -22,7 +22,8 @@ class Tests(TestCase):
         # Check whether a test run produces the output in tcppver.out
 
         whichconst = 'wgs72'
-        actual = generate_test_output(whichconst)
+        error_list = []
+        actual = generate_test_output(whichconst, error_list)
         previous_data_line = None
 
         # Iterate across "tcppver.out", making sure that we ourselves
@@ -86,6 +87,22 @@ class Tests(TestCase):
         if missing_count > 0:
             raise ValueError('we produced %d extra lines' % (missing_count,))
 
+        self.assertEqual(error_list, [
+            (1, 'mean eccentricity -0.00132929133395'
+             ' not within range 0.0 <= e < 1.0'),
+            (1, 'mean eccentricity -0.00120815606291'
+             ' not within range 0.0 <= e < 1.0'),
+            (6, 'satellite orbit has decayed: mrt=0.996159410066'
+             ' is less than 1.0'),
+            (6, 'satellite orbit has decayed: mrt=0.996251516685'
+             ' is less than 1.0'),
+            (4, 'semilatus rectum -0.103222890658 is negative'),
+            (3, 'perturbed eccentricity -122.217192544'
+             ' not within range 0.0 <= e <= 1.0'),
+            (6, 'satellite orbit has decayed: mrt=0.830534348077'
+             ' is less than 1.0'),
+            ])
+
     def test_hyperbolic_orbit(self):
         # Exercise the newtonnu() code path with asinh() to see whether
         # we can replace it with the one from Python's math module.
@@ -97,7 +114,7 @@ class Tests(TestCase):
                          (4.262200676156417, 34.76134082028372))
 
 
-def generate_test_output(whichconst):
+def generate_test_output(whichconst, error_list):
     """Generate lines like those in the test file tcppver.out.
 
     This iterates through the satellites in "SGP4-VER.TLE", which are
@@ -120,17 +137,18 @@ def generate_test_output(whichconst):
 
         yield '%ld xx\n' % (satrec.satnum,)
 
-        for line in generate_satellite_output(satrec, line2):
+        for line in generate_satellite_output(satrec, line2, error_list):
             yield line
 
 
-def generate_satellite_output(satrec, line2):
+def generate_satellite_output(satrec, line2, error_list):
     """Print a data line for each time in line2's start/stop/step field."""
 
     mu = satrec.whichconst.mu
 
     r, v = sgp4(satrec, 0.0)
-    if r is None:
+    if isnan(r[0]) and isnan(r[1]) and isnan(r[2]):
+        error_list.append((satrec.error, satrec.error_message))
         yield '(Use previous data line)'
         return
     yield format_short_line(satrec, r, v)
@@ -145,7 +163,8 @@ def generate_satellite_output(satrec, line2):
 
         r, v = sgp4(satrec, tsince)
 
-        if r is None:
+        if isnan(r[0]) and isnan(r[1]) and isnan(r[2]):
+            error_list.append((satrec.error, satrec.error_message))
             return
         yield format_long_line(satrec, mu, r, v)
 
@@ -153,7 +172,8 @@ def generate_satellite_output(satrec, line2):
 
     if tsince - tend < tstep - 1e-6:  # do not miss last line!
         r, v = sgp4(satrec, tend)
-        if r is None:
+        if isnan(r[0]) and isnan(r[1]) and isnan(r[2]):
+            error_list.append((satrec.error, satrec.error_message))
             return
         yield format_long_line(satrec, mu, r, v)
 

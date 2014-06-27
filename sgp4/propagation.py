@@ -20,7 +20,8 @@ code for the first time here in its Python form.
 from math import atan2, cos, fabs, floor, fmod, pi, sin, sqrt
 
 deg2rad = pi / 180.0;
-false = None
+_nan = float('NaN')
+false = (_nan, _nan, _nan)
 true = True
 twopi = 2.0 * pi
 
@@ -1665,6 +1666,7 @@ def sgp4(satrec, tsince, whichconst=None):
      #  --------------------- clear sgp4 error flag -----------------
      satrec.t     = tsince;
      satrec.error = 0;
+     satrec.error_message = None
 
      #  ------- update for secular gravity and atmospheric drag -----
      xmdf    = satrec.mo + satrec.mdot * satrec.t;
@@ -1724,7 +1726,7 @@ def sgp4(satrec, tsince, whichconst=None):
 
      if nm <= 0.0:
 
-#          printf("# error nm %f\n", nm);
+         satrec.error_message = 'mean motion {0} is negative'.format(nm)
          satrec.error = 2;
          #  sgp4fix add return
          return false, false;
@@ -1737,7 +1739,8 @@ def sgp4(satrec, tsince, whichconst=None):
      #  sgp4fix am is fixed from the previous nm check
      if em >= 1.0 or em < -0.001:  # || (am < 0.95)
 
-#          printf("# error em %f\n", em);
+         satrec.error_message = ('mean eccentricity {0} not within range'
+                                 ' 0.0 <= e < 1.0'.format(em))
          satrec.error = 1;
          #  sgp4fix to return if there is an error in eccentricity
          return false, false;
@@ -1781,7 +1784,8 @@ def sgp4(satrec, tsince, whichconst=None):
 
          if ep < 0.0 or ep > 1.0:
 
-#             printf("# error ep %f\n", ep);
+             satrec.error_message = ('perturbed eccentricity {0} not within'
+                                     ' range 0.0 <= e <= 1.0'.format(ep))
              satrec.error = 3;
              #  sgp4fix add return
              return false, false;
@@ -1828,7 +1832,7 @@ def sgp4(satrec, tsince, whichconst=None):
      pl    = am*(1.0-el2);
      if pl < 0.0:
 
-#          printf("# error pl %f\n", pl);
+         satrec.error_message = 'semilatus rectum {0} is negative'.format(pl)
          satrec.error = 4;
          #  sgp4fix add return
          return false, false;
@@ -1895,7 +1899,8 @@ def sgp4(satrec, tsince, whichconst=None):
      #  sgp4fix for decaying satellites
      if mrt < 1.0:
 
-#          printf("# decay condition %11.6f \n",mrt);
+         satrec.error_message = ('satellite orbit has decayed: mrt={0}'
+                                 ' is less than 1.0'.format(mrt))
          satrec.error = 6;
          return false, false;
 
