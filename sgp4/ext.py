@@ -470,13 +470,11 @@ def rv2coe(r, v, mu):
 * --------------------------------------------------------------------------- */
 """
 
-def jday(
-          year, mon, day, hr, minute, sec,
-        ):
+def jday(year, mon, day, hr, minute, sec):
 
   return (367.0 * year -
-          floor((7 * (year + floor((mon + 9) / 12.0))) * 0.25) +
-          floor( 275 * mon / 9.0 ) +
+          7.0 * (year + ((mon + 9.0) // 12.0)) * 0.25 // 1.0 +
+          275.0 * mon // 9.0 +
           day + 1721013.5 +
           ((sec / 60.0 + minute) / 60.0 + hr) / 24.0  #  ut in days
           #  - 0.5*sgn(100.0*year + mon - 190002.5) + 0.5;
