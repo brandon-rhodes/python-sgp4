@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Utility routines from "sgp4ext.cpp"."""
 
-from math import (acos, asinh, atan2, copysign, cos, fabs, floor, fmod,
+from math import (acos, asinh, atan2, copysign, cos, fabs, fmod,
                   pi, sin, sinh, sqrt, tan)
 
 undefined = None
@@ -523,7 +523,7 @@ def days2mdhms(year, days):
 
      lmonth = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
 
-     dayofyr = int(floor(days));
+     dayofyr = int(days // 1.0);
      #  ----------------- find month and day of month ----------------
      if (year % 4) == 0:
        lmonth = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
@@ -540,9 +540,9 @@ def days2mdhms(year, days):
 
      #  ----------------- find hours minutes and seconds -------------
      temp = (days - dayofyr) * 24.0;
-     hr   = int(floor(temp));
+     hr   = int(temp // 1.0);
      temp = (temp - hr) * 60.0;
-     minute  = int(floor(temp));
+     minute  = int(temp // 1.0);
      sec  = (temp - minute) * 60.0;
 
      return mon, day, hr, minute, sec
@@ -594,8 +594,8 @@ def invjday(jd):
      #  --------------- find year and days of the year ---------------
      temp    = jd - 2415019.5;
      tu      = temp / 365.25;
-     year    = 1900 + int(floor(tu));
-     leapyrs = int(floor((year - 1901) * 0.25));
+     year    = 1900 + int(tu // 1.0);
+     leapyrs = int(((year - 1901) * 0.25) // 1.0);
 
      #  optional nudge by 8.64x10-7 sec to get even outputs
      days    = temp - ((year - 1900) * 365.0 + leapyrs) + 0.00000000001;
@@ -603,7 +603,7 @@ def invjday(jd):
      #  ------------ check for case of beginning of a year -----------
      if (days < 1.0):
          year    = year - 1;
-         leapyrs = int(floor((year - 1901) * 0.25));
+         leapyrs = int(((year - 1901) * 0.25) // 1.0);
          days    = temp - ((year - 1900) * 365.0 + leapyrs);
 
      #  ----------------- find remaing data  -------------------------
