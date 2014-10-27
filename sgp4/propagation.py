@@ -17,7 +17,7 @@ code for the first time here in its Python form.
 |   On a very hot August day in 2012
 """
 
-from math import atan2, cos, fabs, floor, fmod, pi, sin, sqrt
+from math import atan2, cos, fabs, fmod, pi, sin, sqrt
 
 deg2rad = pi / 180.0;
 _nan = float('NaN')
@@ -1167,7 +1167,7 @@ def _initl(
          #  sgp4fix use old way of finding gst
          #  count integer number of days from 0 jan 1970
          ts70  = epoch - 7305.0;
-         ds70 = floor(ts70 + 1.0e-8);
+         ds70 = (ts70 + 1.0e-8) // 1.0;
          tfrac = ts70 - ds70;
          #  find greenwich location at epoch
          c1    = 1.72027916940703639e-2;
