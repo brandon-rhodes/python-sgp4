@@ -249,11 +249,11 @@ def _dpper(satrec, inclo, init, ep, inclp, nodep, argpp, mp, opsmode):
 
        if inclp >= 0.2:
 
-           ph     = ph / sinip;
-           pgh    = pgh - cosip * ph;
-           argpp  = argpp + pgh;
-           nodep  = nodep + ph;
-           mp     = mp + pl;
+           ph /= sinip
+           pgh -= cosip * ph
+           argpp += pgh
+           nodep += ph
+           mp += pl
 
        else:
 
@@ -271,9 +271,7 @@ def _dpper(satrec, inclo, init, ep, inclp, nodep, argpp, mp, opsmode):
            #  nodep used without a trigonometric function ahead
            if nodep < 0.0 and opsmode == 'a':
                nodep = nodep + twopi;
-           xls    = mp + argpp + cosip * nodep;
-           dls    = pl + pgh - pinc * nodep * sinip;
-           xls    = xls + dls;
+           xls = mp + argpp + pl + pgh + (cosip - pinc * sinip) * nodep
            xnoh   = nodep;
            nodep  = atan2(alfdp, betdp);
            #   sgp4fix for afspc written intrinsic functions
@@ -285,7 +283,7 @@ def _dpper(satrec, inclo, init, ep, inclp, nodep, argpp, mp, opsmode):
                 nodep = nodep + twopi;
              else:
                 nodep = nodep - twopi;
-           mp    = mp + pl;
+           mp += pl
            argpp = xls - mp - cosip * nodep;
 
      return ep, inclp, nodep, argpp, mp
