@@ -403,7 +403,7 @@ def _dscom(
      pgho   = 0.0;
      pho    = 0.0;
      day    = epoch + 18261.5 + tc / 1440.0;
-     xnodce = fmod(4.5236020 - 9.2422029e-4 * day, twopi);
+     xnodce = (4.5236020 - 9.2422029e-4 * day) % twopi
      stem   = sin(xnodce);
      ctem   = cos(xnodce);
      zcosil = 0.91375164 - 0.03568096 * ctem;
@@ -505,8 +505,8 @@ def _dscom(
              zsinh = snodm * zcoshl - cnodm * zsinhl;
              cc    = c1l;
 
-     zmol = fmod(4.7199672 + 0.22997150  * day - gam, twopi);
-     zmos = fmod(6.2565837 + 0.017201977 * day, twopi);
+     zmol = (4.7199672 + 0.22997150  * day - gam) % twopi
+     zmos = (6.2565837 + 0.017201977 * day) % twopi
 
      #  ------------------------ do solar terms ----------------------
      se2  =   2.0 * ss1 * ss6;
@@ -713,7 +713,7 @@ def _dsinit(
 
      #  ----------- calculate deep space resonance effects --------
      dndt   = 0.0;
-     theta  = fmod(gsto + tc * rptim, twopi);
+     theta  = (gsto + tc * rptim) % twopi
      em     = em + dedt * t;
      inclm  = inclm + didt * t;
      argpm  = argpm + domdt * t;
@@ -815,7 +815,7 @@ def _dsinit(
              temp  =  2.0 * temp1 * root54;
              d5421 =  temp * f542 * g521;
              d5433 =  temp * f543 * g533;
-             xlamo =  fmod(mo + nodeo + nodeo-theta - theta, twopi);
+             xlamo =  (mo + nodeo + nodeo-theta - theta) % twopi
              xfact =  mdot + dmdt + 2.0 * (nodedot + dnodt - rptim) - no;
              em    = emo;
              emsq  = emsqo;
@@ -834,7 +834,7 @@ def _dsinit(
              del2  = 2.0 * del1 * f220 * g200 * q22;
              del3  = 3.0 * del1 * f330 * g300 * q33 * aonv;
              del1  = del1 * f311 * g310 * q31 * aonv;
-             xlamo = fmod(mo + nodeo + argpo - theta, twopi);
+             xlamo = (mo + nodeo + argpo - theta) % twopi
              xfact = mdot + xpidot - rptim + dmdt + domdt + dnodt - no;
 
          #  ------------ for sgp4, initialize the integrator ----------
@@ -957,7 +957,7 @@ def _dspace(
 
      #  ----------- calculate deep space resonance effects -----------
      dndt   = 0.0;
-     theta  = fmod(gsto + tc * rptim, twopi);
+     theta  = (gsto + tc * rptim) % twopi
      em     = em + dedt * t;
 
      inclm  = inclm + didt * t;
@@ -1174,7 +1174,7 @@ def _initl(
          thgr70= 1.7321343856509374;
          fk5r  = 5.07551419432269442e-15;
          c1p2p = c1 + twopi;
-         gsto  = fmod( thgr70 + c1*ds70 + c1p2p*tfrac + ts70*ts70*fk5r, twopi);
+         gsto  = (thgr70 + c1*ds70 + c1p2p*tfrac + ts70*ts70*fk5r) % twopi
          if gsto < 0.0:
              gsto = gsto + twopi;
 
@@ -1755,9 +1755,9 @@ def sgp4(satrec, tsince, whichconst=None):
      temp   = 1.0 - emsq;
 
      nodem  = fmod(nodem, twopi);
-     argpm  = fmod(argpm, twopi);
-     xlm    = fmod(xlm, twopi);
-     mm     = fmod(xlm - argpm - nodem, twopi);
+     argpm  = argpm % twopi
+     xlm    = xlm % twopi
+     mm     = (xlm - argpm - nodem) % twopi
 
      #  ----------------- compute extra mean quantities -------------
      sinim = sin(inclm);
@@ -1809,7 +1809,7 @@ def sgp4(satrec, tsince, whichconst=None):
      xl   = mp + argpp + nodep + temp * satrec.xlcof * axnl;
 
      #  --------------------- solve kepler's equation ---------------
-     u    = fmod(xl - nodep, twopi);
+     u    = (xl - nodep) % twopi
      eo1  = u;
      tem5 = 9999.9;
      ktr = 1;
@@ -1938,7 +1938,7 @@ def _gstime(jdut1):
      tut1 = (jdut1 - 2451545.0) / 36525.0;
      temp = -6.2e-6* tut1 * tut1 * tut1 + 0.093104 * tut1 * tut1 + \
              (876600.0*3600 + 8640184.812866) * tut1 + 67310.54841;  #  sec
-     temp = fmod(temp * deg2rad / 240.0, twopi); # 360/86400 = 1/240, to deg, to rad
+     temp = (temp * deg2rad / 240.0) % twopi # 360/86400 = 1/240, to deg, to rad
 
      #  ------------------------ check quadrants ---------------------
      if temp < 0.0:
