@@ -33,9 +33,9 @@ June 2000:
 >>> print(satellite.error_message)
 None
 >>> print(position)
-[5576.056952..., -3999.371134..., -1521.957159...]
+(5576.056952..., -3999.371134..., -1521.957159...)
 >>> print(velocity)
-[4.772627..., 5.119817..., 4.275553...]
+(4.772627..., 5.119817..., 4.275553...)
 
 The position vector measures the satellite position in **kilometers**
 from the center of the earth.  The velocity is the rate at which those

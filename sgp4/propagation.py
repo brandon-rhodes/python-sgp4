@@ -1889,14 +1889,11 @@ def sgp4(satrec, tsince, whichconst=None):
          vz    =  sini * cossu;
 
          #  --------- position and velocity (in km and km/sec) ----------
-         r = [None, None, None]
-         r[0] = (mrt * ux)* radiusearthkm;
-         r[1] = (mrt * uy)* radiusearthkm;
-         r[2] = (mrt * uz)* radiusearthkm;
-         v = [None, None, None]
-         v[0] = (mvt * ux + rvdot * vx) * vkmpersec;
-         v[1] = (mvt * uy + rvdot * vy) * vkmpersec;
-         v[2] = (mvt * uz + rvdot * vz) * vkmpersec;
+         _mr = mrt * radiusearthkm
+         r = (_mr * ux, _mr * uy, _mr * uz)
+         v = ((mvt * ux + rvdot * vx) * vkmpersec,
+              (mvt * uy + rvdot * vy) * vkmpersec,
+              (mvt * uz + rvdot * vz) * vkmpersec)
 
      #  sgp4fix for decaying satellites
      if mrt < 1.0:
