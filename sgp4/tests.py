@@ -8,7 +8,7 @@ from math import pi, isnan
 
 from sgp4.earth_gravity import wgs72
 from sgp4.ext import invjday, newtonnu, rv2coe
-from sgp4.io import twoline2rv
+from sgp4.io import twoline2rv, tle_list_maker
 from sgp4.propagation import sgp4
 
 thisdir = os.path.dirname(__file__)
@@ -17,6 +17,13 @@ rad = 180.0 / pi
 
 
 class Tests(TestCase):
+
+    def test_tle_list_maker(self):
+        line1 = "012345678901234567890123456789012345678901234567890123457890123456890"
+        try:
+            tle_list_maker(line1)
+        except Exception:
+            self.fail("Test did not see normal length line")
 
     def test_tle_verify(self):
         # Check whether a test run produces the output in tcppver.out

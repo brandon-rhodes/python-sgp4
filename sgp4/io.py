@@ -12,7 +12,7 @@ from sgp4.propagation import sgp4init
 
 INT_RE = re.compile(r'[+-]?\d*')
 FLOAT_RE = re.compile(r'[+-]?\d*(\.\d*)?')
-
+TLE_LENGTH = 69
 
 """
 /*     ----------------------------------------------------------------
@@ -87,6 +87,12 @@ FLOAT_RE = re.compile(r'[+-]?\d*(\.\d*)?')
   --------------------------------------------------------------------------- */
 """
 
+def tle_list_maker(raw_tle_str):
+    tle_list = [c for c in raw_tle_str]
+    if len(tle_list) < TLE_LENGTH:
+        raise Exception('TLE line length was not %s chars long (was %s char long)' % (TLE_LENGTH, len(tle_list)))
+    return tle_list
+
 def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
        """Return a Satellite imported from two lines of TLE data.
 
@@ -119,8 +125,9 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
 
        # This is Python, so we convert the strings into mutable lists of
        # characters before setting the C++ code loose on them.
-       longstr1 = [ c for c in longstr1 ]
-       longstr2 = [ c for c in longstr2 ]
+       longstr1 = tle_list_maker(longstr1)
+       longstr2 = tle_list_maker(longstr2)
+
 
        #  set the implied decimal points since doing a formated read
        #  fixes for bad input data values (missing, ...)
