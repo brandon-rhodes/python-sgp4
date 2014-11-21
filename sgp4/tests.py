@@ -30,7 +30,7 @@ class Tests(TestCase):
         try:
             tle_list_maker(line1)
         except Exception as e:
-            self.assertEquals("TLE line length was not 69 chars long (was 64 char long)", e.message)
+            self.assertEquals("TLE line length was not 69 chars long (was 64 char long)", str(e))
             return
         self.fail("Test did not see the short length line")
 
