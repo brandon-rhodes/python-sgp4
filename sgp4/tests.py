@@ -27,12 +27,14 @@ class Tests(TestCase):
 
     def test_tle_list_maker_short(self):
         line1 = "0123456789012345678901234567890123456789012345678901234578901234"
-        try:
-            tle_list_maker(line1)
-        except Exception as e:
-            self.assertEquals("TLE line length was not 69 chars long (was 64 char long)", str(e))
-            return
-        self.fail("Test did not see the short length line")
+        if sys.version_info >= (2, 7):
+            self.assertRaisesRegexp(
+                Exception,
+                "TLE line length was not 69 chars long \(was 64 char long\)",
+                tle_list_maker,
+                line1)
+        else:
+            self.assertRaises(Exception, tle_list_maker, line1)
 
     def test_tle_verify(self):
         # Check whether a test run produces the output in tcppver.out
