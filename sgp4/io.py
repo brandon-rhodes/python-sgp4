@@ -87,6 +87,14 @@ FLOAT_RE = re.compile(r'[+-]?\d*(\.\d*)?')
   --------------------------------------------------------------------------- */
 """
 
+import re
+
+# 0.358s
+# 0.286s
+
+lines = ['1 NNNNNC NNNNNAAA NNNNN.NNNNNNNN +.NNNNNNNN +NNNNN-N +NNNNN-N N NNNNN',
+         '2 NNNNN NNN.NNNN NNN.NNNN NNNNNNN NNN.NNNN NNN.NNNN NN.NNNNNNNNNNNNNN']
+
 def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
        """Return a Satellite imported from two lines of TLE data.
 
@@ -119,48 +127,61 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
 
        # This is Python, so we convert the strings into mutable lists of
        # characters before setting the C++ code loose on them.
-       longstr1 = [ c for c in longstr1 ]
+       #longstr1 = [ c for c in longstr1 ]
        longstr2 = [ c for c in longstr2 ]
 
        #  set the implied decimal points since doing a formated read
        #  fixes for bad input data values (missing, ...)
-       for j in range(10, 16):
-           if longstr1[j] == ' ':
-               longstr1[j] = '_';
+       # for j in range(10, 16):
+       #     if longstr1[j] == ' ':
+       #         longstr1[j] = '_';
 
-       if longstr1[44] != ' ':
-           longstr1[43] = longstr1[44];
-       longstr1[44] = '.';
-       if longstr1[7] == ' ':
-           longstr1[7] = 'U';
-       if longstr1[9] == ' ':
-           longstr1[9] = '.';
-       for j in range(45, 50):
-           if longstr1[j] == ' ':
-               longstr1[j] = '0';
-       if longstr1[51] == ' ':
-           longstr1[51] = '0';
-       if longstr1[53] != ' ':
-           longstr1[52] = longstr1[53];
-       longstr1[53] = '.';
+       # if longstr1[44] != ' ':
+       #     longstr1[43] = longstr1[44];
+       # longstr1[44] = '.';
+       # if longstr1[9] == ' ':
+       #     longstr1[9] = '.';
+       # for j in range(45, 50):
+       #     if longstr1[j] == ' ':
+       #         longstr1[j] = '0';
+       # if longstr1[51] == ' ':
+       #     longstr1[51] = '0';
+       # if longstr1[53] != ' ':
+       #     longstr1[52] = longstr1[53];
+       # longstr1[53] = '.';
        longstr2[25] = '.';
        for j in range(26, 33):
            if longstr2[j] == ' ':
                longstr2[j] = '0';
-       if longstr1[62] == ' ':
-           longstr1[62] = '0';
-       if longstr1[68] == ' ':
-           longstr1[68] = '0';
+       # if longstr1[62] == ' ':
+       #     longstr1[62] = '0';
+       # if longstr1[68] == ' ':
+       #     longstr1[68] = '0';
 
        # Concatenate lists back into real strings.
-       longstr1 = ''.join(longstr1)
+       #longstr1 = ''.join(longstr1)
        longstr2 = ''.join(longstr2)
 
-       (cardnumb,satrec.satnum,classification, intldesg, two_digit_year,
-        satrec.epochdays,satrec.ndot, satrec.nddot, nexp, satrec.bstar,
-        ibexp, numb, elnum) = \
-       sscanf(longstr1,"%2d %5ld %1c %10s %2d %12lf %11lf %7lf %2d %7lf %2d %2d %6ld ",
-           )
+       line = longstr1
+
+       assert (line.startswith('1 ')
+               and line[8] == line[32] == line[43] == line[52] == line[61] == line[63] == ' '
+               and line[23] == line[34] == '.')
+       satrec.satnum = int(line[2:7])
+       # classification = line[7] or 'U'
+       # intldesg = line[9:17]
+       two_digit_year = int(line[18:20])
+       satrec.epochdays = float(line[20:32])
+       satrec.ndot = float(line[33:43])
+       satrec.nddot = float(line[44] + '.' + line[45:50])
+       nexp = int(line[50:52])
+       satrec.bstar = float(line[53] + '.' + line[54:59])
+       ibexp = int(line[59:61])
+       # numb = int(line[62])
+       # elnum = int(line[64:68])
+
+       #sscanf(longstr1,"%2d %5ld %1c %10s %2d %12lf %11lf %7lf %2d %7lf %2d %2d %6ld ",
+       #    )
 
        if longstr2[52] == ' ':
            (cardnumb,satrec.satnum, satrec.inclo,
