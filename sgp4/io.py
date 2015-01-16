@@ -128,19 +128,25 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
 
     line = longstr1.rstrip()
     try:
-        assert (line.startswith('1 ') and line[23] == line[34] == '.'
-                and line[8] == line[32] == line[43] == line[52]
-                == line[61] == line[63] == ' ')
+        assert line.startswith('1 ')
         satrec.satnum = int(line[2:7])
         # classification = line[7] or 'U'
+        assert line[8] == ' '
         # intldesg = line[9:17]
         two_digit_year = int(line[18:20])
+        assert line[23] == '.'
         satrec.epochdays = float(line[20:32])
+        assert line[32] == ' '
+        assert line[34] == '.'
         satrec.ndot = float(line[33:43])
+        assert line[43] == ' '
         satrec.nddot = float(line[44] + '.' + line[45:50])
         nexp = int(line[50:52])
+        assert line[52] == ' '
         satrec.bstar = float(line[53] + '.' + line[54:59])
         ibexp = int(line[59:61])
+        assert line[61] == ' '
+        assert line[63] == ' '
         # numb = int(line[62])
         # elnum = int(line[64:68])
     except (AssertionError, IndexError, ValueError):
