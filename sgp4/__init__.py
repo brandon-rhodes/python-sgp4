@@ -97,6 +97,7 @@ was the most recently updated SGP4 implementation in their zip file:
 Changelog
 ---------
 
+| 2015-01-15 — 1.4 — Display detailed help when TLE input does not match format.
 | 2014-06-26 — 1.3 — Return ``(NaN,NaN,NaN)`` vectors on error and set ``.error_message``
 | 2013-11-29 — 1.2 — Made ``epochyr`` 4 digits; add ``datetime`` for ``.epoch``
 | 2012-11-22 — 1.1 — Python 3 compatibility; more documentation
