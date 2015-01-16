@@ -98,9 +98,6 @@ for line {} followed by the line you provided:
 *    vallado, crawford, hujsak, kelso  2006
   --------------------------------------------------------------------------- */
 """
-# 0.358s
-# 0.286s
-# 0.279s  <-  um - why so small an improvement?
 
 def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
        """Return a Satellite imported from two lines of TLE data.
@@ -129,43 +126,6 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
        satrec.error = 0;
        satrec.whichconst = whichconst  # Python extension: remembers its consts
 
-       # This is Python, so we convert the strings into mutable lists of
-       # characters before setting the C++ code loose on them.
-       #longstr1 = [ c for c in longstr1 ]
-       # longstr2 = [ c for c in longstr2 ]
-
-       #  set the implied decimal points since doing a formated read
-       #  fixes for bad input data values (missing, ...)
-       # for j in range(10, 16):
-       #     if longstr1[j] == ' ':
-       #         longstr1[j] = '_';
-
-       # if longstr1[44] != ' ':
-       #     longstr1[43] = longstr1[44];
-       # longstr1[44] = '.';
-       # if longstr1[9] == ' ':
-       #     longstr1[9] = '.';
-       # for j in range(45, 50):
-       #     if longstr1[j] == ' ':
-       #         longstr1[j] = '0';
-       # if longstr1[51] == ' ':
-       #     longstr1[51] = '0';
-       # if longstr1[53] != ' ':
-       #     longstr1[52] = longstr1[53];
-       # longstr1[53] = '.';
-       # longstr2[25] = '.';
-       # for j in range(26, 33):
-       #     if longstr2[j] == ' ':
-       #         longstr2[j] = '0';
-       # if longstr1[62] == ' ':
-       #     longstr1[62] = '0';
-       # if longstr1[68] == ' ':
-       #     longstr1[68] = '0';
-
-       # Concatenate lists back into real strings.
-       #longstr1 = ''.join(longstr1)
-       # longstr2 = ''.join(longstr2)
-
        line = longstr1.rstrip()
        try:
               assert (line.startswith('1 ') and line[23] == line[34] == '.'
@@ -188,26 +148,26 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
 
        line = longstr2.rstrip()
        try:
-              assert line.startswith('2 ')
-              satrec.satnum = int(line[2:7])  # TODO: check it matches line 1?
-              assert line[7] == ' '
-              assert line[11] == '.'
-              satrec.inclo = float(line[8:16])
-              assert line[16] == ' '
-              assert line[20] == '.'
-              satrec.nodeo = float(line[17:25])
-              assert line[25] == ' '
-              satrec.ecco = float('0.' + line[26:33].replace(' ', '0'))
-              assert line[33] == ' '
-              assert line[37] == '.'
-              satrec.argpo = float(line[34:42])
-              assert line[42] == ' '
-              assert line[46] == '.'
-              satrec.mo = float(line[43:51])
-              assert line[51] == ' '
-              assert line[54] == '.'
-              satrec.no = float(line[52:63])
               #revnum = line[63:68]
+              assert (line.startswith('2 ')
+              and line[11] == '.'
+              and line[16] == ' '
+              and line[20] == '.'
+              and line[25] == ' '
+              and line[33] == ' '
+              and line[37] == '.'
+              and line[42] == ' '
+              and line[46] == '.'
+              and line[51] == ' '
+              and line[54] == '.'
+              and line[7] == ' ')
+              satrec.argpo = float(line[34:42])
+              satrec.ecco = float('0.' + line[26:33].replace(' ', '0'))
+              satrec.inclo = float(line[8:16])
+              satrec.mo = float(line[43:51])
+              satrec.no = float(line[52:63])
+              satrec.nodeo = float(line[17:25])
+              satrec.satnum = int(line[2:7])  # TODO: check it matches line 1?
        except (AssertionError, IndexError, ValueError):
               raise ValueError(error_message.format(2, LINE2, line))
 
@@ -259,53 +219,3 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
                  satrec.nodeo, satrec);
 
        return satrec
-
-
-def sscanf(data, format):
-    """Yes: a bootleg sscanf(), instead of tediously rewriting the above!"""
-
-    directives = format.split()
-    values = []
-    start = 0
-
-    for directive in directives:
-        conversion = directive[-1]
-        fieldwidthstr = directive[1:-1].strip('l')
-        fieldwidth = int(fieldwidthstr) if fieldwidthstr else 999
-
-        # scanf(3) skips "any amount of white space, including none"
-        while start < len(data) and data[start] == ' ':  # space
-            start += 1
-
-        if start == len(data):
-            break
-
-        # Field will end early if whitespace, or an illegal character,
-        # is encountered.
-        if conversion == 'd':
-            source = INT_RE.match(data[start:]).group(0)
-            end = start + min(len(source), fieldwidth)
-        elif conversion == 'f':
-            source = FLOAT_RE.match(data[start:]).group(0)
-            end = start + min(len(source), fieldwidth)
-        else:
-            for end in range(start + 1, start + fieldwidth + 1):
-                if data[end].isspace():
-                    break
-
-        source = data[start:end]
-
-        # Convert!
-        if conversion in ('c', 's'):
-            values.append(source)
-        elif conversion == 'd':
-            values.append(int(source))
-        elif conversion == 'f':
-            values.append(float(source))
-        else:
-            raise ValueError('unknown format specifier %r' % (conversion,))
-
-        # Start over with the next token.
-        start = end
-
-    return values
