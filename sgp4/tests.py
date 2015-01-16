@@ -1,10 +1,14 @@
 """Test suite for SGP4."""
 
+try:
+    from unittest2 import TestCase, main
+except:
+    from unittest import TestCase, main
+
 import os
 import re
 import sys
 from doctest import DocTestSuite, ELLIPSIS
-from unittest import TestCase, main
 from math import pi, isnan
 
 from sgp4.earth_gravity import wgs72
