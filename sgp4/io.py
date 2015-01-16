@@ -21,10 +21,10 @@ error_message = """TLE format error
 The Two-Line Element (TLE) format was designed for punch cards and is
 therefore very strict about the position of every space and digit in a
 TLE line.  Your line does not quite match.  Here is the official format
-for line {} followed by the line you provided:
+for line {0} followed by the line you provided:
 
-{}
-{}"""
+{1}
+{2}"""
 
 """
 /*     ----------------------------------------------------------------
