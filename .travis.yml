@@ -11,6 +11,7 @@ python:
 
 install:
   - "pip install -e ."
+  - "pip install unittest2"
 
 script:
-  - "python -m sgp4.tests"
+  - "unit2 discover sgp4"
