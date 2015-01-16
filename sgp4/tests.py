@@ -1,6 +1,7 @@
 """Test suite for SGP4."""
 
 import os
+import re
 import sys
 from doctest import DocTestSuite, ELLIPSIS
 from unittest import TestCase
@@ -113,6 +114,21 @@ class Tests(TestCase):
         self.assertEqual(newtonnu(1.1, 2.7),   # hyperbolic
                          (4.262200676156417, 34.76134082028372))
 
+    def test_bad_first_line(self):
+        with self.assertRaisesRegexp(ValueError, re.escape("""TLE format error
+
+The Two-Line Element (TLE) format was designed for punch cards and is
+therefore very strict about the position of every space and digit in a
+TLE line.  Your line does not quite match.  Here is the official format
+for line 1 followed by the line you provided:
+
+1 NNNNNC NNNNNAAA NNNNN.NNNNNNNN +.NNNNNNNN +NNNNN-N +NNNNN-N N NNNNN
+1 00005U 58002B   00179.78495062  .000000234 00000-0  28098-4 0  4753""")):
+            twoline2rv(good1.replace('23 ', '234'), good2, wgs72)
+
+
+good1 = '1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753'
+good2 = '2 00005  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413667'
 
 def generate_test_output(whichconst, error_list):
     """Generate lines like those in the test file tcppver.out.
