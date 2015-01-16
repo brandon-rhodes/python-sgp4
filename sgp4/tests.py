@@ -4,7 +4,7 @@ import os
 import re
 import sys
 from doctest import DocTestSuite, ELLIPSIS
-from unittest import TestCase
+from unittest import TestCase, main
 from math import pi, isnan
 
 from sgp4.earth_gravity import wgs72
@@ -240,3 +240,7 @@ def load_tests(loader, tests, ignore):
         tests.addTests(DocTestSuite('sgp4', optionflags=ELLIPSIS))
 
     return tests
+
+
+if __name__ == '__main__':
+    main()

@@ -13,4 +13,4 @@ install:
   - "pip install -e ."
 
 script:
-  - "python -m unittest sgp4.tests"
+  - "python -m sgp4.tests"
