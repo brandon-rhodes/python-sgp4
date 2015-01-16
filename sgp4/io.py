@@ -18,10 +18,10 @@ LINE2 = '2 NNNNN NNN.NNNN NNN.NNNN NNNNNNN NNN.NNNN NNN.NNNN NN.NNNNNNNNNNNNNN'
 
 error_message = """TLE format error
 
-The Two-Line Element (TLE) format was designed for punch cards and is
-therefore very strict about the position of every space and digit in a
-TLE line.  Your line does not quite match.  Here is the official format
-for line {0} followed by the line you provided:
+The Two-Line Element (TLE) format was designed for punch cards, and so
+is very strict about the position of every period, space, and digit.
+Your line does not quite match.  Here is the official format for line {0}
+with an N where each digit should go, followed by the line you provided:
 
 {1}
 {2}"""

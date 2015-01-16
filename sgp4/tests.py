@@ -117,10 +117,10 @@ class Tests(TestCase):
     def test_bad_first_line(self):
         with self.assertRaisesRegexp(ValueError, re.escape("""TLE format error
 
-The Two-Line Element (TLE) format was designed for punch cards and is
-therefore very strict about the position of every space and digit in a
-TLE line.  Your line does not quite match.  Here is the official format
-for line 1 followed by the line you provided:
+The Two-Line Element (TLE) format was designed for punch cards, and so
+is very strict about the position of every period, space, and digit.
+Your line does not quite match.  Here is the official format for line 1
+with an N where each digit should go, followed by the line you provided:
 
 1 NNNNNC NNNNNAAA NNNNN.NNNNNNNN +.NNNNNNNN +NNNNN-N +NNNNN-N N NNNNN
 1 00005U 58002B   00179.78495062  .000000234 00000-0  28098-4 0  4753""")):
@@ -129,10 +129,10 @@ for line 1 followed by the line you provided:
     def test_bad_second_line(self):
         with self.assertRaisesRegexp(ValueError, re.escape("""TLE format error
 
-The Two-Line Element (TLE) format was designed for punch cards and is
-therefore very strict about the position of every space and digit in a
-TLE line.  Your line does not quite match.  Here is the official format
-for line 2 followed by the line you provided:
+The Two-Line Element (TLE) format was designed for punch cards, and so
+is very strict about the position of every period, space, and digit.
+Your line does not quite match.  Here is the official format for line 2
+with an N where each digit should go, followed by the line you provided:
 
 2 NNNNN NNN.NNNN NNN.NNNN NNNNNNN NNN.NNNN NNN.NNNN NN.NNNNNNNNNNNNNN
 2 00005 34 .268234 8.7242 1859667 331.7664  19.3264 10.82419157413667""")):
