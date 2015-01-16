@@ -148,26 +148,25 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
 
        line = longstr2.rstrip()
        try:
-              #revnum = line[63:68]
-              assert (line.startswith('2 ')
-              and line[11] == '.'
-              and line[16] == ' '
-              and line[20] == '.'
-              and line[25] == ' '
-              and line[33] == ' '
-              and line[37] == '.'
-              and line[42] == ' '
-              and line[46] == '.'
-              and line[51] == ' '
-              and line[54] == '.'
-              and line[7] == ' ')
-              satrec.argpo = float(line[34:42])
-              satrec.ecco = float('0.' + line[26:33].replace(' ', '0'))
-              satrec.inclo = float(line[8:16])
-              satrec.mo = float(line[43:51])
-              satrec.no = float(line[52:63])
-              satrec.nodeo = float(line[17:25])
+              assert line.startswith('2 ')
               satrec.satnum = int(line[2:7])  # TODO: check it matches line 1?
+              assert line[7] == ' '
+              assert line[11] == '.'
+              satrec.inclo = float(line[8:16])
+              assert line[16] == ' '
+              assert line[20] == '.'
+              satrec.nodeo = float(line[17:25])
+              assert line[25] == ' '
+              satrec.ecco = float('0.' + line[26:33].replace(' ', '0'))
+              assert line[33] == ' '
+              assert line[37] == '.'
+              satrec.argpo = float(line[34:42])
+              assert line[42] == ' '
+              assert line[46] == '.'
+              satrec.mo = float(line[43:51])
+              assert line[51] == ' '
+              satrec.no = float(line[52:63])
+              #revnum = line[63:68]
        except (AssertionError, IndexError, ValueError):
               raise ValueError(error_message.format(2, LINE2, line))
 
