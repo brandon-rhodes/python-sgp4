@@ -100,6 +100,7 @@ for line {} followed by the line you provided:
 """
 # 0.358s
 # 0.286s
+# 0.279s  <-  um - why so small an improvement?
 
 def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
        """Return a Satellite imported from two lines of TLE data.
@@ -122,9 +123,6 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
        deg2rad  =   pi / 180.0;         #    0.0174532925199433
        xpdotp   =  1440.0 / (2.0 *pi);  #  229.1831180523293
 
-       revnum = 0;
-       elnum = 0;
-
        tumin = whichconst.tumin
 
        satrec = Satellite()
@@ -134,7 +132,7 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
        # This is Python, so we convert the strings into mutable lists of
        # characters before setting the C++ code loose on them.
        #longstr1 = [ c for c in longstr1 ]
-       longstr2 = [ c for c in longstr2 ]
+       # longstr2 = [ c for c in longstr2 ]
 
        #  set the implied decimal points since doing a formated read
        #  fixes for bad input data values (missing, ...)
@@ -155,10 +153,10 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
        # if longstr1[53] != ' ':
        #     longstr1[52] = longstr1[53];
        # longstr1[53] = '.';
-       longstr2[25] = '.';
-       for j in range(26, 33):
-           if longstr2[j] == ' ':
-               longstr2[j] = '0';
+       # longstr2[25] = '.';
+       # for j in range(26, 33):
+       #     if longstr2[j] == ' ':
+       #         longstr2[j] = '0';
        # if longstr1[62] == ' ':
        #     longstr1[62] = '0';
        # if longstr1[68] == ' ':
@@ -166,9 +164,9 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
 
        # Concatenate lists back into real strings.
        #longstr1 = ''.join(longstr1)
-       longstr2 = ''.join(longstr2)
+       # longstr2 = ''.join(longstr2)
 
-       line = longstr1
+       line = longstr1.rstrip()
        try:
               assert (line.startswith('1 ') and line[23] == line[34] == '.'
                       and line[8] == line[32] == line[43] == line[52]
@@ -186,21 +184,32 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
               # numb = int(line[62])
               # elnum = int(line[64:68])
        except (AssertionError, IndexError, ValueError):
-              m = error_message.format(1, LINE1, line.rstrip())
-              raise ValueError(m)
+              raise ValueError(error_message.format(1, LINE1, line))
 
-       if longstr2[52] == ' ':
-           (cardnumb,satrec.satnum, satrec.inclo,
-            satrec.nodeo,satrec.ecco, satrec.argpo, satrec.mo, satrec.no,
-            revnum) = \
-               sscanf(longstr2,"%2d %5ld %9lf %9lf %8lf %9lf %9lf %10lf %6ld \n",
-                      )
-       else:
-           (cardnumb,satrec.satnum, satrec.inclo,
-            satrec.nodeo,satrec.ecco, satrec.argpo, satrec.mo, satrec.no,
-            revnum) = \
-               sscanf(longstr2,"%2d %5ld %9lf %9lf %8lf %9lf %9lf %11lf %6ld \n",
-                      )
+       line = longstr2.rstrip()
+       try:
+              assert line.startswith('2 ')
+              satrec.satnum = int(line[2:7])  # TODO: check it matches line 1?
+              assert line[7] == ' '
+              assert line[11] == '.'
+              satrec.inclo = float(line[8:16])
+              assert line[16] == ' '
+              assert line[20] == '.'
+              satrec.nodeo = float(line[17:25])
+              assert line[25] == ' '
+              satrec.ecco = float('0.' + line[26:33].replace(' ', '0'))
+              assert line[33] == ' '
+              assert line[37] == '.'
+              satrec.argpo = float(line[34:42])
+              assert line[42] == ' '
+              assert line[46] == '.'
+              satrec.mo = float(line[43:51])
+              assert line[51] == ' '
+              assert line[54] == '.'
+              satrec.no = float(line[52:63])
+              #revnum = line[63:68]
+       except (AssertionError, IndexError, ValueError):
+              raise ValueError(error_message.format(2, LINE2, line))
 
        #  ---- find no, ndot, nddot ----
        satrec.no   = satrec.no / xpdotp; #   rad/min
