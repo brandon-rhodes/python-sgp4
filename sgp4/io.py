@@ -13,6 +13,18 @@ from sgp4.propagation import sgp4init
 INT_RE = re.compile(r'[+-]?\d*')
 FLOAT_RE = re.compile(r'[+-]?\d*(\.\d*)?')
 
+LINE1 = '1 NNNNNC NNNNNAAA NNNNN.NNNNNNNN +.NNNNNNNN +NNNNN-N +NNNNN-N N NNNNN'
+LINE2 = '2 NNNNN NNN.NNNN NNN.NNNN NNNNNNN NNN.NNNN NNN.NNNN NN.NNNNNNNNNNNNNN'
+
+error_message = """TLE format error
+
+The Two-Line Element (TLE) format was designed for punch cards and is
+therefore very strict about the position of every space and digit in a
+TLE line.  Your line does not quite match.  Here is the official format
+for line {} followed by the line you provided:
+
+{}
+{}"""
 
 """
 /*     ----------------------------------------------------------------
@@ -88,188 +100,121 @@ FLOAT_RE = re.compile(r'[+-]?\d*(\.\d*)?')
 """
 
 def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
-       """Return a Satellite imported from two lines of TLE data.
+    """Return a Satellite imported from two lines of TLE data.
 
-       Provide the two TLE lines as strings `longstr1` and `longstr2`,
-       and select which standard set of gravitational constants you want
-       by providing `gravity_constants`:
+    Provide the two TLE lines as strings `longstr1` and `longstr2`,
+    and select which standard set of gravitational constants you want
+    by providing `gravity_constants`:
 
-       `sgp4.earth_gravity.wgs72` - Standard WGS 72 model
-       `sgp4.earth_gravity.wgs84` - More recent WGS 84 model
-       `sgp4.earth_gravity.wgs72old` - Legacy support for old SGP4 behavior
+    `sgp4.earth_gravity.wgs72` - Standard WGS 72 model
+    `sgp4.earth_gravity.wgs84` - More recent WGS 84 model
+    `sgp4.earth_gravity.wgs72old` - Legacy support for old SGP4 behavior
 
-       Normally, computations are made using various recent improvements
-       to the algorithm.  If you want to turn some of these off and go
-       back into "afspc" mode, then set `afspc_mode` to `True`.
+    Normally, computations are made using various recent improvements
+    to the algorithm.  If you want to turn some of these off and go
+    back into "afspc" mode, then set `afspc_mode` to `True`.
 
-       """
-       opsmode = 'a' if afspc_mode else 'i'
+    """
+    opsmode = 'a' if afspc_mode else 'i'
 
-       deg2rad  =   pi / 180.0;         #    0.0174532925199433
-       xpdotp   =  1440.0 / (2.0 *pi);  #  229.1831180523293
+    deg2rad  =   pi / 180.0;         #    0.0174532925199433
+    xpdotp   =  1440.0 / (2.0 *pi);  #  229.1831180523293
 
-       revnum = 0;
-       elnum = 0;
+    tumin = whichconst.tumin
 
-       tumin = whichconst.tumin
+    satrec = Satellite()
+    satrec.error = 0;
+    satrec.whichconst = whichconst  # Python extension: remembers its consts
 
-       satrec = Satellite()
-       satrec.error = 0;
-       satrec.whichconst = whichconst  # Python extension: remembers its consts
+    line = longstr1.rstrip()
+    try:
+        assert (line.startswith('1 ') and line[23] == line[34] == '.'
+                and line[8] == line[32] == line[43] == line[52]
+                == line[61] == line[63] == ' ')
+        satrec.satnum = int(line[2:7])
+        # classification = line[7] or 'U'
+        # intldesg = line[9:17]
+        two_digit_year = int(line[18:20])
+        satrec.epochdays = float(line[20:32])
+        satrec.ndot = float(line[33:43])
+        satrec.nddot = float(line[44] + '.' + line[45:50])
+        nexp = int(line[50:52])
+        satrec.bstar = float(line[53] + '.' + line[54:59])
+        ibexp = int(line[59:61])
+        # numb = int(line[62])
+        # elnum = int(line[64:68])
+    except (AssertionError, IndexError, ValueError):
+        raise ValueError(error_message.format(1, LINE1, line))
 
-       # This is Python, so we convert the strings into mutable lists of
-       # characters before setting the C++ code loose on them.
-       longstr1 = [ c for c in longstr1 ]
-       longstr2 = [ c for c in longstr2 ]
+    line = longstr2.rstrip()
+    try:
+        assert line.startswith('2 ')
+        satrec.satnum = int(line[2:7])  # TODO: check it matches line 1?
+        assert line[7] == ' '
+        assert line[11] == '.'
+        satrec.inclo = float(line[8:16])
+        assert line[16] == ' '
+        assert line[20] == '.'
+        satrec.nodeo = float(line[17:25])
+        assert line[25] == ' '
+        satrec.ecco = float('0.' + line[26:33].replace(' ', '0'))
+        assert line[33] == ' '
+        assert line[37] == '.'
+        satrec.argpo = float(line[34:42])
+        assert line[42] == ' '
+        assert line[46] == '.'
+        satrec.mo = float(line[43:51])
+        assert line[51] == ' '
+        satrec.no = float(line[52:63])
+        #revnum = line[63:68]
+    except (AssertionError, IndexError, ValueError):
+        raise ValueError(error_message.format(2, LINE2, line))
 
-       #  set the implied decimal points since doing a formated read
-       #  fixes for bad input data values (missing, ...)
-       for j in range(10, 16):
-           if longstr1[j] == ' ':
-               longstr1[j] = '_';
+    #  ---- find no, ndot, nddot ----
+    satrec.no   = satrec.no / xpdotp; #   rad/min
+    satrec.nddot= satrec.nddot * pow(10.0, nexp);
+    satrec.bstar= satrec.bstar * pow(10.0, ibexp);
 
-       if longstr1[44] != ' ':
-           longstr1[43] = longstr1[44];
-       longstr1[44] = '.';
-       if longstr1[7] == ' ':
-           longstr1[7] = 'U';
-       if longstr1[9] == ' ':
-           longstr1[9] = '.';
-       for j in range(45, 50):
-           if longstr1[j] == ' ':
-               longstr1[j] = '0';
-       if longstr1[51] == ' ':
-           longstr1[51] = '0';
-       if longstr1[53] != ' ':
-           longstr1[52] = longstr1[53];
-       longstr1[53] = '.';
-       longstr2[25] = '.';
-       for j in range(26, 33):
-           if longstr2[j] == ' ':
-               longstr2[j] = '0';
-       if longstr1[62] == ' ':
-           longstr1[62] = '0';
-       if longstr1[68] == ' ':
-           longstr1[68] = '0';
+    #  ---- convert to sgp4 units ----
+    satrec.a    = pow( satrec.no*tumin , (-2.0/3.0) );
+    satrec.ndot = satrec.ndot  / (xpdotp*1440.0);  #   ? * minperday
+    satrec.nddot= satrec.nddot / (xpdotp*1440.0*1440);
 
-       # Concatenate lists back into real strings.
-       longstr1 = ''.join(longstr1)
-       longstr2 = ''.join(longstr2)
+    #  ---- find standard orbital elements ----
+    satrec.inclo = satrec.inclo  * deg2rad;
+    satrec.nodeo = satrec.nodeo  * deg2rad;
+    satrec.argpo = satrec.argpo  * deg2rad;
+    satrec.mo    = satrec.mo     * deg2rad;
 
-       (cardnumb,satrec.satnum,classification, intldesg, two_digit_year,
-        satrec.epochdays,satrec.ndot, satrec.nddot, nexp, satrec.bstar,
-        ibexp, numb, elnum) = \
-       sscanf(longstr1,"%2d %5ld %1c %10s %2d %12lf %11lf %7lf %2d %7lf %2d %2d %6ld ",
-           )
+    satrec.alta = satrec.a*(1.0 + satrec.ecco) - 1.0;
+    satrec.altp = satrec.a*(1.0 - satrec.ecco) - 1.0;
 
-       if longstr2[52] == ' ':
-           (cardnumb,satrec.satnum, satrec.inclo,
-            satrec.nodeo,satrec.ecco, satrec.argpo, satrec.mo, satrec.no,
-            revnum) = \
-               sscanf(longstr2,"%2d %5ld %9lf %9lf %8lf %9lf %9lf %10lf %6ld \n",
-                      )
-       else:
-           (cardnumb,satrec.satnum, satrec.inclo,
-            satrec.nodeo,satrec.ecco, satrec.argpo, satrec.mo, satrec.no,
-            revnum) = \
-               sscanf(longstr2,"%2d %5ld %9lf %9lf %8lf %9lf %9lf %11lf %6ld \n",
-                      )
+    """
+    // ----------------------------------------------------------------
+    // find sgp4epoch time of element set
+    // remember that sgp4 uses units of days from 0 jan 1950 (sgp4epoch)
+    // and minutes from the epoch (time)
+    // ----------------------------------------------------------------
 
-       #  ---- find no, ndot, nddot ----
-       satrec.no   = satrec.no / xpdotp; #   rad/min
-       satrec.nddot= satrec.nddot * pow(10.0, nexp);
-       satrec.bstar= satrec.bstar * pow(10.0, ibexp);
+    // ---------------- temp fix for years from 1957-2056 -------------------
+    // --------- correct fix will occur when year is 4-digit in tle ---------
+    """
+    if two_digit_year < 57:
+        year = two_digit_year + 2000;
+    else:
+        year = two_digit_year + 1900;
 
-       #  ---- convert to sgp4 units ----
-       satrec.a    = pow( satrec.no*tumin , (-2.0/3.0) );
-       satrec.ndot = satrec.ndot  / (xpdotp*1440.0);  #   ? * minperday
-       satrec.nddot= satrec.nddot / (xpdotp*1440.0*1440);
+    mon,day,hr,minute,sec = days2mdhms(year, satrec.epochdays);
+    sec_whole, sec_fraction = divmod(sec, 1.0)
 
-       #  ---- find standard orbital elements ----
-       satrec.inclo = satrec.inclo  * deg2rad;
-       satrec.nodeo = satrec.nodeo  * deg2rad;
-       satrec.argpo = satrec.argpo  * deg2rad;
-       satrec.mo    = satrec.mo     * deg2rad;
+    satrec.epochyr = year
+    satrec.jdsatepoch = jday(year,mon,day,hr,minute,sec);
+    satrec.epoch = datetime(year, mon, day, hr, minute, int(sec_whole),
+                            int(sec_fraction * 1000000.0 // 1.0))
 
-       satrec.alta = satrec.a*(1.0 + satrec.ecco) - 1.0;
-       satrec.altp = satrec.a*(1.0 - satrec.ecco) - 1.0;
+    #  ---------------- initialize the orbit at sgp4epoch -------------------
+    sgp4init(whichconst, opsmode, satrec.satnum, satrec.jdsatepoch-2433281.5, satrec.bstar,
+             satrec.ecco, satrec.argpo, satrec.inclo, satrec.mo, satrec.no,
+             satrec.nodeo, satrec)
 
-       """
-       // ----------------------------------------------------------------
-       // find sgp4epoch time of element set
-       // remember that sgp4 uses units of days from 0 jan 1950 (sgp4epoch)
-       // and minutes from the epoch (time)
-       // ----------------------------------------------------------------
-
-       // ---------------- temp fix for years from 1957-2056 -------------------
-       // --------- correct fix will occur when year is 4-digit in tle ---------
-       """
-       if two_digit_year < 57:
-           year = two_digit_year + 2000;
-       else:
-           year = two_digit_year + 1900;
-
-       mon,day,hr,minute,sec = days2mdhms(year, satrec.epochdays);
-       sec_whole, sec_fraction = divmod(sec, 1.0)
-
-       satrec.epochyr = year
-       satrec.jdsatepoch = jday(year,mon,day,hr,minute,sec);
-       satrec.epoch = datetime(year, mon, day, hr, minute, int(sec_whole),
-                               int(sec_fraction * 1000000.0 // 1.0))
-
-       #  ---------------- initialize the orbit at sgp4epoch -------------------
-       sgp4init( whichconst, opsmode, satrec.satnum, satrec.jdsatepoch-2433281.5, satrec.bstar,
-                 satrec.ecco, satrec.argpo, satrec.inclo, satrec.mo, satrec.no,
-                 satrec.nodeo, satrec);
-
-       return satrec
-
-
-def sscanf(data, format):
-    """Yes: a bootleg sscanf(), instead of tediously rewriting the above!"""
-
-    directives = format.split()
-    values = []
-    start = 0
-
-    for directive in directives:
-        conversion = directive[-1]
-        fieldwidthstr = directive[1:-1].strip('l')
-        fieldwidth = int(fieldwidthstr) if fieldwidthstr else 999
-
-        # scanf(3) skips "any amount of white space, including none"
-        while start < len(data) and data[start] == ' ':  # space
-            start += 1
-
-        if start == len(data):
-            break
-
-        # Field will end early if whitespace, or an illegal character,
-        # is encountered.
-        if conversion == 'd':
-            source = INT_RE.match(data[start:]).group(0)
-            end = start + min(len(source), fieldwidth)
-        elif conversion == 'f':
-            source = FLOAT_RE.match(data[start:]).group(0)
-            end = start + min(len(source), fieldwidth)
-        else:
-            for end in range(start + 1, start + fieldwidth + 1):
-                if data[end].isspace():
-                    break
-
-        source = data[start:end]
-
-        # Convert!
-        if conversion in ('c', 's'):
-            values.append(source)
-        elif conversion == 'd':
-            values.append(int(source))
-        elif conversion == 'f':
-            values.append(float(source))
-        else:
-            raise ValueError('unknown format specifier %r' % (conversion,))
-
-        # Start over with the next token.
-        start = end
-
-    return values
+    return satrec
