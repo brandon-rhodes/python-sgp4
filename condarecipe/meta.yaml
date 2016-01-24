@@ -1,0 +1,33 @@
+package:
+  name: sgp4
+  version: "1.5.dev0"
+
+source:
+  git_url: https://github.com/brandon-rhodes/python-sgp4.git
+  git_tag: master
+
+build:
+  number: 1
+
+requirements:
+  build:
+    - python
+
+  run:
+    - python
+
+test:
+  imports:
+    - sgp4
+
+  requires:
+    - unittest2 [py26]
+
+about:
+  home: https://github.com/brandon-rhodes/python-sgp4
+  license: MIT License
+  summary: 'Track earth satellite TLE orbits using up-to-date 2010 version of SGP4'
+
+# See
+# http://docs.continuum.io/conda/build.html for
+# more information about meta.yaml
