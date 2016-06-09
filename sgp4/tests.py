@@ -13,8 +13,8 @@ from math import pi, isnan
 
 from sgp4.earth_gravity import wgs72
 from sgp4.ext import invjday, newtonnu, rv2coe
-from sgp4.io import twoline2rv
 from sgp4.propagation import sgp4
+from sgp4 import io
 
 thisdir = os.path.dirname(__file__)
 error = 2e-7
@@ -118,6 +118,17 @@ class Tests(TestCase):
         self.assertEqual(newtonnu(1.1, 2.7),   # hyperbolic
                          (4.262200676156417, 34.76134082028372))
 
+    def test_good_tle_checksum(self):
+        for line, expected in (good1, 3), (good2, 7):
+            self.assertEqual(io.compute_checksum(line), expected)
+            self.assertEqual(io.fix_checksum(line[:68]), line)
+            io.verify_checksum(line)
+
+    def test_bad_tle_checksumx(self):
+        self.assertEqual(io.compute_checksum(good1), 3)
+        bad = good1[:68] + '7'
+        self.assertRaises(ValueError, io.verify_checksum, bad)
+
     def test_bad_first_line(self):
         with self.assertRaisesRegexp(ValueError, re.escape("""TLE format error
 
@@ -128,7 +139,7 @@ with an N where each digit should go, followed by the line you provided:
 
 1 NNNNNC NNNNNAAA NNNNN.NNNNNNNN +.NNNNNNNN +NNNNN-N +NNNNN-N N NNNNN
 1 00005U 58002B   00179.78495062  .000000234 00000-0  28098-4 0  4753""")):
-            twoline2rv(good1.replace('23 ', '234'), good2, wgs72)
+            io.twoline2rv(good1.replace('23 ', '234'), good2, wgs72)
 
     def test_bad_second_line(self):
         with self.assertRaisesRegexp(ValueError, re.escape("""TLE format error
@@ -140,11 +151,12 @@ with an N where each digit should go, followed by the line you provided:
 
 2 NNNNN NNN.NNNN NNN.NNNN NNNNNNN NNN.NNNN NNN.NNNN NN.NNNNNNNNNNNNNN
 2 00005 34 .268234 8.7242 1859667 331.7664  19.3264 10.82419157413667""")):
-            twoline2rv(good1, good2.replace(' 34', '34 '), wgs72)
+            io.twoline2rv(good1, good2.replace(' 34', '34 '), wgs72)
 
 
 good1 = '1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753'
 good2 = '2 00005  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413667'
+
 
 
 def generate_test_output(whichconst, error_list):
@@ -166,7 +178,7 @@ def generate_test_output(whichconst, error_list):
             continue
 
         line2 = next(tlelines)
-        satrec = twoline2rv(line1, line2, whichconst)
+        satrec = io.twoline2rv(line1, line2, whichconst)
 
         yield '%ld xx\n' % (satrec.satnum,)
 
