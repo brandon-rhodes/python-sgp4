@@ -224,3 +224,16 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
              satrec.nodeo, satrec)
 
     return satrec
+
+def verify_checksum(*lines):
+    for line in lines:
+        checksum = line[68:69]
+        if not checksum.isdigit():
+            continue
+        checksum = int(checksum)
+        computed = sum((int(c) if c.isdigit() else c == '-')
+                       for c in line[0:68]) % 10
+        if checksum != computed:
+            complaint = ('TLE line gives its checksum as {}'
+                         ' but in fact tallies to {}:\n{}')
+            raise ValueError(complaint.format(checksum, computed, line))
