@@ -153,9 +153,14 @@ with an N where each digit should go, followed by the line you provided:
 2 00005 34 .268234 8.7242 1859667 331.7664  19.3264 10.82419157413667""")):
             io.twoline2rv(good1, good2.replace(' 34', '34 '), wgs72)
 
+    def test_mismatched_lines(self):
+        with self.assertRaisesRegexp(ValueError, re.escape("""Object numbers in lines 1 and 2 do not match""")):
+            io.twoline2rv(good1, bad2, wgs72)
+
 
 good1 = '1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753'
 good2 = '2 00005  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413667'
+bad2  = '2 00007  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413669'
 
 
 

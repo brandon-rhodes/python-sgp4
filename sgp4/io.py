@@ -127,53 +127,61 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
     satrec.whichconst = whichconst  # Python extension: remembers its consts
 
     line = longstr1.rstrip()
-    try:
-        assert line.startswith('1 ')
-        satrec.satnum = int(line[2:7])
+    # try/except is not well supported by Numba
+    if (len(line) >= 64 and
+        line.startswith('1 ') and
+        line[8] == ' ' and
+        line[23] == '.' and
+        line[32] == ' ' and
+        line[34] == '.' and
+        line[43] == ' ' and
+        line[52] == ' ' and
+        line[61] == ' ' and
+        line[63] == ' '):
+
+        _saved_satnum = satrec.satnum = int(line[2:7])
         # classification = line[7] or 'U'
-        assert line[8] == ' '
         # intldesg = line[9:17]
         two_digit_year = int(line[18:20])
-        assert line[23] == '.'
         satrec.epochdays = float(line[20:32])
-        assert line[32] == ' '
-        assert line[34] == '.'
         satrec.ndot = float(line[33:43])
-        assert line[43] == ' '
         satrec.nddot = float(line[44] + '.' + line[45:50])
         nexp = int(line[50:52])
-        assert line[52] == ' '
         satrec.bstar = float(line[53] + '.' + line[54:59])
         ibexp = int(line[59:61])
-        assert line[61] == ' '
-        assert line[63] == ' '
         # numb = int(line[62])
         # elnum = int(line[64:68])
-    except (AssertionError, IndexError, ValueError):
+    else:
         raise ValueError(error_message.format(1, LINE1, line))
 
     line = longstr2.rstrip()
-    try:
-        assert line.startswith('2 ')
-        satrec.satnum = int(line[2:7])  # TODO: check it matches line 1?
-        assert line[7] == ' '
-        assert line[11] == '.'
+    line_format_ok = False
+    if (len(line) >= 69 and
+        line.startswith('2 ') and
+        line[7] == ' ' and
+        line[11] == '.' and
+        line[16] == ' ' and
+        line[20] == '.' and
+        line[25] == ' ' and
+        line[33] == ' ' and
+        line[37] == '.' and
+        line[42] == ' ' and
+        line[46] == '.' and
+        line[51] == ' '):
+
+        satrec.satnum = int(line[2:7])
+        if _saved_satnum != satrec.satnum:
+            raise ValueError('Object numbers in lines 1 and 2 do not match')
+
         satrec.inclo = float(line[8:16])
-        assert line[16] == ' '
-        assert line[20] == '.'
         satrec.nodeo = float(line[17:25])
-        assert line[25] == ' '
         satrec.ecco = float('0.' + line[26:33].replace(' ', '0'))
-        assert line[33] == ' '
-        assert line[37] == '.'
         satrec.argpo = float(line[34:42])
-        assert line[42] == ' '
-        assert line[46] == '.'
         satrec.mo = float(line[43:51])
-        assert line[51] == ' '
         satrec.no = float(line[52:63])
         #revnum = line[63:68]
-    except (AssertionError, IndexError, ValueError):
+    #except (AssertionError, IndexError, ValueError):
+    else:
         raise ValueError(error_message.format(2, LINE2, line))
 
     #  ---- find no, ndot, nddot ----
