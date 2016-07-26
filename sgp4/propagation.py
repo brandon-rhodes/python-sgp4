@@ -147,7 +147,7 @@ twopi = 2.0 * pi
   ----------------------------------------------------------------------------*/
 """
 
-def _dpper(satrec, inclo, init, ep, inclp, nodep, argpp, mp, opsmode):
+def _dpper(satrec, inclo, init, ep, inclp, nodep, argpp, mp, afspc_mode):
 
      # Copy satellite attributes into local variables for convenience
      # and symmetry in writing formulae.
@@ -269,14 +269,14 @@ def _dpper(satrec, inclo, init, ep, inclp, nodep, argpp, mp, opsmode):
            nodep  = fmod(nodep, twopi);
            #   sgp4fix for afspc written intrinsic functions
            #  nodep used without a trigonometric function ahead
-           if nodep < 0.0 and opsmode == 'a':
+           if nodep < 0.0 and afspc_mode:
                nodep = nodep + twopi;
            xls = mp + argpp + pl + pgh + (cosip - pinc * sinip) * nodep
            xnoh   = nodep;
            nodep  = atan2(alfdp, betdp);
            #   sgp4fix for afspc written intrinsic functions
            #  nodep used without a trigonometric function ahead
-           if nodep < 0.0 and opsmode == 'a':
+           if nodep < 0.0 and afspc_mode:
                nodep = nodep + twopi;
            if fabs(xnoh - nodep) > pi:
              if nodep < xnoh:
@@ -1123,7 +1123,7 @@ def _initl(
        satn,      whichconst,
        ecco,   epoch,  inclo,   no,
        method,
-       opsmode,
+       afspc_mode,
        ):
 
      # sgp4fix use old way of finding gst
@@ -1160,7 +1160,7 @@ def _initl(
      method = 'n';
 
      #  sgp4fix modern approach to finding sidereal time
-     if opsmode == 'a':
+     if afspc_mode:
 
          #  sgp4fix use old way of finding gst
          #  count integer number of days from 0 jan 1970
@@ -1197,7 +1197,7 @@ def _initl(
 *  author        : david vallado                  719-573-2600   28 jun 2005
 *
 *  inputs        :
-*    opsmode     - mode of operation afspc or improved 'a', 'i'
+*    afspc_mode  - use afspc or improved mode of operation
 *    whichconst  - which set of constants to use  72, 84
 *    satn        - satellite number
 *    bstar       - sgp4 type drag coefficient              kg/m2er
@@ -1272,7 +1272,7 @@ def _initl(
 """
 
 def sgp4init(
-       whichconst, opsmode,   satn,     epoch,
+       whichconst, afspc_mode,   satn,     epoch,
        xbstar,  xecco, xargpo,
        xinclo,  xmo,   xno,
        xnodeo,  satrec,
@@ -1333,7 +1333,7 @@ def sgp4init(
      satrec.nodeo   = xnodeo;
 
      #  sgp4fix add opsmode
-     satrec.operationmode = opsmode;
+     satrec.afspc_mode = afspc_mode;
 
      #  ------------------------ earth constants -----------------------
      #  sgp4fix identify constants and allow alternate values
@@ -1355,7 +1355,7 @@ def sgp4init(
        rp,    rteosq,sinio , satrec.gsto,
        ) = _initl(
            satn, whichconst, satrec.ecco, epoch, satrec.inclo, satrec.no, satrec.method,
-           satrec.operationmode
+           satrec.afspc_mode
          );
      satrec.error = 0;
 
@@ -1490,7 +1490,7 @@ def sgp4init(
               ) = _dpper(
                    satrec, inclm, satrec.init,
                    satrec.ecco, satrec.inclo, satrec.nodeo, satrec.argpo, satrec.mo,
-                   satrec.operationmode
+                   satrec.afspc_mode
                  );
 
              argpm  = 0.0;
@@ -1773,7 +1773,7 @@ def sgp4(satrec, tsince, whichconst=None):
 
          ep, xincp, nodep, argpp, mp = _dpper(
                satrec, satrec.inclo,
-               'n', ep, xincp, nodep, argpp, mp, satrec.operationmode
+               'n', ep, xincp, nodep, argpp, mp, satrec.afspc_mode
              );
          if xincp < 0.0:
 
