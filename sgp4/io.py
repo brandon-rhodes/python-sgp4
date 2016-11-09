@@ -81,7 +81,7 @@ with an N where each digit should go, followed by the line you provided:
 *    typerun     - type of run                    verification 'v', catalog 'c', 
 *                                                 manual 'm'
 *    typeinput   - type of manual input           mfe 'm', epoch 'e', dayofyr 'd'
-*    opsmode     - mode of operation afspc or improved 'a', 'i'
+*    afspc_mode  - True for afspc calculations, False for 'improved' mode
 *    whichconst  - which set of constants to use  72, 84
 *
 *  outputs       :
@@ -115,7 +115,6 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
     back into "afspc" mode, then set `afspc_mode` to `True`.
 
     """
-    opsmode = 'a' if afspc_mode else 'i'
 
     deg2rad  =   pi / 180.0;         #    0.0174532925199433
     xpdotp   =  1440.0 / (2.0 *pi);  #  229.1831180523293
@@ -227,7 +226,7 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
                             int(sec_fraction * 1000000.0 // 1.0))
 
     #  ---------------- initialize the orbit at sgp4epoch -------------------
-    sgp4init(whichconst, opsmode, satrec.satnum, satrec.jdsatepoch-2433281.5, satrec.bstar,
+    sgp4init(whichconst, afspc_mode, satrec.satnum, satrec.jdsatepoch-2433281.5, satrec.bstar,
              satrec.ecco, satrec.argpo, satrec.inclo, satrec.mo, satrec.no,
              satrec.nodeo, satrec)
 
