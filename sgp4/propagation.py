@@ -1841,6 +1841,10 @@ def sgp4(satrec, tsince, whichconst=None):
          eo1    = eo1 + tem5;
          ktr = ktr + 1;
 
+     # Recompute sine/cosine values after the iteration converges
+     sineo1 = sin(eo1);
+     coseo1 = cos(eo1);
+
      #  ------------- short period preliminary quantities -----------
      ecose = axnl*coseo1 + aynl*sineo1;
      esine = axnl*sineo1 - aynl*coseo1;
