@@ -154,7 +154,6 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
         raise ValueError(error_message.format(1, LINE1, line))
 
     line = longstr2.rstrip()
-    line_format_ok = False
     if (len(line) >= 69 and
         line.startswith('2 ') and
         line[7] == ' ' and
