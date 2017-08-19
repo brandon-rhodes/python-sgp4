@@ -30,7 +30,7 @@ except ImportError:
                     return jit(jit_this, **jit_options)
                return partial_fake_jit
 
-from math import atan2, cos, fabs, fmod, pi, sin, sqrt
+from math import atan2, cos, fabs, pi, sin, sqrt
 
 deg2rad = pi / 180.0;
 _nan = float('NaN')
@@ -279,7 +279,7 @@ def _dpper(satrec, inclo, init, ep, inclp, nodep, argpp, mp, afspc_mode):
            dbet   = -ph * sinop + pinc * cosip * cosop;
            alfdp  = alfdp + dalf;
            betdp  = betdp + dbet;
-           nodep  = fmod(nodep, twopi);
+           nodep  = nodep % twopi if nodep >= 0.0 else -(-nodep % twopi)
            #   sgp4fix for afspc written intrinsic functions
            #  nodep used without a trigonometric function ahead
            if nodep < 0.0 and afspc_mode:
@@ -1769,7 +1769,7 @@ def sgp4(satrec, tsince, whichconst=None):
      emsq   = em * em;
      temp   = 1.0 - emsq;
 
-     nodem  = fmod(nodem, twopi);
+     nodem  = nodem % twopi if nodem >= 0.0 else -(-nodem % twopi)
      argpm  = argpm % twopi
      xlm    = xlm % twopi
      mm     = (xlm - argpm - nodem) % twopi
