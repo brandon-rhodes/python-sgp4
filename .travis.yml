@@ -12,10 +12,10 @@ python:
 
 install:
   - "pip install -e ."
-  - [[ "$TRAVIS_PYTHON_VERSION" == "2.6" ]] && pip install unittest2
+  - if [ "$TRAVIS_PYTHON_VERSION" = "2.6" ] ;then pip install unittest2 ;fi
 
 script:
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.6" ]]
+  - if [ "$TRAVIS_PYTHON_VERSION" = "2.6" ]
     then unit2 discover sgp4
     else python -m unittest discover sgp4
     fi
