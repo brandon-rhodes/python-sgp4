@@ -16,6 +16,6 @@ install:
 
 script:
   - if [ "$TRAVIS_PYTHON_VERSION" = "2.6" ]
-    then unit2 discover sgp4
-    else python -m unittest discover sgp4
-    fi
+    ;then unit2 discover sgp4
+    ;else python -m unittest discover sgp4
+    ;fi
