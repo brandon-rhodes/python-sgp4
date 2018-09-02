@@ -8,13 +8,15 @@ except:
 import os
 import re
 import sys
+import json
 from doctest import DocTestSuite, ELLIPSIS
 from math import pi, isnan
 
 from sgp4.earth_gravity import wgs72
-from sgp4.ext import invjday, newtonnu, rv2coe
-from sgp4.propagation import sgp4
+from sgp4.ext import invjday, newtonnu, rv2coe, jday
+from sgp4.propagation import sgp4, gstime
 from sgp4 import io
+from sgp4.transforms import degreesLat, degreesLong, geodeticToEcf, eciToGeodetic, ecfToEci, eciToEcf, ecfToLookAngles
 
 thisdir = os.path.dirname(__file__)
 error = 2e-7
@@ -159,6 +161,59 @@ with an N where each digit should go, followed by the line you provided:
         msg = "Object numbers in lines 1 and 2 do not match"
         with self.assertRaisesRegexp(ValueError, re.escape(msg)):
             io.twoline2rv(good1, bad2, wgs72)
+    
+    def test_degreesLat(self):
+        df = load_test_input()
+        for d in df['validLatitudes']:
+            self.assertAlmostEqual(d['degrees'], degreesLat(d['radians']), places=6)
+    
+    def test_degreesLong(self):
+        df = load_test_input()
+        for d in df['validLongitudes']:
+            self.assertAlmostEqual(d['degrees'], degreesLong(d['radians']), places=6)
+    
+    def test_eciToEcf(self):
+        satellite = io.twoline2rv(good1, good2, wgs72)
+        positionEci, velocityEci = satellite.propagate(2000, 6, 29, 12, 50, 19)
+        x, y, z = eciToEcf(positionEci[0], positionEci[1], positionEci[2], gstime(jday(2000, 6, 29, 12, 50, 19)))
+        self.assertAlmostEqual(x, -5698.240455124289, places=1)
+        self.assertAlmostEqual(y, -3823.2696689288123, places=1)
+        self.assertAlmostEqual(z, -1521.943561539586, places=1)
+    
+    def test_ecfToEci(self):
+        satellite = io.twoline2rv(good1, good2, wgs72)
+        positionEci, velocityEci = satellite.propagate(2000, 6, 29, 12, 50, 19)
+        positionEcf = eciToEcf(positionEci[0], positionEci[1], positionEci[2], gstime(jday(2000, 6, 29, 12, 50, 19)))
+        x, y, z = ecfToEci(positionEcf[0], positionEcf[1], positionEcf[2], gstime(jday(2000, 6, 29, 12, 50, 19)))
+        self.assertAlmostEqual(x, positionEci[0], places=1)
+        self.assertAlmostEqual(y, positionEci[1], places=1)
+        self.assertAlmostEqual(z, positionEci[2], places=1)
+
+    def test_eciToGeodetic(self):
+        satellite = io.twoline2rv(good1, good2, wgs72)
+        positionEci, velocityEci = satellite.propagate(2000, 6, 29, 12, 50, 19)
+        lon, lat, h = eciToGeodetic(positionEci[0], positionEci[1], positionEci[2], gstime(jday(2000, 6, 29, 12, 50, 19)))
+        self.assertAlmostEqual(lon, -2.550626260819377, places=1)
+        self.assertAlmostEqual(lat, -0.21955069309329125, places=1)
+        self.assertAlmostEqual(h, 651.6426844009502, places=1)
+
+    def test_geodeticToEcf(self):
+        satellite = io.twoline2rv(good1, good2, wgs72)
+        positionEci, velocityEci = satellite.propagate(2000, 6, 29, 12, 50, 19)
+        positionGd = eciToGeodetic(positionEci[0], positionEci[1], positionEci[2], gstime(jday(2000, 6, 29, 12, 50, 19)))
+        x, y, z = geodeticToEcf(positionGd[0], positionGd[1], positionGd[2])
+        self.assertAlmostEqual(x, -5698.240455124289, places=1)
+        self.assertAlmostEqual(y, -3823.2696689288123, places=1)
+        self.assertAlmostEqual(z, -1521.943561539586, places=1)
+        
+    def test_ecfToLookAngles(self):
+        satellite = io.twoline2rv(good1, good2, wgs72)
+        positionEci, velocityEci = satellite.propagate(2000, 6, 29, 12, 50, 19)
+        positionEcf = eciToEcf(positionEci[0], positionEci[1], positionEci[2], gstime(jday(2000, 6, 29, 12, 50, 19)))
+        Az, El, rangeSat = ecfToLookAngles(-122.0308 * pi/180, 36.9613422 * pi/180, positionEcf[0], positionEcf[1], positionEcf[2])
+        self.assertAlmostEqual(Az, 3.6558306597581742, places=1)
+        self.assertAlmostEqual(El, -0.38076374373479915, places=1)
+        self.assertAlmostEqual(rangeSat, 6138.238292163864, places=0)
 
 
 good1 = '1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753'
@@ -265,6 +320,13 @@ def load_tests(loader, tests, ignore):
 
     return tests
 
+def load_test_input():
+    jsonpath = os.path.join(thisdir, 'transforms.json')
+    
+    with open(jsonpath, 'r') as f:
+        df = json.load(f)
+    
+    return df
 
 if __name__ == '__main__':
     main()

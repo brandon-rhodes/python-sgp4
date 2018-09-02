@@ -1192,7 +1192,7 @@ def _initl(
              gsto = gsto + twopi;
 
      else:
-        gsto = _gstime(epoch + 2433281.5);
+        gsto = gstime(epoch + 2433281.5);
 
      return (
        no,
@@ -1948,7 +1948,7 @@ def sgp4(satrec, tsince, whichconst=None):
 * --------------------------------------------------------------------------- */
 """
 
-def _gstime(jdut1):
+def gstime(jdut1):
 
      tut1 = (jdut1 - 2451545.0) / 36525.0;
      temp = -6.2e-6* tut1 * tut1 * tut1 + 0.093104 * tut1 * tut1 + \
