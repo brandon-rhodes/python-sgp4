@@ -11,6 +11,25 @@ of the algorithm.  This error is far less than the 1–3 km/day by which
 satellites themselves deviate from the ideal orbits described in TLE
 files.
 
+Note that these official SGP4 routines do not implement all the steps
+necessary to convert satellite positions into geographic coordinates;
+they need to be integrated into a more comprehensive astronomy library.
+One example is the Python `Skyfield <http://rhodesmill.org/skyfield/>`_
+package, which uses this SGP4 library when you ask it to turn satellite
+elements into Earth positions as described in its documentation:
+
+http://rhodesmill.org/skyfield/earth-satellites.html
+
+These SGP4 routines, by contrast, produce only raw spatial coordinates.
+
+To run the test suite for this module, clone its repository from GitHub:
+
+https://github.com/brandon-rhodes/python-sgp4
+
+Then invoke the tests using the Python Standard Library::
+
+    python -m unittest discover sgp4
+
 The C++ function names have been retained, since users may already be
 familiar with this library in other languages.  Here is how to compute
 the x,y,z position and velocity for Vanguard 1 at 12:50:19 on 29
