@@ -30,7 +30,9 @@ except ImportError:
                     return jit(jit_this, **jit_options)
                return partial_fake_jit
 
-from math import atan2, cos, fabs, pi, sin, sqrt
+#from math import atan2, cos, fabs, pi, sin, sqrt
+from numpy import cos, fabs, pi, sin, sqrt, where
+from numpy import arctan2 as atan2
 
 deg2rad = pi / 180.0;
 _nan = float('NaN')
@@ -1753,7 +1755,7 @@ def sgp4(satrec, tsince, whichconst=None):
 
      #  fix tolerance for error recognition
      #  sgp4fix am is fixed from the previous nm check
-     if em >= 1.0 or em < -0.001:  # || (am < 0.95)
+     if (em >= 1.0).any() or (em < -0.001).any():  # || (am < 0.95)
 
          satrec.error_message = ('mean eccentricity {0:f} not within'
                                  ' range 0.0 <= e < 1.0'.format(em))
@@ -1762,14 +1764,12 @@ def sgp4(satrec, tsince, whichconst=None):
          return false, false;
 
      #  sgp4fix fix tolerance to avoid a divide by zero
-     if em < 1.0e-6:
-         em  = 1.0e-6;
+     em = where(em < 1.0e-6, 1.0e-6,em);
      mm     = mm + satrec.no * templ;
      xlm    = mm + argpm + nodem;
      emsq   = em * em;
      temp   = 1.0 - emsq;
-
-     nodem  = nodem % twopi if nodem >= 0.0 else -(-nodem % twopi)
+     nodem = where(nodem >= 0.0, nodem % twopi, -(-nodem % twopi))
      argpm  = argpm % twopi
      xlm    = xlm % twopi
      mm     = (xlm - argpm - nodem) % twopi
@@ -1830,14 +1830,15 @@ def sgp4(satrec, tsince, whichconst=None):
      ktr = 1;
      #    sgp4fix for kepler iteration
      #    the following iteration needs better limits on corrections
-     while fabs(tem5) >= 1.0e-12 and ktr <= 10:
+     # dsholes: I don't think I'm handling this properly
+     while (fabs(tem5) >= 1.0e-12).any() and ktr <= 10:
 
          sineo1 = sin(eo1);
          coseo1 = cos(eo1);
          tem5   = 1.0 - coseo1 * axnl - sineo1 * aynl;
          tem5   = (u - aynl * coseo1 + axnl * sineo1 - eo1) / tem5;
-         if fabs(tem5) >= 0.95:
-             tem5 = 0.95 if tem5 > 0.0 else -0.95;
+         if (fabs(tem5) >= 0.95).any():
+             tem5 = where(tem5 > 0.0, 0.95, -0.95);
          eo1    = eo1 + tem5;
          ktr = ktr + 1;
 
@@ -1846,7 +1847,7 @@ def sgp4(satrec, tsince, whichconst=None):
      esine = axnl*sineo1 - aynl*coseo1;
      el2   = axnl*axnl + aynl*aynl;
      pl    = am*(1.0-el2);
-     if pl < 0.0:
+     if (pl < 0.0).any():
 
          satrec.error_message = ('semilatus rectum {0:f} is less than zero'
                                  .format(pl))
@@ -1911,7 +1912,7 @@ def sgp4(satrec, tsince, whichconst=None):
               (mvt * uz + rvdot * vz) * vkmpersec)
 
      #  sgp4fix for decaying satellites
-     if mrt < 1.0:
+     if (mrt < 1.0).any():
 
          satrec.error_message = ('mrt {0:f} is less than 1.0 indicating'
                                  ' the satellite has decayed'.format(mrt))
