@@ -30,7 +30,9 @@ except ImportError:
                     return jit(jit_this, **jit_options)
                return partial_fake_jit
 
-from math import atan2, cos, fabs, pi, sin, sqrt
+#from math import atan2, cos, fabs, fmod, pi, sin, sqrt
+from numpy import cos, fabs, fmod, pi, sin, sqrt, where
+from numpy import arctan2 as atan2
 
 deg2rad = pi / 180.0;
 _nan = float('NaN')
@@ -160,7 +162,7 @@ twopi = 2.0 * pi
   ----------------------------------------------------------------------------*/
 """
 
-def _dpper(satrec, inclo, init, ep, inclp, nodep, argpp, mp, afspc_mode):
+def _dpper(satrec, inclo, init, ep, inclp, nodep, argpp, mp, opsmode):
 
      # Copy satellite attributes into local variables for convenience
      # and symmetry in writing formulae.
@@ -279,17 +281,17 @@ def _dpper(satrec, inclo, init, ep, inclp, nodep, argpp, mp, afspc_mode):
            dbet   = -ph * sinop + pinc * cosip * cosop;
            alfdp  = alfdp + dalf;
            betdp  = betdp + dbet;
-           nodep  = nodep % twopi if nodep >= 0.0 else -(-nodep % twopi)
+           nodep  = fmod(nodep, twopi);
            #   sgp4fix for afspc written intrinsic functions
            #  nodep used without a trigonometric function ahead
-           if nodep < 0.0 and afspc_mode:
+           if nodep < 0.0 and opsmode == 'a':
                nodep = nodep + twopi;
            xls = mp + argpp + pl + pgh + (cosip - pinc * sinip) * nodep
            xnoh   = nodep;
            nodep  = atan2(alfdp, betdp);
            #   sgp4fix for afspc written intrinsic functions
            #  nodep used without a trigonometric function ahead
-           if nodep < 0.0 and afspc_mode:
+           if nodep < 0.0 and opsmode == 'a':
                nodep = nodep + twopi;
            if fabs(xnoh - nodep) > pi:
              if nodep < xnoh:
@@ -941,8 +943,6 @@ def _dsinit(
   ----------------------------------------------------------------------------*/
 """
 
-@jit(cache=True)
-#@jit
 def _dspace(
        irez,
        d2201,  d2211,  d3210,   d3222,  d4410,
@@ -1138,7 +1138,7 @@ def _initl(
        satn,      whichconst,
        ecco,   epoch,  inclo,   no,
        method,
-       afspc_mode,
+       opsmode,
        ):
 
      # sgp4fix use old way of finding gst
@@ -1175,7 +1175,7 @@ def _initl(
      method = 'n';
 
      #  sgp4fix modern approach to finding sidereal time
-     if afspc_mode:
+     if opsmode == 'a':
 
          #  sgp4fix use old way of finding gst
          #  count integer number of days from 0 jan 1970
@@ -1212,7 +1212,7 @@ def _initl(
 *  author        : david vallado                  719-573-2600   28 jun 2005
 *
 *  inputs        :
-*    afspc_mode  - use afspc or improved mode of operation
+*    opsmode     - mode of operation afspc or improved 'a', 'i'
 *    whichconst  - which set of constants to use  72, 84
 *    satn        - satellite number
 *    bstar       - sgp4 type drag coefficient              kg/m2er
@@ -1287,7 +1287,7 @@ def _initl(
 """
 
 def sgp4init(
-       whichconst, afspc_mode,   satn,     epoch,
+       whichconst, opsmode,   satn,     epoch,
        xbstar,  xecco, xargpo,
        xinclo,  xmo,   xno,
        xnodeo,  satrec,
@@ -1348,7 +1348,7 @@ def sgp4init(
      satrec.nodeo   = xnodeo;
 
      #  sgp4fix add opsmode
-     satrec.afspc_mode = afspc_mode;
+     satrec.operationmode = opsmode;
 
      #  ------------------------ earth constants -----------------------
      #  sgp4fix identify constants and allow alternate values
@@ -1370,7 +1370,7 @@ def sgp4init(
        rp,    rteosq,sinio , satrec.gsto,
        ) = _initl(
            satn, whichconst, satrec.ecco, epoch, satrec.inclo, satrec.no, satrec.method,
-           satrec.afspc_mode
+           satrec.operationmode
          );
      satrec.error = 0;
 
@@ -1505,7 +1505,7 @@ def sgp4init(
               ) = _dpper(
                    satrec, inclm, satrec.init,
                    satrec.ecco, satrec.inclo, satrec.nodeo, satrec.argpo, satrec.mo,
-                   satrec.afspc_mode
+                   satrec.operationmode
                  );
 
              argpm  = 0.0;
@@ -1657,8 +1657,6 @@ def sgp4init(
   ----------------------------------------------------------------------------*/
 """
 
-@jit(cache=True)
-#@jit
 def sgp4(satrec, tsince, whichconst=None):
 
      mrt = 0.0
@@ -1753,7 +1751,7 @@ def sgp4(satrec, tsince, whichconst=None):
 
      #  fix tolerance for error recognition
      #  sgp4fix am is fixed from the previous nm check
-     if em >= 1.0 or em < -0.001:  # || (am < 0.95)
+     if (em >= 1.0).any() or (em < -0.001).any():  # || (am < 0.95)
 
          satrec.error_message = ('mean eccentricity {0:f} not within'
                                  ' range 0.0 <= e < 1.0'.format(em))
@@ -1762,14 +1760,13 @@ def sgp4(satrec, tsince, whichconst=None):
          return false, false;
 
      #  sgp4fix fix tolerance to avoid a divide by zero
-     if em < 1.0e-6:
-         em  = 1.0e-6;
+     em = where(em < 1.0e-6,em, 1.0e-6);
      mm     = mm + satrec.no * templ;
      xlm    = mm + argpm + nodem;
      emsq   = em * em;
      temp   = 1.0 - emsq;
 
-     nodem  = nodem % twopi if nodem >= 0.0 else -(-nodem % twopi)
+     nodem  = fmod(nodem, twopi);
      argpm  = argpm % twopi
      xlm    = xlm % twopi
      mm     = (xlm - argpm - nodem) % twopi
@@ -1790,7 +1787,7 @@ def sgp4(satrec, tsince, whichconst=None):
 
          ep, xincp, nodep, argpp, mp = _dpper(
                satrec, satrec.inclo,
-               'n', ep, xincp, nodep, argpp, mp, satrec.afspc_mode
+               'n', ep, xincp, nodep, argpp, mp, satrec.operationmode
              );
          if xincp < 0.0:
 
@@ -1830,13 +1827,14 @@ def sgp4(satrec, tsince, whichconst=None):
      ktr = 1;
      #    sgp4fix for kepler iteration
      #    the following iteration needs better limits on corrections
-     while fabs(tem5) >= 1.0e-12 and ktr <= 10:
+     while (fabs(tem5) >= 1.0e-12).any() and ktr <= 10:
 
          sineo1 = sin(eo1);
          coseo1 = cos(eo1);
          tem5   = 1.0 - coseo1 * axnl - sineo1 * aynl;
          tem5   = (u - aynl * coseo1 + axnl * sineo1 - eo1) / tem5;
-         if fabs(tem5) >= 0.95:
+         if (fabs(tem5) >= 0.95).any():
+             tem5 = where(tem5 > 0.0, 0.95, -0.95)
              tem5 = 0.95 if tem5 > 0.0 else -0.95;
          eo1    = eo1 + tem5;
          ktr = ktr + 1;
@@ -1846,7 +1844,7 @@ def sgp4(satrec, tsince, whichconst=None):
      esine = axnl*sineo1 - aynl*coseo1;
      el2   = axnl*axnl + aynl*aynl;
      pl    = am*(1.0-el2);
-     if pl < 0.0:
+     if (pl < 0.0).any():
 
          satrec.error_message = ('semilatus rectum {0:f} is less than zero'
                                  .format(pl))
@@ -1911,7 +1909,7 @@ def sgp4(satrec, tsince, whichconst=None):
               (mvt * uz + rvdot * vz) * vkmpersec)
 
      #  sgp4fix for decaying satellites
-     if mrt < 1.0:
+     if (mrt < 1.0).any():
 
          satrec.error_message = ('mrt {0:f} is less than 1.0 indicating'
                                  ' the satellite has decayed'.format(mrt))
@@ -1948,7 +1946,7 @@ def sgp4(satrec, tsince, whichconst=None):
 * --------------------------------------------------------------------------- */
 """
 
-def gstime(jdut1):
+def _gstime(jdut1):
 
      tut1 = (jdut1 - 2451545.0) / 36525.0;
      temp = -6.2e-6* tut1 * tut1 * tut1 + 0.093104 * tut1 * tut1 + \
@@ -1960,10 +1958,6 @@ def gstime(jdut1):
          temp += twopi;
 
      return temp;
-
-# The routine was originally marked private, so make it available under
-# the old name for compatibility:
-_gstime = gstime
 
 """
 /* -----------------------------------------------------------------------------
