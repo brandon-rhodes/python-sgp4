@@ -17,28 +17,17 @@ code for the first time here in its Python form.
 |   On a very hot August day in 2012
 """
 
-try:
-     from numba import jit
-except ImportError:
-     def jit(jit_this=None, **jit_options):
-          if jit_this is not None:
-               def fake_jit(*args, **kwargs):
-                    return jit_this(*args, **kwargs)
-               return fake_jit
-          else:
-               def partial_fake_jit(jit_this, **jit_options):
-                    return jit(jit_this, **jit_options)
-               return partial_fake_jit
-
 #from math import atan2, cos, fabs, fmod, pi, sin, sqrt
-from numpy import cos, fabs, fmod, pi, sin, sqrt, where
 from numpy import arctan2 as atan2
+from numpy import (cos, fabs, fmod, pi, sin, sqrt,
+                   where, isscalar)
 
 deg2rad = pi / 180.0;
 _nan = float('NaN')
 false = (_nan, _nan, _nan)
 true = True
 twopi = 2.0 * pi
+_version = 'rascat'
 
 """
 /*     ----------------------------------------------------------------
@@ -164,6 +153,7 @@ twopi = 2.0 * pi
 
 def _dpper(satrec, inclo, init, ep, inclp, nodep, argpp, mp, opsmode):
 
+
      # Copy satellite attributes into local variables for convenience
      # and symmetry in writing formulae.
 
@@ -187,6 +177,10 @@ def _dpper(satrec, inclo, init, ep, inclp, nodep, argpp, mp, opsmode):
      sl3 = satrec.sl3
      sl4 = satrec.sl4
      t = satrec.t
+     if isscalar(t):
+         TIME_IS_SCALAR = True
+     else:
+         TIME_IS_SCALAR = False
      xgh2 = satrec.xgh2
      xgh3 = satrec.xgh3
      xgh4 = satrec.xgh4
@@ -282,6 +276,7 @@ def _dpper(satrec, inclo, init, ep, inclp, nodep, argpp, mp, opsmode):
            alfdp  = alfdp + dalf;
            betdp  = betdp + dbet;
            nodep  = fmod(nodep, twopi);
+           print(nodep)
            #   sgp4fix for afspc written intrinsic functions
            #  nodep used without a trigonometric function ahead
            if nodep < 0.0 and opsmode == 'a':
@@ -385,6 +380,7 @@ def _dscom(
        xh3,   xi2,   xi3,    xl2,   xl3,
        xl4,   zmol,  zmos,
      ):
+     print('running _dscom')
 
      #  -------------------------- constants -------------------------
      zes     =  0.01675;
@@ -670,7 +666,7 @@ def _dsinit(
        dnodt, domdt, del1,   del2,  del3,
        xfact, xlamo, xli,    xni,
      ):
-
+     print('running _dsinit')
      q22    = 1.7891679e-6;
      q31    = 2.1460748e-6;
      q33    = 2.2123015e-7;
@@ -954,7 +950,7 @@ def _dspace(
        atime, em,    argpm,  inclm, xli,
        mm,    xni,   nodem,  nm,
        ):
-
+     print('running _dsspace')
      fasx2 = 0.13130908;
      fasx4 = 2.8843198;
      fasx6 = 0.37448087;
@@ -1141,6 +1137,7 @@ def _initl(
        opsmode,
        ):
 
+     print('running _initl')
      # sgp4fix use old way of finding gst
 
      #  ----------------------- earth constants ----------------------
@@ -1292,7 +1289,7 @@ def sgp4init(
        xinclo,  xmo,   xno,
        xnodeo,  satrec,
        ):
-
+     print('running sgp4init')
      """
      /* ------------------------ initialization --------------------- */
      // sgp4fix divisor for divide by zero check on inclination
@@ -1658,7 +1655,6 @@ def sgp4init(
 """
 
 def sgp4(satrec, tsince, whichconst=None):
-
      mrt = 0.0
      if whichconst is None:
           whichconst = satrec.whichconst
@@ -1736,7 +1732,6 @@ def sgp4(satrec, tsince, whichconst=None):
                em, argpm, inclm, satrec.xli, mm, satrec.xni,
                nodem, nm
              );
-
      if nm <= 0.0:
 
          satrec.error_message = ('mean motion {0:f} is less than zero'
@@ -1748,7 +1743,6 @@ def sgp4(satrec, tsince, whichconst=None):
      am = pow((xke / nm),x2o3) * tempa * tempa;
      nm = xke / pow(am, 1.5);
      em = em - tempe;
-
      #  fix tolerance for error recognition
      #  sgp4fix am is fixed from the previous nm check
      if (em >= 1.0).any() or (em < -0.001).any():  # || (am < 0.95)
@@ -1760,12 +1754,11 @@ def sgp4(satrec, tsince, whichconst=None):
          return false, false;
 
      #  sgp4fix fix tolerance to avoid a divide by zero
-     em = where(em < 1.0e-6,em, 1.0e-6);
+     em = where(em < 1.0e-6,1.0e-6,em);
      mm     = mm + satrec.no * templ;
      xlm    = mm + argpm + nodem;
      emsq   = em * em;
      temp   = 1.0 - emsq;
-
      nodem  = fmod(nodem, twopi);
      argpm  = argpm % twopi
      xlm    = xlm % twopi
@@ -1827,6 +1820,7 @@ def sgp4(satrec, tsince, whichconst=None):
      ktr = 1;
      #    sgp4fix for kepler iteration
      #    the following iteration needs better limits on corrections
+     # dsholes: May require changes for vectorization
      while (fabs(tem5) >= 1.0e-12).any() and ktr <= 10:
 
          sineo1 = sin(eo1);
@@ -1947,7 +1941,7 @@ def sgp4(satrec, tsince, whichconst=None):
 """
 
 def _gstime(jdut1):
-
+     print('running _gstime')
      tut1 = (jdut1 - 2451545.0) / 36525.0;
      temp = -6.2e-6* tut1 * tut1 * tut1 + 0.093104 * tut1 * tut1 + \
              (876600.0*3600 + 8640184.812866) * tut1 + 67310.54841;  #  sec
@@ -1992,7 +1986,7 @@ def _gstime(jdut1):
 """
 
 def getgravconst(whichconst):
-
+       print('running getgravconst')
        if whichconst == 'wgs72old':
            mu     = 398600.79964;        #  in km3 / s2
            radiusearthkm = 6378.135;     #  km
