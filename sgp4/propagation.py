@@ -17,18 +17,18 @@ code for the first time here in its Python form.
 |   On a very hot August day in 2012
 """
 
-try:
-     from numba import jit
-except ImportError:
-     def jit(jit_this=None, **jit_options):
-          if jit_this is not None:
-               def fake_jit(*args, **kwargs):
-                    return jit_this(*args, **kwargs)
-               return fake_jit
-          else:
-               def partial_fake_jit(jit_this, **jit_options):
-                    return jit(jit_this, **jit_options)
-               return partial_fake_jit
+# try:
+#      from numba import jit
+# except ImportError:
+#      def jit(jit_this=None, **jit_options):
+#           if jit_this is not None:
+#                def fake_jit(*args, **kwargs):
+#                     return jit_this(*args, **kwargs)
+#                return fake_jit
+#           else:
+#                def partial_fake_jit(jit_this, **jit_options):
+#                     return jit(jit_this, **jit_options)
+#                return partial_fake_jit
 
 #from math import atan2, cos, fabs, pi, sin, sqrt
 from numpy import cos, fabs, pi, sin, sqrt, where
@@ -943,7 +943,7 @@ def _dsinit(
   ----------------------------------------------------------------------------*/
 """
 
-@jit(cache=True)
+# @jit(cache=True)
 #@jit
 def _dspace(
        irez,
@@ -1659,7 +1659,7 @@ def sgp4init(
   ----------------------------------------------------------------------------*/
 """
 
-@jit(cache=True)
+# @jit(cache=True)
 #@jit
 def sgp4(satrec, tsince, whichconst=None):
 
