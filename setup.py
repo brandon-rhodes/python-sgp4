@@ -8,13 +8,13 @@ satdoc = dedent(sgp4.model.Satellite.__doc__.split('\n', 1)[1])
 long_description = long_description.replace('entry.', 'entry.' + satdoc)
 
 setup(name = 'sgp4',
-      version = '1.4',
+      version = 'dsholes-dev',
       description = description,
       long_description = long_description,
       license = 'MIT',
       author = 'Brandon Rhodes',
       author_email = 'brandon@rhodesmill.org',
-      url = 'https://github.com/brandon-rhodes/python-sgp4',
+      url = 'https://github.com/dsholes/python-sgp4/tree/performance/time-as-vector',
       classifiers = [
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Science/Research',
