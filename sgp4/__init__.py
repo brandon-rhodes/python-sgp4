@@ -123,3 +123,5 @@ Changelog
 | 2012-08-27 — 1.0 — Initial release
 
 """
+
+__version__ = 'dsholes-dev'

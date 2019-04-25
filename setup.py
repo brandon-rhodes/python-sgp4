@@ -8,7 +8,7 @@ satdoc = dedent(sgp4.model.Satellite.__doc__.split('\n', 1)[1])
 long_description = long_description.replace('entry.', 'entry.' + satdoc)
 
 setup(name = 'sgp4',
-      version = 'dsholes-dev',
+      version = sgp4.__version__,
       description = description,
       long_description = long_description,
       license = 'MIT',
