@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-VERSION = 'dsholes-dev'
 """Track earth satellite TLE orbits using up-to-date 2010 version of SGP4
 
 This Python package computes the position and velocity of an
