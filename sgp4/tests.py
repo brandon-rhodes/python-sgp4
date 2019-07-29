@@ -132,7 +132,7 @@ class Tests(TestCase):
         self.assertRaises(ValueError, io.verify_checksum, bad)
 
     def test_bad_first_line(self):
-        with self.assertRaisesRegexp(ValueError, re.escape("""TLE format error
+        with self.assertRaisesRegex(ValueError, re.escape("""TLE format error
 
 The Two-Line Element (TLE) format was designed for punch cards, and so
 is very strict about the position of every period, space, and digit.
@@ -144,7 +144,7 @@ with an N where each digit should go, followed by the line you provided:
             io.twoline2rv(good1.replace('23 ', '234'), good2, wgs72)
 
     def test_bad_second_line(self):
-        with self.assertRaisesRegexp(ValueError, re.escape("""TLE format error
+        with self.assertRaisesRegex(ValueError, re.escape("""TLE format error
 
 The Two-Line Element (TLE) format was designed for punch cards, and so
 is very strict about the position of every period, space, and digit.
@@ -157,7 +157,7 @@ with an N where each digit should go, followed by the line you provided:
 
     def test_mismatched_lines(self):
         msg = "Object numbers in lines 1 and 2 do not match"
-        with self.assertRaisesRegexp(ValueError, re.escape(msg)):
+        with self.assertRaisesRegex(ValueError, re.escape(msg)):
             io.twoline2rv(good1, bad2, wgs72)
 
 
