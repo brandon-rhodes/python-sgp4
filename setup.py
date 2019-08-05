@@ -1,6 +1,13 @@
 from distutils.core import setup
 from textwrap import dedent
 
+cython_installed = False
+try:
+    from Cython.Build import cythonize
+    cython_installed = True
+except ImportError:
+    pass
+
 import sgp4, sgp4.model
 
 description, long_description = sgp4.__doc__.split('\n', 1)
@@ -29,4 +36,5 @@ setup(name = 'sgp4',
         'Topic :: Scientific/Engineering :: Astronomy',
         ],
       packages = ['sgp4'],
+      ext_modules = cythonize("sgp4/cpropagation.pyx") if cython_installed else []
       )
