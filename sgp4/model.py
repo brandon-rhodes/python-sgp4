@@ -3,7 +3,8 @@
 from sgp4.ext import jday
 try:
     from sgp4.cpropagation import sgp4
-except ImportError:
+except ImportError as e:
+    print(e)
     from sgp4.propagation import sgp4
 
 minutes_per_day = 1440.

@@ -36,5 +36,5 @@ setup(name = 'sgp4',
         'Topic :: Scientific/Engineering :: Astronomy',
         ],
       packages = ['sgp4'],
-      ext_modules = cythonize("sgp4/cpropagation.pyx") if cython_installed else []
+      ext_modules = cythonize(["sgp4/cpropagation.pyx"]) if cython_installed else []
       )
