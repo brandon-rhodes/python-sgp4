@@ -148,7 +148,7 @@ cdef double x2o3   = 2.0 / 3.0;
   ----------------------------------------------------------------------------*/
 """
 
-cdef _dpper(satrec, double inclo, char init, double ep, double inclp, double nodep, double argpp, double mp, char afspc_mode):
+cdef _dpper(satrec, double inclo, str init, double ep, double inclp, double nodep, double argpp, double mp, bint afspc_mode):
 
      cdef double e3, ee2, peo, pgho, pho, pinco, plo, se2, se3, sgh2, sgh3, sgh4
      cdef double sh2, sh3, si2, si3, sl2, sl3, sl4, t, xgh2, xgh3, xgh4, zm, zel
@@ -1145,8 +1145,8 @@ cdef _dspace(
 cdef _initl(
        int satn,      whichconst,
        double ecco,   double epoch,  double inclo,   double no,
-       char method,
-       int afspc_mode,
+       str method,
+       bint afspc_mode,
        ):
 
          # Make Cython happy
@@ -1299,7 +1299,7 @@ cdef _initl(
 """
 
 cpdef sgp4init(
-       whichconst, int afspc_mode,   int satn,     double epoch,
+       whichconst, bint afspc_mode,   int satn,     double epoch,
        double xbstar,  double xecco, double xargpo,
        double xinclo,  double xmo,   double xno,
        double xnodeo,  satrec,
