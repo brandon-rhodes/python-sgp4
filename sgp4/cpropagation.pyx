@@ -16,32 +16,16 @@ code for the first time here in its Python form.
 |   Common Grounds Coffee House, Bluffton, Ohio
 |   On a very hot August day in 2012
 """
+cimport cython 
 
-try:
-     from numba import jit
-except ImportError:
-     def jit(jit_this=None, **jit_options):
-          if jit_this is not None:
-               def fake_jit(*args, **kwargs):
-                    return jit_this(*args, **kwargs)
-               return fake_jit
-          else:
-               def partial_fake_jit(jit_this, **jit_options):
-                    return jit(jit_this, **jit_options)
-               return partial_fake_jit
-
-from libc.math cimport atan2, cos, fabs, pi, sin, sqrt, pow
-# from math import atan2, cos, fabs, pi, sin, sqrt
+from libc.math cimport atan2, cos, fabs, pi, sin, sqrt, pow, fmod, NAN
 
 cdef double deg2rad = pi / 180.0;
-cdef double _nan = float('NaN')
-# deg2rad = pi / 180.0;
-# _nan = float('NaN')
-false = (_nan, _nan, _nan)
+cdef double _nan = NAN
+false = (NAN, NAN, NAN)
 true = True
 cdef double twopi = 2.0 * pi
-cdef double x2o3   = 2.0 / 3.0;
-# twopi = 2.0 * pi
+cdef double x2o3  = 2.0 / 3.0;
 
 """
 /*     ----------------------------------------------------------------
@@ -168,8 +152,7 @@ cdef double x2o3   = 2.0 / 3.0;
 *    vallado, crawford, hujsak, kelso  2006
   ----------------------------------------------------------------------------*/
 """
-
-# def _dpper(satrec, inclo, init, ep, inclp, nodep, argpp, mp, opsmode):
+@cython.boundscheck(False) # turn off bounds-checking for entire function
 cdef _dpper(satrec, double inclo, str init, double ep, double inclp, double nodep, double argpp, double mp, bint opsmode):
 
      cdef double e3, ee2, peo, pgho, pho, pinco, plo, se2, se3, sgh2, sgh3, sgh4
@@ -178,6 +161,7 @@ cdef _dpper(satrec, double inclo, str init, double ep, double inclp, double node
 
      cdef double sel, sil, sll, sghl, shll, pe, pinc, pl, pgh, ph
      cdef double zf, sinzf, f2, f3, ses, sis, sls, sghs, shs
+     cdef double sinip
 
      # Copy satellite attributes into local variables for convenience
      # and symmetry in writing formulae.
@@ -296,7 +280,7 @@ cdef _dpper(satrec, double inclo, str init, double ep, double inclp, double node
            dbet   = -ph * sinop + pinc * cosip * cosop;
            alfdp  = alfdp + dalf;
            betdp  = betdp + dbet;
-           nodep  = nodep % twopi if nodep >= 0.0 else -(-nodep % twopi)
+           nodep  = fmod(nodep,twopi) if nodep >= 0.0 else -fmod(-nodep, twopi)
            #   sgp4fix for afspc written intrinsic functions
            #  nodep used without a trigonometric function ahead
            if nodep < 0.0 and opsmode == 'a':
@@ -388,18 +372,7 @@ cdef _dpper(satrec, double inclo, str init, double ep, double inclp, double node
   ----------------------------------------------------------------------------*/
 """
 
-# def _dscom(
-#        epoch,  ep,     argpp,   tc,     inclp,
-#        nodep,  np,
-#        e3,     ee2,
-#        peo,    pgho,  pho,
-#        pinco, plo, se2,   se3,
-#        sgh2,  sgh3,  sgh4,   sh2,   sh3,
-#        si2,   si3,   sl2,    sl3,   sl4,
-#        xgh2,  xgh3,   xgh4,  xh2,
-#        xh3,   xi2,   xi3,    xl2,   xl3,
-#        xl4,   zmol,  zmos,
-#      ):
+@cython.boundscheck(False) # turn off bounds-checking for entire function
 cdef _dscom(
        double epoch, double ep,     double argpp,  double tc,    double inclp,
        double nodep, double np,
@@ -451,7 +424,7 @@ cdef _dscom(
      pgho   = 0.0;
      pho    = 0.0;
      day    = epoch + 18261.5 + tc / 1440.0;
-     xnodce = (4.5236020 - 9.2422029e-4 * day) % twopi
+     xnodce = fmod((4.5236020 - 9.2422029e-4 * day), twopi)
      stem   = sin(xnodce);
      ctem   = cos(xnodce);
      zcosil = 0.91375164 - 0.03568096 * ctem;
@@ -553,8 +526,8 @@ cdef _dscom(
              zsinh = snodm * zcoshl - cnodm * zsinhl;
              cc    = c1l;
 
-     zmol = (4.7199672 + 0.22997150  * day - gam) % twopi
-     zmos = (6.2565837 + 0.017201977 * day) % twopi
+     zmol = fmod((4.7199672 + 0.22997150  * day - gam), twopi)
+     zmos = fmod((6.2565837 + 0.017201977 * day), twopi)
 
      #  ------------------------ do solar terms ----------------------
      se2  =   2.0 * ss1 * ss6;
@@ -686,28 +659,10 @@ cdef _dscom(
   ----------------------------------------------------------------------------*/
 """
 
-# def _dsinit(
-#        # sgp4fix no longer needed pass in xke
-#        # whichconst,
-#        xke,
-#        cosim,  emsq,   argpo,   s1,     s2,
-#        s3,     s4,     s5,      sinim,  ss1,
-#        ss2,    ss3,    ss4,     ss5,    sz1,
-#        sz3,    sz11,   sz13,    sz21,   sz23,
-#        sz31,   sz33,   t,       tc,     gsto,
-#        mo,     mdot,   no,      nodeo,  nodedot,
-#        xpidot, z1,     z3,      z11,    z13,
-#        z21,    z23,    z31,     z33,    ecco,
-#        eccsq,  em,    argpm,  inclm, mm,
-#        nm,    nodem,
-#        irez,
-#        atime, d2201, d2211,  d3210, d3222,
-#        d4410, d4422, d5220,  d5232, d5421,
-#        d5433, dedt,  didt,   dmdt,
-#        dnodt, domdt, del1,   del2,  del3,
-#        xfact, xlamo, xli,    xni,
-#      ):
+@cython.boundscheck(False) # turn off bounds-checking for entire function
 cdef _dsinit(
+       # sgp4fix no longer needed pass in xke
+       # whichconst,
        double xke,
        double cosim,  double emsq,   double argpo,   double s1,     double s2,
        double s3,     double s4,     double s5,      double sinim,  double ss1,
@@ -729,7 +684,6 @@ cdef _dsinit(
     
      cdef double q22, q31, q33, root22, root44, root54, rptim, root32, root52
      cdef double sgs, ses, sis, sls, sghs, shs, x2o3, znl, zns, aonv, ainv2, temp1
-
 
      q22    = 1.7891679e-6;
      q31    = 2.1460748e-6;
@@ -787,7 +741,7 @@ cdef _dsinit(
 
      #  ----------- calculate deep space resonance effects --------
      dndt   = 0.0;
-     theta  = (gsto + tc * rptim) % twopi
+     theta  = fmod((gsto + tc * rptim), twopi)
      em     = em + dedt * t;
      inclm  = inclm + didt * t;
      argpm  = argpm + domdt * t;
@@ -889,7 +843,7 @@ cdef _dsinit(
              temp  =  2.0 * temp1 * root54;
              d5421 =  temp * f542 * g521;
              d5433 =  temp * f543 * g533;
-             xlamo =  (mo + nodeo + nodeo-theta - theta) % twopi
+             xlamo =  fmod((mo + nodeo + nodeo-theta - theta), twopi)
              xfact =  mdot + dmdt + 2.0 * (nodedot + dnodt - rptim) - no;
              em    = emo;
              emsq  = emsqo;
@@ -908,7 +862,7 @@ cdef _dsinit(
              del2  = 2.0 * del1 * f220 * g200 * q22;
              del3  = 3.0 * del1 * f330 * g300 * q33 * aonv;
              del1  = del1 * f311 * g310 * q31 * aonv;
-             xlamo = (mo + nodeo + argpo - theta) % twopi
+             xlamo = fmod((mo + nodeo + argpo - theta), twopi)
              xfact = mdot + xpidot - rptim + dmdt + domdt + dnodt - no;
 
          #  ------------ for sgp4, initialize the integrator ----------
@@ -1004,19 +958,7 @@ cdef _dsinit(
   ----------------------------------------------------------------------------*/
 """
 
-# @jit(cache=True)
-# #@jit
-# def _dspace(
-#        irez,
-#        d2201,  d2211,  d3210,   d3222,  d4410,
-#        d4422,  d5220,  d5232,   d5421,  d5433,
-#        dedt,   del1,   del2,    del3,   didt,
-#        dmdt,   dnodt,  domdt,   argpo,  argpdot,
-#        t,      tc,     gsto,    xfact,  xlamo,
-#        no,
-#        atime, em,    argpm,  inclm, xli,
-#        mm,    xni,   nodem,  nm,
-#        ):
+@cython.boundscheck(False) # turn off bounds-checking for entire function
 cdef _dspace(
        int irez,
        double d2201,  double d2211,  double d3210,   double d3222,  double d4410,
@@ -1031,7 +973,6 @@ cdef _dspace(
 
      cdef double fasx2, fasx4, fasx6, g22, g32, g44, g52, g54, rptim, ft
      cdef double stepp, stepn, step2, dndt, theta, xndt, xldot, xnddt
-
 
      fasx2 = 0.13130908;
      fasx4 = 2.8843198;
@@ -1048,7 +989,7 @@ cdef _dspace(
 
      #  ----------- calculate deep space resonance effects -----------
      dndt   = 0.0;
-     theta  = (gsto + tc * rptim) % twopi
+     theta  = fmod((gsto + tc * rptim), twopi)
      em     = em + dedt * t;
 
      inclm  = inclm + didt * t;
@@ -1214,17 +1155,12 @@ cdef _dspace(
   ----------------------------------------------------------------------------*/
 """
 
-# def _initl(
-#        # not needeed. included in satrec if needed later 
-#        # satn,      
-#        # sgp4fix assin xke and j2
-#        # whichconst,
-#        xke, j2,
-#        ecco,   epoch,  inclo,   no,
-#        method,
-#        opsmode,
-#        ):
+@cython.boundscheck(False) # turn off bounds-checking for entire function
 cdef _initl(
+       # not needeed. included in satrec if needed later 
+       # satn,      
+       # sgp4fix assin xke and j2
+       # whichconst,
        double xke,    double j2,
        double ecco,   double epoch,  double inclo,   double no,
        str method,
@@ -1241,7 +1177,6 @@ cdef _initl(
      #  sgp4fix identify constants and allow alternate values
 	 #  only xke and j2 are used here so pass them in directly
      #  tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2 = whichconst
-     cdef double x2o3   = 2.0 / 3.0;
 
      #  ------------- calculate auxillary epoch quantities ----------
      eccsq  = ecco * ecco;
@@ -1282,7 +1217,7 @@ cdef _initl(
          thgr70= 1.7321343856509374;
          fk5r  = 5.07551419432269442e-15;
          c1p2p = c1 + twopi;
-         gsto  = (thgr70 + c1*ds70 + c1p2p*tfrac + ts70*ts70*fk5r) % twopi
+         gsto  = fmod((thgr70 + c1*ds70 + c1p2p*tfrac + ts70*ts70*fk5r), twopi)
          if gsto < 0.0:
              gsto = gsto + twopi;
 
@@ -1381,12 +1316,7 @@ cdef _initl(
   ----------------------------------------------------------------------------*/
 """
 
-# def sgp4init(
-#        whichconst,   opsmode,   satn,   epoch,
-#        xbstar,   xndot,   xnddot,   xecco,   xargpo,
-#        xinclo,   xmo,   xno_kozai,
-#        xnodeo,  satrec,
-#        ):
+@cython.boundscheck(False) # turn off bounds-checking for entire function
 cpdef sgp4init(
        whichconst, bint opsmode,   int satn,     double epoch,
        double xbstar,  double xndot, double xnddot, double xecco, double xargpo,
@@ -1400,7 +1330,6 @@ cpdef sgp4init(
      // the old check used 1.0 + cos(pi-1.0e-9), but then compared it to
      // 1.5 e-12, so the threshold was changed to 1.5e-12 for consistency
      """
-    #  temp4    =   1.5e-12;
      cdef double temp4    =   1.5e-12;
 
      #  ----------- set all near earth variables to zero ------------
@@ -1476,15 +1405,10 @@ cpdef sgp4init(
     # ------------------------ earth constants ----------------------- */
 	# sgp4fix identify constants and allow alternate values no longer needed
 	# getgravconst( whichconst, tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2 );
-    #  ss     = 78.0 / satrec.radiusearthkm + 1.0;
      cdef double ss     = 78.0 / satrec.radiusearthkm + 1.0;
      #  sgp4fix use multiply for speed instead of pow
-    #  qzms2ttemp = (120.0 - 78.0) / satrec.radiusearthkm;
-    #  qzms2t = qzms2ttemp * qzms2ttemp * qzms2ttemp * qzms2ttemp;
-    #  x2o3   =  2.0 / 3.0;
      cdef double qzms2ttemp = (120.0 - 78.0) / satrec.radiusearthkm;
      cdef double qzms2t = qzms2ttemp * qzms2ttemp * qzms2ttemp * qzms2ttemp;
-     cdef double x2o3   =  2.0 / 3.0;
 
      satrec.init = 'y';
      satrec.t	 = 0.0;
@@ -1787,9 +1711,7 @@ cpdef sgp4init(
   ----------------------------------------------------------------------------*/
 """
 
-# @jit(cache=True)
-# #@jit
-# def sgp4(satrec, tsince, whichconst=None):
+@cython.boundscheck(False) # turn off bounds-checking for entire function
 cpdef sgp4(satrec, double tsince, whichconst=None):
          # Make cython happy
      cdef double delomg, delmtemp, delm, t2, t3, t4, am, ep, xl, mp
@@ -1821,9 +1743,7 @@ cpdef sgp4(satrec, double tsince, whichconst=None):
      vkmpersec     = satrec.radiusearthkm * satrec.xke/60.0;
 
      #  --------------------- clear sgp4 error flag -----------------
-    #  satrec.t     = tsince;
-     cdef double t = satrec.t
-
+     satrec.t     = tsince;
      satrec.error = 0;
      satrec.error_message = None
 
@@ -1913,10 +1833,10 @@ cpdef sgp4(satrec, double tsince, whichconst=None):
      emsq   = em * em;
      temp   = 1.0 - emsq;
 
-     nodem  = nodem % twopi if nodem >= 0.0 else -(-nodem % twopi)
-     argpm  = argpm % twopi
-     xlm    = xlm % twopi
-     mm     = (xlm - argpm - nodem) % twopi
+     nodem  = fmod(nodem, twopi) if nodem >= 0.0 else -fmod(-nodem, twopi)
+     argpm  = fmod(argpm, twopi)
+     xlm    = fmod(xlm, twopi)
+     mm     = fmod((xlm - argpm - nodem), twopi)
      
      # sgp4fix recover singly averaged mean elements
      satrec.am = am;
@@ -1977,7 +1897,7 @@ cpdef sgp4(satrec, double tsince, whichconst=None):
      xl   = mp + argpp + nodep + temp * satrec.xlcof * axnl;
 
      #  --------------------- solve kepler's equation ---------------
-     u    = (xl - nodep) % twopi
+     u    = fmod((xl - nodep), twopi)
      eo1  = u;
      tem5 = 9999.9;
      ktr = 1;
@@ -2101,14 +2021,14 @@ cpdef sgp4(satrec, double tsince, whichconst=None):
 * --------------------------------------------------------------------------- */
 """
 
-# def gstime(jdut1):
+@cython.boundscheck(False) # turn off bounds-checking for entire function
 cpdef double gstime(double jdut1):
 
      cdef double tut1, temp
      tut1 = (jdut1 - 2451545.0) / 36525.0;
      temp = -6.2e-6* tut1 * tut1 * tut1 + 0.093104 * tut1 * tut1 + \
              (876600.0*3600 + 8640184.812866) * tut1 + 67310.54841;  #  sec
-     temp = (temp * deg2rad / 240.0) % twopi # 360/86400 = 1/240, to deg, to rad
+     temp = fmod((temp * deg2rad / 240.0), twopi) # 360/86400 = 1/240, to deg, to rad
 
      #  ------------------------ check quadrants ---------------------
      if temp < 0.0:
@@ -2152,9 +2072,9 @@ _gstime = gstime
   --------------------------------------------------------------------------- */
 """
 
-# def getgravconst(whichconst):
+@cython.boundscheck(False) # turn off bounds-checking for entire function
 cpdef getgravconst(whichconst):
-
+    
        cdef double mu, radiusearthkm, xke, tumin, j2, j3, j4, j3oj2
 
        if whichconst == 'wgs72old':
