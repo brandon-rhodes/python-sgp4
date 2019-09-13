@@ -1378,7 +1378,12 @@ def sgp4init(
      satrec.nodeo   = xnodeo;
 
     # single averaged mean elements
-     satrec.am = satrec.em = satrec.im = satrec.Om = satrec.mm = satrec.nm = 0.0;
+     satrec.am = 0.0;
+     satrec.em = 0.0;
+     satrec.im = 0.0;
+     satrec.Om = 0.0;
+     satrec.mm = 0.0;
+     satrec.nm = 0.0;
 
     # ------------------------ earth constants ----------------------- */
 	# sgp4fix identify constants and allow alternate values no longer needed
