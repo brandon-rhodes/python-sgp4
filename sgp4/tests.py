@@ -14,6 +14,7 @@ from math import pi, isnan
 from sgp4.earth_gravity import wgs72
 from sgp4.ext import invjday, newtonnu, rv2coe
 from sgp4.propagation import sgp4
+from sgp4.sat2 import Satellite2
 from sgp4 import io
 
 thisdir = os.path.dirname(__file__)
@@ -159,6 +160,15 @@ with an N where each digit should go, followed by the line you provided:
         msg = "Object numbers in lines 1 and 2 do not match"
         with self.assertRaisesRegexp(ValueError, re.escape(msg)):
             io.twoline2rv(good1, bad2, wgs72)
+
+    def test_constructed_sat(self):
+        sat1 = io.twoline2rv(good1, good2, wgs72)
+        sat2 = Satellite2(good1, good2, wgs72)
+        # generate set of test times
+        test_times = [(2000, 6, day, 0, 0, 0) for day in range(26, 31)]
+        for test_time in test_times:
+            # It should use the exact same algorithm - so even the issues with floating point equality shouldn't come up
+            self.assertEqual(sat1.propagate(*test_time), sat2.propagate(*test_time))
 
 
 good1 = '1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753'
