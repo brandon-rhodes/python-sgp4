@@ -20,6 +20,10 @@ thisdir = os.path.dirname(__file__)
 error = 2e-7
 rad = 180.0 / pi
 
+# Handle deprecated assertRaisesRegexp, but allow its use Python 2.6 and 2.7
+if sys.version_info[:2] == (2, 7) or sys.version_info[:2] == (2, 6):
+    TestCase.assertRaisesRegex = TestCase.assertRaisesRegexp
+
 
 class Tests(TestCase):
 
