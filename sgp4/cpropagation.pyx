@@ -2087,16 +2087,6 @@ cpdef getgravconst(whichconst):
            j4     =  -0.00000165597;
            j3oj2  =  j3 / j2;
 
-           #  ------------ wgs-72 constants ------------
-       elif whichconst == 'wgs72':
-           mu     = 398600.8;            #  in km3 / s2
-           radiusearthkm = 6378.135;     #  km
-           xke    = 60.0 / sqrt(radiusearthkm*radiusearthkm*radiusearthkm/mu);
-           tumin  = 1.0 / xke;
-           j2     =   0.001082616;
-           j3     =  -0.00000253881;
-           j4     =  -0.00000165597;
-           j3oj2  =  j3 / j2;
 
        elif whichconst == 'wgs84':
            #  ------------ wgs-84 constants ------------
@@ -2107,6 +2097,18 @@ cpdef getgravconst(whichconst):
            j2     =   0.00108262998905;
            j3     =  -0.00000253215306;
            j4     =  -0.00000161098761;
+           j3oj2  =  j3 / j2;
+
+           #  ------------ wgs-72 constants ------------
+           # Cython complains if the "if" condition isn't satisified, so choose a default
+       else:
+           mu     = 398600.8;            #  in km3 / s2
+           radiusearthkm = 6378.135;     #  km
+           xke    = 60.0 / sqrt(radiusearthkm*radiusearthkm*radiusearthkm/mu);
+           tumin  = 1.0 / xke;
+           j2     =   0.001082616;
+           j3     =  -0.00000253881;
+           j4     =  -0.00000165597;
            j3oj2  =  j3 / j2;
 
        return tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2
