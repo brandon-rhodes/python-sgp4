@@ -51,17 +51,21 @@ twopi = 2.0 * pi
 *
 *                            companion code for
 *               fundamentals of astrodynamics and applications
-*                                    2007
+*                                    2013
 *                              by david vallado
 *
-*       (w) 719-573-2600, email dvallado@agi.com
+*     (w) 719-573-2600, email dvallado@agi.com, davallado@gmail.com
 *
 *    current :
-*              30 Aug 10  david vallado
-*                           delete unused variables in initl
-*                           replace pow inetger 2, 3 with multiplies for speed
+*               7 dec 15  david vallado
+*                           fix jd, jdfrac
 *    changes :
-*               3 Nov 08  david vallado
+*               3 nov 14  david vallado
+*                           update to msvs2013 c++
+*              30 aug 10  david vallado
+*                           delete unused variables in initl
+*                           replace pow integer 2, 3 with multiplies for speed
+*               3 nov 08  david vallado
 *                           put returns in for error codes
 *              29 sep 08  david vallado
 *                           fix atime for faster operation in dspace
@@ -160,7 +164,7 @@ twopi = 2.0 * pi
   ----------------------------------------------------------------------------*/
 """
 
-def _dpper(satrec, inclo, init, ep, inclp, nodep, argpp, mp, afspc_mode):
+def _dpper(satrec, inclo, init, ep, inclp, nodep, argpp, mp, opsmode):
 
      # Copy satellite attributes into local variables for convenience
      # and symmetry in writing formulae.
@@ -282,14 +286,14 @@ def _dpper(satrec, inclo, init, ep, inclp, nodep, argpp, mp, afspc_mode):
            nodep  = nodep % twopi if nodep >= 0.0 else -(-nodep % twopi)
            #   sgp4fix for afspc written intrinsic functions
            #  nodep used without a trigonometric function ahead
-           if nodep < 0.0 and afspc_mode:
+           if nodep < 0.0 and opsmode == 'a':
                nodep = nodep + twopi;
            xls = mp + argpp + pl + pgh + (cosip - pinc * sinip) * nodep
            xnoh   = nodep;
            nodep  = atan2(alfdp, betdp);
            #   sgp4fix for afspc written intrinsic functions
            #  nodep used without a trigonometric function ahead
-           if nodep < 0.0 and afspc_mode:
+           if nodep < 0.0 and opsmode == 'a':
                nodep = nodep + twopi;
            if fabs(xnoh - nodep) > pi:
              if nodep < xnoh:
@@ -650,7 +654,9 @@ def _dscom(
 """
 
 def _dsinit(
-       whichconst,
+       # sgp4fix no longer needed pass in xke
+       # whichconst,
+       xke,
        cosim,  emsq,   argpo,   s1,     s2,
        s3,     s4,     s5,      sinim,  ss1,
        ss2,    ss3,    ss4,     ss5,    sz1,
@@ -682,8 +688,9 @@ def _dsinit(
      znl    = 1.5835218e-4;
      zns    = 1.19459e-5;
 
-     #  sgp4fix identify constants and allow alternate values
-     xke = whichconst.xke
+	 # sgp4fix identify constants and allow alternate values
+	 # just xke is used here so pass it in rather than have multiple calls
+     # xke = whichconst.xke
 
      #  -------------------- deep space initialization ------------
      irez = 0;
@@ -1092,11 +1099,13 @@ def _dspace(
 *  author        : david vallado                  719-573-2600   28 jun 2005
 *
 *  inputs        :
+*    satn        - satellite number - not needed, placed in satrec
+*    xke         - reciprocal of tumin
+*    j2          - j2 zonal harmonic
 *    ecco        - eccentricity                           0.0 - 1.0
 *    epoch       - epoch time in days from jan 0, 1950. 0 hr
 *    inclo       - inclination of satellite
 *    no          - mean motion of satellite
-*    satn        - satellite number
 *
 *  outputs       :
 *    ainv        - 1.0 / a
@@ -1123,7 +1132,7 @@ def _dspace(
 *    po          -
 *
 *  coupling      :
-*    getgravconst
+*    getgravconst- no longer used
 *    gstime      - find greenwich sidereal time from the julian date
 *
 *  references    :
@@ -1135,17 +1144,22 @@ def _dspace(
 """
 
 def _initl(
-       satn,      whichconst,
+       # not needeed. included in satrec if needed later 
+       # satn,      
+       # sgp4fix assin xke and j2
+       # whichconst,
+       xke, j2,
        ecco,   epoch,  inclo,   no,
        method,
-       afspc_mode,
+       opsmode,
        ):
 
      # sgp4fix use old way of finding gst
 
      #  ----------------------- earth constants ----------------------
      #  sgp4fix identify constants and allow alternate values
-     tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2 = whichconst
+	 #  only xke and j2 are used here so pass them in directly
+     #  tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2 = whichconst
      x2o3   = 2.0 / 3.0;
 
      #  ------------- calculate auxillary epoch quantities ----------
@@ -1175,7 +1189,7 @@ def _initl(
      method = 'n';
 
      #  sgp4fix modern approach to finding sidereal time
-     if afspc_mode:
+     if opsmode == 'a':
 
          #  sgp4fix use old way of finding gst
          #  count integer number of days from 0 jan 1970
@@ -1212,7 +1226,7 @@ def _initl(
 *  author        : david vallado                  719-573-2600   28 jun 2005
 *
 *  inputs        :
-*    afspc_mode  - use afspc or improved mode of operation
+*    opsmode     - mode of operation afspc or improved 'a', 'i'
 *    whichconst  - which set of constants to use  72, 84
 *    satn        - satellite number
 *    bstar       - sgp4 type drag coefficient              kg/m2er
@@ -1287,9 +1301,9 @@ def _initl(
 """
 
 def sgp4init(
-       whichconst, afspc_mode,   satn,     epoch,
-       xbstar,  xecco, xargpo,
-       xinclo,  xmo,   xno,
+       whichconst,   opsmode,   satn,   epoch,
+       xbstar,   xndot,   xnddot,   xecco,   xargpo,
+       xinclo,   xmo,   xno_kozai,
        xnodeo,  satrec,
        ):
 
@@ -1333,6 +1347,18 @@ def sgp4init(
      satrec.zmol  = 0.0; satrec.zmos  = 0.0; satrec.atime = 0.0;
      satrec.xli   = 0.0; satrec.xni   = 0.0;
 
+     #  ------------------------ earth constants -----------------------
+     #  sgp4fix identify constants and allow alternate values
+     #  this is now the only call for the constants
+     (satrec.tumin, satrec.mu, satrec.radiusearthkm, satrec.xke, 
+       satrec.j2, satrec.j3, satrec.j4, satrec.j3oj2) = whichconst;
+
+ 	 # -------------------------------------------------------------------------
+
+     satrec.error = 0;
+     satrec.operationmode = opsmode;
+     satrec.satnum = satn;
+
      """
      // sgp4fix - note the following variables are also passed directly via satrec.
      // it is possible to streamline the sgp4init call by deleting the "x"
@@ -1340,59 +1366,71 @@ def sgp4init(
      // include the additional assignments in case twoline2rv is not used.
      """
      satrec.bstar   = xbstar;
+    # sgp4fix allow additional parameters in the struct
+     satrec.ndot    = xndot;
+     satrec.nddot   = xnddot;
      satrec.ecco    = xecco;
      satrec.argpo   = xargpo;
      satrec.inclo   = xinclo;
      satrec.mo	    = xmo;
-     satrec.no	    = xno;
+	# sgp4fix rename variables to clarify which mean motion is intended
+     satrec.no_kozai= xno_kozai;
      satrec.nodeo   = xnodeo;
 
-     #  sgp4fix add opsmode
-     satrec.afspc_mode = afspc_mode;
+    # single averaged mean elements
+     satrec.am = 0.0
+     satrec.em = 0.0
+     satrec.im = 0.0
+     satrec.Om = 0.0
+     satrec.mm = 0.0 
+     satrec.nm = 0.0
 
-     #  ------------------------ earth constants -----------------------
-     #  sgp4fix identify constants and allow alternate values
-     tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2 = whichconst
-     ss     = 78.0 / radiusearthkm + 1.0;
+    # ------------------------ earth constants ----------------------- */
+	# sgp4fix identify constants and allow alternate values no longer needed
+	# getgravconst( whichconst, tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2 );
+     ss     = 78.0 / satrec.radiusearthkm + 1.0;
      #  sgp4fix use multiply for speed instead of pow
-     qzms2ttemp = (120.0 - 78.0) / radiusearthkm;
+     qzms2ttemp = (120.0 - 78.0) / satrec.radiusearthkm;
      qzms2t = qzms2ttemp * qzms2ttemp * qzms2ttemp * qzms2ttemp;
      x2o3   =  2.0 / 3.0;
 
      satrec.init = 'y';
      satrec.t	 = 0.0;
 
+    # sgp4fix remove satn as it is not needed in initl
      (
-       satrec.no,
+       satrec.no_unkozai,
        method,
        ainv,  ao,    satrec.con41,  con42, cosio,
        cosio2,eccsq, omeosq, posq,
        rp,    rteosq,sinio , satrec.gsto,
        ) = _initl(
-           satn, whichconst, satrec.ecco, epoch, satrec.inclo, satrec.no, satrec.method,
-           satrec.afspc_mode
+           satrec.xke, satrec.j2, satrec.ecco, epoch, satrec.inclo, satrec.no_kozai, satrec.method,
+           satrec.operationmode
          );
-     satrec.error = 0;
+     satrec.a    = pow( satrec.no_unkozai*satrec.tumin , (-2.0/3.0) );
+     satrec.alta = satrec.a*(1.0 + satrec.ecco) - 1.0;
+     satrec.altp = satrec.a*(1.0 - satrec.ecco) - 1.0;
 
      """
      // sgp4fix remove this check as it is unnecessary
      // the mrt check in sgp4 handles decaying satellite cases even if the starting
      // condition is below the surface of te earth
-//     if (rp < 1.0)
-//       {
-//         printf("# *** satn%d epoch elts sub-orbital ***\n", satn);
-//         satrec.error = 5;
-//       }
+     //     if (rp < 1.0)
+     //       {
+     //         printf("# *** satn%d epoch elts sub-orbital ***\n", satn);
+     //         satrec.error = 5;
+     //       }
      """
 
-     if omeosq >= 0.0 or satrec.no >= 0.0:
+     if omeosq >= 0.0 or satrec.no_unkozai >= 0.0:
 
          satrec.isimp = 0;
-         if rp < 220.0 / radiusearthkm + 1.0:
+         if rp < 220.0 / satrec.radiusearthkm + 1.0:
              satrec.isimp = 1;
          sfour  = ss;
          qzms24 = qzms2t;
-         perige = (rp - 1.0) * radiusearthkm;
+         perige = (rp - 1.0) * satrec.radiusearthkm;
 
          #  - for perigees below 156 km, s and qoms2t are altered -
          if perige < 156.0:
@@ -1401,9 +1439,9 @@ def sgp4init(
              if perige < 98.0:
                  sfour = 20.0;
              #  sgp4fix use multiply for speed instead of pow
-             qzms24temp =  (120.0 - sfour) / radiusearthkm;
+             qzms24temp =  (120.0 - sfour) / satrec.radiusearthkm;
              qzms24 = qzms24temp * qzms24temp * qzms24temp * qzms24temp;
-             sfour  = sfour / radiusearthkm + 1.0;
+             sfour  = sfour / satrec.radiusearthkm + 1.0;
 
          pinvsq = 1.0 / posq;
 
@@ -1414,27 +1452,27 @@ def sgp4init(
          psisq = fabs(1.0 - etasq);
          coef  = qzms24 * pow(tsi, 4.0);
          coef1 = coef / pow(psisq, 3.5);
-         cc2   = coef1 * satrec.no * (ao * (1.0 + 1.5 * etasq + eeta *
-                        (4.0 + etasq)) + 0.375 * j2 * tsi / psisq * satrec.con41 *
+         cc2   = coef1 * satrec.no_unkozai * (ao * (1.0 + 1.5 * etasq + eeta *
+                        (4.0 + etasq)) + 0.375 * satrec.j2 * tsi / psisq * satrec.con41 *
                         (8.0 + 3.0 * etasq * (8.0 + etasq)));
          satrec.cc1   = satrec.bstar * cc2;
          cc3   = 0.0;
          if satrec.ecco > 1.0e-4:
-             cc3 = -2.0 * coef * tsi * j3oj2 * satrec.no * sinio / satrec.ecco;
+             cc3 = -2.0 * coef * tsi * satrec.j3oj2 * satrec.no_unkozai * sinio / satrec.ecco;
          satrec.x1mth2 = 1.0 - cosio2;
-         satrec.cc4    = 2.0* satrec.no * coef1 * ao * omeosq * \
+         satrec.cc4    = 2.0* satrec.no_unkozai * coef1 * ao * omeosq * \
                            (satrec.eta * (2.0 + 0.5 * etasq) + satrec.ecco *
-                           (0.5 + 2.0 * etasq) - j2 * tsi / (ao * psisq) *
+                           (0.5 + 2.0 * etasq) - satrec.j2 * tsi / (ao * psisq) *
                            (-3.0 * satrec.con41 * (1.0 - 2.0 * eeta + etasq *
                            (1.5 - 0.5 * eeta)) + 0.75 * satrec.x1mth2 *
                            (2.0 * etasq - eeta * (1.0 + etasq)) * cos(2.0 * satrec.argpo)));
          satrec.cc5 = 2.0 * coef1 * ao * omeosq * (1.0 + 2.75 *
                         (etasq + eeta) + eeta * etasq);
          cosio4 = cosio2 * cosio2;
-         temp1  = 1.5 * j2 * pinvsq * satrec.no;
-         temp2  = 0.5 * temp1 * j2 * pinvsq;
-         temp3  = -0.46875 * j4 * pinvsq * pinvsq * satrec.no;
-         satrec.mdot     = satrec.no + 0.5 * temp1 * rteosq * satrec.con41 + 0.0625 * \
+         temp1  = 1.5 * satrec.j2 * pinvsq * satrec.no_unkozai;
+         temp2  = 0.5 * temp1 * satrec.j2 * pinvsq;
+         temp3  = -0.46875 * satrec.j4 * pinvsq * pinvsq * satrec.no_unkozai;
+         satrec.mdot     = satrec.no_unkozai + 0.5 * temp1 * rteosq * satrec.con41 + 0.0625 * \
                             temp2 * rteosq * (13.0 - 78.0 * cosio2 + 137.0 * cosio4);
          satrec.argpdot  = (-0.5 * temp1 * con42 + 0.0625 * temp2 *
                              (7.0 - 114.0 * cosio2 + 395.0 * cosio4) +
@@ -1451,10 +1489,10 @@ def sgp4init(
          satrec.t2cof   = 1.5 * satrec.cc1;
          #  sgp4fix for divide by zero with xinco = 180 deg
          if fabs(cosio+1.0) > 1.5e-12:
-             satrec.xlcof = -0.25 * j3oj2 * sinio * (3.0 + 5.0 * cosio) / (1.0 + cosio);
+             satrec.xlcof = -0.25 * satrec.j3oj2 * sinio * (3.0 + 5.0 * cosio) / (1.0 + cosio);
          else:
-             satrec.xlcof = -0.25 * j3oj2 * sinio * (3.0 + 5.0 * cosio) / temp4;
-         satrec.aycof   = -0.5 * j3oj2 * sinio;
+             satrec.xlcof = -0.25 * satrec.j3oj2 * sinio * (3.0 + 5.0 * cosio) / temp4;
+         satrec.aycof   = -0.5 * satrec.j3oj2 * sinio;
          #  sgp4fix use multiply for speed instead of pow
          delmotemp = 1.0 + satrec.eta * cos(satrec.mo);
          satrec.delmo   = delmotemp * delmotemp * delmotemp;
@@ -1462,7 +1500,7 @@ def sgp4init(
          satrec.x7thm1  = 7.0 * cosio2 - 1.0;
 
          #  --------------- deep space initialization -------------
-         if 2*pi / satrec.no >= 225.0:
+         if 2*pi / satrec.no_unkozai >= 225.0:
 
              satrec.method = 'd';
              satrec.isimp  = 1;
@@ -1489,7 +1527,7 @@ def sgp4init(
                  satrec.zmos
              ) = _dscom(
                    epoch, satrec.ecco, satrec.argpo, tc, satrec.inclo, satrec.nodeo,
-                   satrec.no,
+                   satrec.no_unkozai,
                    satrec.e3, satrec.ee2,
                    satrec.peo,  satrec.pgho,   satrec.pho, satrec.pinco,
                    satrec.plo,        satrec.se2, satrec.se3,
@@ -1505,7 +1543,7 @@ def sgp4init(
               ) = _dpper(
                    satrec, inclm, satrec.init,
                    satrec.ecco, satrec.inclo, satrec.nodeo, satrec.argpo, satrec.mo,
-                   satrec.afspc_mode
+                   satrec.operationmode
                  );
 
              argpm  = 0.0;
@@ -1523,10 +1561,10 @@ def sgp4init(
                  satrec.del1,  satrec.del2,  satrec.del3,  satrec.xfact,
                  satrec.xlamo, satrec.xli,   satrec.xni
              ) = _dsinit(
-                   whichconst,
+                   satrec.xke,
                    cosim, emsq, satrec.argpo, s1, s2, s3, s4, s5, sinim, ss1, ss2, ss3, ss4,
                    ss5, sz1, sz3, sz11, sz13, sz21, sz23, sz31, sz33, satrec.t, tc,
-                   satrec.gsto, satrec.mo, satrec.mdot, satrec.no, satrec.nodeo,
+                   satrec.gsto, satrec.mo, satrec.mdot, satrec.no_unkozai, satrec.nodeo,
                    satrec.nodedot, xpidot, z1, z3, z11, z13, z21, z23, z31, z33,
                    satrec.ecco, eccsq, em, argpm, inclm, mm, nm, nodem,
                    satrec.irez,  satrec.atime,
@@ -1675,8 +1713,8 @@ def sgp4(satrec, tsince, whichconst=None):
      twopi = 2.0 * pi;
      x2o3  = 2.0 / 3.0;
      #  sgp4fix identify constants and allow alternate values
-     tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2 = whichconst
-     vkmpersec     = radiusearthkm * xke/60.0;
+     # tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2 = whichconst
+     vkmpersec     = satrec.radiusearthkm * satrec.xke/60.0;
 
      #  --------------------- clear sgp4 error flag -----------------
      satrec.t     = tsince;
@@ -1715,7 +1753,7 @@ def sgp4(satrec, tsince, whichconst=None):
          templ  = templ + satrec.t3cof * t3 + t4 * (satrec.t4cof +
                           satrec.t * satrec.t5cof);
 
-     nm    = satrec.no;
+     nm    = satrec.no_unkozai;
      em    = satrec.ecco;
      inclm = satrec.inclo;
      if satrec.method == 'd':
@@ -1734,7 +1772,7 @@ def sgp4(satrec, tsince, whichconst=None):
                satrec.dmdt,  satrec.dnodt, satrec.domdt,
                satrec.argpo, satrec.argpdot, satrec.t, tc,
                satrec.gsto, satrec.xfact, satrec.xlamo,
-               satrec.no, satrec.atime,
+               satrec.no_unkozai, satrec.atime,
                em, argpm, inclm, satrec.xli, mm, satrec.xni,
                nodem, nm
              );
@@ -1747,8 +1785,8 @@ def sgp4(satrec, tsince, whichconst=None):
          #  sgp4fix add return
          return false, false;
 
-     am = pow((xke / nm),x2o3) * tempa * tempa;
-     nm = xke / pow(am, 1.5);
+     am = pow((satrec.xke / nm),x2o3) * tempa * tempa;
+     nm = satrec.xke / pow(am, 1.5);
      em = em - tempe;
 
      #  fix tolerance for error recognition
@@ -1764,7 +1802,7 @@ def sgp4(satrec, tsince, whichconst=None):
      #  sgp4fix fix tolerance to avoid a divide by zero
      if em < 1.0e-6:
          em  = 1.0e-6;
-     mm     = mm + satrec.no * templ;
+     mm     = mm + satrec.no_unkozai * templ;
      xlm    = mm + argpm + nodem;
      emsq   = em * em;
      temp   = 1.0 - emsq;
@@ -1773,6 +1811,15 @@ def sgp4(satrec, tsince, whichconst=None):
      argpm  = argpm % twopi
      xlm    = xlm % twopi
      mm     = (xlm - argpm - nodem) % twopi
+     
+     # sgp4fix recover singly averaged mean elements
+     satrec.am = am;
+     satrec.em = em;
+     satrec.im = inclm;
+     satrec.Om = nodem;
+     satrec.om = argpm;
+     satrec.mm = mm;
+     satrec.nm = nm;
 
      #  ----------------- compute extra mean quantities -------------
      sinim = sin(inclm);
@@ -1790,7 +1837,7 @@ def sgp4(satrec, tsince, whichconst=None):
 
          ep, xincp, nodep, argpp, mp = _dpper(
                satrec, satrec.inclo,
-               'n', ep, xincp, nodep, argpp, mp, satrec.afspc_mode
+               'n', ep, xincp, nodep, argpp, mp, satrec.operationmode
              );
          if xincp < 0.0:
 
@@ -1811,12 +1858,12 @@ def sgp4(satrec, tsince, whichconst=None):
 
          sinip =  sin(xincp);
          cosip =  cos(xincp);
-         satrec.aycof = -0.5*j3oj2*sinip;
+         satrec.aycof = -0.5*satrec.j3oj2*sinip;
          #  sgp4fix for divide by zero for xincp = 180 deg
          if fabs(cosip+1.0) > 1.5e-12:
-             satrec.xlcof = -0.25 * j3oj2 * sinip * (3.0 + 5.0 * cosip) / (1.0 + cosip);
+             satrec.xlcof = -0.25 * satrec.j3oj2 * sinip * (3.0 + 5.0 * cosip) / (1.0 + cosip);
          else:
-             satrec.xlcof = -0.25 * j3oj2 * sinip * (3.0 + 5.0 * cosip) / temp4;
+             satrec.xlcof = -0.25 * satrec.j3oj2 * sinip * (3.0 + 5.0 * cosip) / temp4;
 
      axnl = ep * cos(argpp);
      temp = 1.0 / (am * (1.0 - ep * ep));
@@ -1867,7 +1914,7 @@ def sgp4(satrec, tsince, whichconst=None):
          sin2u  = (cosu + cosu) * sinu;
          cos2u  = 1.0 - 2.0 * sinu * sinu;
          temp   = 1.0 / pl;
-         temp1  = 0.5 * j2 * temp;
+         temp1  = 0.5 * satrec.j2 * temp;
          temp2  = temp1 * temp;
 
          #  -------------- update for short period periodics ------------
@@ -1883,9 +1930,9 @@ def sgp4(satrec, tsince, whichconst=None):
          su    = su - 0.25 * temp2 * satrec.x7thm1 * sin2u;
          xnode = nodep + 1.5 * temp2 * cosip * sin2u;
          xinc  = xincp + 1.5 * temp2 * cosip * sinip * cos2u;
-         mvt   = rdotl - nm * temp1 * satrec.x1mth2 * sin2u / xke;
+         mvt   = rdotl - nm * temp1 * satrec.x1mth2 * sin2u / satrec.xke;
          rvdot = rvdotl + nm * temp1 * (satrec.x1mth2 * cos2u +
-                 1.5 * satrec.con41) / xke;
+                 1.5 * satrec.con41) / satrec.xke;
 
          #  --------------------- orientation vectors -------------------
          sinsu =  sin(su);
@@ -1904,7 +1951,7 @@ def sgp4(satrec, tsince, whichconst=None):
          vz    =  sini * cossu;
 
          #  --------- position and velocity (in km and km/sec) ----------
-         _mr = mrt * radiusearthkm
+         _mr = mrt * satrec.radiusearthkm
          r = (_mr * ux, _mr * uy, _mr * uz)
          v = ((mvt * ux + rvdot * vx) * vkmpersec,
               (mvt * uy + rvdot * vy) * vkmpersec,
