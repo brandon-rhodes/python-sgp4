@@ -134,6 +134,10 @@ class Tests(TestCase):
         bad = good1[:68] + '7'
         self.assertRaises(ValueError, io.verify_checksum, bad)
 
+    def test_support_for_old_no_attribute(self):
+        s = io.twoline2rv(good1, good2, wgs72)
+        assert s.no is s.no_kozai
+
     def test_bad_first_line(self):
         with self.assertRaisesRegex(ValueError, re.escape("""TLE format error
 
