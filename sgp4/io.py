@@ -139,7 +139,6 @@ def twoline2rv(longstr1, longstr2, whichconst, opsmode='i'):
         line[63] == ' '):
 
         _saved_satnum = satrec.satnum = int(line[2:7])
-        satrec.line1 = line
         satrec.classification = line[7] or 'U'
         satrec.intldesg = line[9:17]
         two_digit_year = int(line[18:20])
@@ -172,7 +171,6 @@ def twoline2rv(longstr1, longstr2, whichconst, opsmode='i'):
         if _saved_satnum != satrec.satnum:
             raise ValueError('Object numbers in lines 1 and 2 do not match')
 
-        satrec.line2 = line
         satrec.inclo = float(line[8:16])
         satrec.nodeo = float(line[17:25])
         satrec.ecco = float('0.' + line[26:33].replace(' ', '0'))
