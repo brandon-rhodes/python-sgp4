@@ -4,12 +4,21 @@
 #include "structmember.h"
 
 typedef struct {
-    PyObject_HEAD
-    elsetrec satrec;
+    PyObject_VAR_HEAD
+    elsetrec satrec[1];
 } SatrecObject;
 
+static Py_ssize_t
+Satrec_len(PyObject *self) {
+    return ((SatrecObject*)self)->ob_base.ob_size;
+}
+
+static PySequenceMethods Satrec_as_sequence = {
+    sq_length : Satrec_len,
+};
+
 static PyObject *
-Satrec_twoline2rv(PyObject *self, PyObject *args)
+Satrec_twoline2rv(PyObject *cls, PyObject *args)
 {
     char *string1, *string2, line1[130], line2[130];
     double dummy;
@@ -17,16 +26,21 @@ Satrec_twoline2rv(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "ss:twoline2rv", &string1, &string2))
         return NULL;
 
-    // Make copies, since twoline2rv() writes to both strings.
+    PyTypeObject *type = (PyTypeObject*) cls;
+    SatrecObject *self = (SatrecObject*) PyObject_NewVar(SatrecObject, type, 1);
+    if (!self)
+        return NULL;
+
+    // Copy both lines, since twoline2rv() can update both buffers.
     strncpy(line1, string1, 130);
     strncpy(line2, string2, 130);
     line1[129] = '\0';
     line2[129] = '\0';
 
     SGP4Funcs::twoline2rv(line1, line2, ' ', ' ', 'i', wgs84,
-                          dummy, dummy, dummy,
-                          ((SatrecObject*)self)->satrec);
-    Py_RETURN_NONE;
+                          dummy, dummy, dummy, self->satrec[0]);
+
+    return (PyObject*) self;
 }
 
 static PyObject *
@@ -35,12 +49,12 @@ Satrec_sgp4(PyObject *self, PyObject *args)
     double tsince, r[3], v[3];
     if (!PyArg_ParseTuple(args, "d:sgp4", &tsince))
         return NULL;
-    SGP4Funcs::sgp4(((SatrecObject*)self)->satrec, tsince, r, v);
+    SGP4Funcs::sgp4(((SatrecObject*)self)->satrec[0], tsince, r, v);
     return Py_BuildValue("(fff)(fff)", r[0], r[1], r[2], v[0], v[1], v[2]);
 }
 
 static PyMethodDef Satrec_methods[] = {
-    {"twoline2rv", (PyCFunction)Satrec_twoline2rv, METH_VARARGS,
+    {"twoline2rv", (PyCFunction)Satrec_twoline2rv, METH_VARARGS | METH_CLASS,
      PyDoc_STR("Initialize the record from two lines of TLE text.")},
     {"sgp4", (PyCFunction)Satrec_sgp4, METH_VARARGS,
      PyDoc_STR("Given minutes since epoch, return a position and velocity.")},
@@ -48,18 +62,19 @@ static PyMethodDef Satrec_methods[] = {
 };
 
 static PyMemberDef Satrec_members[] = {
-    {"satnum", T_INT, offsetof(SatrecObject, satrec.satnum), READONLY,
+    {"satnum", T_INT, offsetof(SatrecObject, satrec[0].satnum), READONLY,
      PyDoc_STR("Satellite number (characters 3-7 of each TLE line).")},
-    {"method", T_CHAR, offsetof(SatrecObject, satrec.method), READONLY,
+    {"method", T_CHAR, offsetof(SatrecObject, satrec[0].method), READONLY,
      PyDoc_STR("Method 'n' near earth or 'd' deep space.")},
     {NULL}
 };
 
 static PyTypeObject SatrecType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
+    PyVarObject_HEAD_INIT(NULL, sizeof(elsetrec))
     tp_name : "sgp4.vallado_cpp.Satrec",
     tp_basicsize : sizeof(SatrecObject),
     tp_itemsize : 0,
+    tp_as_sequence : &Satrec_as_sequence,
     tp_flags : Py_TPFLAGS_DEFAULT,
     tp_doc : "SGP4 satellite record",
     tp_methods : Satrec_methods,
