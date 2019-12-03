@@ -57,21 +57,21 @@ static PyMemberDef Satrec_members[] = {
 
 static PyTypeObject SatrecType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "sgp4.vallado_cpp.Satrec",
-    .tp_basicsize = sizeof(SatrecObject),
-    .tp_itemsize = 0,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_doc = "SGP4 satellite record",
-    .tp_methods = Satrec_methods,
-    .tp_members = Satrec_members,
-    .tp_new = PyType_GenericNew,
+    tp_name : "sgp4.vallado_cpp.Satrec",
+    tp_basicsize : sizeof(SatrecObject),
+    tp_itemsize : 0,
+    tp_flags : Py_TPFLAGS_DEFAULT,
+    tp_doc : "SGP4 satellite record",
+    tp_methods : Satrec_methods,
+    tp_members : Satrec_members,
+    tp_new : PyType_GenericNew,
 };
 
 static PyModuleDef module = {
     PyModuleDef_HEAD_INIT,
-    .m_name = "sgp4.vallado_cpp",
-    .m_doc = "Official C++ SGP4 implementation.",
-    .m_size = -1,
+    m_name : "sgp4.vallado_cpp",
+    m_doc : "Official C++ SGP4 implementation.",
+    m_size : -1,
 };
 
 PyMODINIT_FUNC
