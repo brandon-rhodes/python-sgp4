@@ -68,7 +68,7 @@ static PyTypeObject SatrecType = {
     tp_name : "sgp4.vallado_cpp.Satrec",
     tp_basicsize : sizeof(SatrecObject),
     tp_flags : Py_TPFLAGS_DEFAULT,
-    tp_doc : "SGP4 satellite record",
+    tp_doc : "SGP4 satellite record.",
     tp_methods : Satrec_methods,
     tp_members : Satrec_members,
     tp_new : PyType_GenericNew,
@@ -112,7 +112,8 @@ SatrecArray_init(SatrecArrayObject *self, PyObject *args, PyObject *kwds)
         return -1;
 
     Py_ssize_t length = PySequence_Length(sequence);
-    // Should never error, because it worked during "new".
+    if (length == -1)
+        return NULL;
 
     PyObject *item;
     SatrecObject *sat;
@@ -125,9 +126,58 @@ SatrecArray_init(SatrecArrayObject *self, PyObject *args, PyObject *kwds)
     return 0;
 }
 
+static PyObject *
+SatrecArray_sgp4(PyObject *self, PyObject *args)
+{
+    //double tsince, r[3], v[3];
+    PyObject *tsince_arg, *r_arg, *v_arg;
+    Py_buffer tsince, r, v;
+    //Py_ssize_t
+    if (!PyArg_ParseTuple(args, "OOO:sgp4", &tsince_arg, &r_arg, &v_arg))
+        return NULL;
+
+    if (PyObject_GetBuffer(tsince_arg, &tsince, PyBUF_SIMPLE))
+        return NULL;
+    if (PyObject_GetBuffer(r_arg, &r, PyBUF_SIMPLE)) {
+        PyBuffer_Release(&tsince);
+        return NULL;
+    }
+    if (PyObject_GetBuffer(v_arg, &v, PyBUF_SIMPLE)) {
+        PyBuffer_Release(&tsince);
+        PyBuffer_Release(&r);
+        return NULL;
+    }
+
+    printf("====%d\n", tsince.len);
+    printf("====%d\n", r.len);
+    printf("====%d\n", v.len);
+    // TODO: check lengths
+
+    double *tp = (double*) tsince.buf;
+    double *rp = (double*) r.buf;
+    double *vp = (double*) v.buf;
+
+    SatrecArrayObject *satrec_array = (SatrecArrayObject*) self;
+    Py_ssize_t imax = tsince.len / sizeof(double);
+    Py_ssize_t jmax = ((SatrecArrayObject*)self)->ob_base.ob_size;
+
+    for (Py_ssize_t i=0; i < imax; i++) {
+        for (Py_ssize_t j=0; j < jmax; j++) {
+            SGP4Funcs::sgp4(satrec_array->satrec[j], tp[i], rp, vp);
+            rp += 3;
+            vp += 3;
+        }
+    }
+
+    PyBuffer_Release(&tsince);
+    PyBuffer_Release(&r);
+    PyBuffer_Release(&v);
+    Py_RETURN_NONE;
+}
+
 static PyMethodDef SatrecArray_methods[] = {
-    // {"sgp4", (PyCFunction)SatrecArray_sgp4, METH_VARARGS,
-    //  PyDoc_STR("Given minutes since epoch, return a position and velocity.")},
+    {"sgp4", (PyCFunction)SatrecArray_sgp4, METH_VARARGS,
+     PyDoc_STR("Given minutes since epoch, return a position and velocity.")},
     {NULL, NULL}
 };
 
@@ -138,11 +188,13 @@ static PyTypeObject SatrecArrayType = {
     tp_itemsize : sizeof(elsetrec),
     tp_as_sequence : &SatrecArray_as_sequence,
     tp_flags : Py_TPFLAGS_DEFAULT,
-    tp_doc : "SGP4 array of satellites",
+    tp_doc : "SGP4 array of satellites.",
     tp_methods : SatrecArray_methods,
     tp_init : (initproc) SatrecArray_init,
     tp_new : SatrecArray_new,
 };
+
+/* The module that ties it all together. */
 
 static PyModuleDef module = {
     PyModuleDef_HEAD_INIT,

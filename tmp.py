@@ -22,4 +22,12 @@ print(s.sgp4(1))
 
 a = sgp4.vallado_cpp.SatrecArray([s, s])
 print("len", len(a))
-print(a.sgp4(0))
+
+from numpy import array, ndarray
+t = array([0, 1, 2, 3, 4])
+r = ndarray((len(a), len(t), 3))
+v = ndarray((len(a), len(t), 3))
+print(v)
+print(a.sgp4(t, r, v))
+print(r)
+print(v)
