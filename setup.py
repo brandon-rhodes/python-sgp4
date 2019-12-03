@@ -1,4 +1,4 @@
-from distutils.core import setup
+from distutils.core import setup, Extension
 from textwrap import dedent
 
 import sgp4, sgp4.model
@@ -32,4 +32,8 @@ setup(name = 'sgp4',
         'Topic :: Scientific/Engineering :: Astronomy',
         ],
       packages = ['sgp4'],
-      )
+      ext_modules = [Extension('sgp4.vallado_cpp', sources = [
+          'extension/SGP4.cpp',
+          'extension/wrapper.cpp',
+      ])],
+)
