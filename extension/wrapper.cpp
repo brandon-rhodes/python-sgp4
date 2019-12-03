@@ -113,7 +113,7 @@ SatrecArray_init(SatrecArrayObject *self, PyObject *args, PyObject *kwds)
 
     Py_ssize_t length = PySequence_Length(sequence);
     if (length == -1)
-        return NULL;
+        return -1;
 
     PyObject *item;
     SatrecObject *sat;
@@ -129,50 +129,74 @@ SatrecArray_init(SatrecArrayObject *self, PyObject *args, PyObject *kwds)
 static PyObject *
 SatrecArray_sgp4(PyObject *self, PyObject *args)
 {
-    //double tsince, r[3], v[3];
-    PyObject *tsince_arg, *r_arg, *v_arg;
-    Py_buffer tsince, r, v;
-    //Py_ssize_t
-    if (!PyArg_ParseTuple(args, "OOO:sgp4", &tsince_arg, &r_arg, &v_arg))
+    PyObject *tsince_arg, *r_arg, *v_arg, *e_arg;
+    Py_buffer tsince, r, v, e;
+
+    if (!PyArg_ParseTuple(args, "OOOO:sgp4",
+                          &tsince_arg, &r_arg, &v_arg, &e_arg))
         return NULL;
 
-    if (PyObject_GetBuffer(tsince_arg, &tsince, PyBUF_SIMPLE))
+    if (PyObject_GetBuffer(tsince_arg, &tsince, PyBUF_SIMPLE)) {
         return NULL;
-    if (PyObject_GetBuffer(r_arg, &r, PyBUF_SIMPLE)) {
+    }
+    if (PyObject_GetBuffer(r_arg, &r, PyBUF_WRITABLE)) {
         PyBuffer_Release(&tsince);
         return NULL;
     }
-    if (PyObject_GetBuffer(v_arg, &v, PyBUF_SIMPLE)) {
+    if (PyObject_GetBuffer(v_arg, &v, PyBUF_WRITABLE)) {
         PyBuffer_Release(&tsince);
         PyBuffer_Release(&r);
         return NULL;
+    }
+    if (PyObject_GetBuffer(e_arg, &e, PyBUF_WRITABLE)) {
+        PyBuffer_Release(&tsince);
+        PyBuffer_Release(&r);
+        PyBuffer_Release(&v);
+        return NULL;
+    }
+
+    SatrecArrayObject *satrec_array = (SatrecArrayObject*) self;
+    Py_ssize_t imax = ((SatrecArrayObject*) self)->ob_base.ob_size;
+    Py_ssize_t jmax = tsince.len / sizeof(double);
+
+    double *tp = (double*) tsince.buf;
+    double *rp = (double*) r.buf;
+    double *vp = (double*) v.buf;
+    uint8_t *ep = (uint8_t*) e.buf;
+
+    PyObject *rv = NULL;
+
+    if ((r.len != sizeof(double) * imax * jmax * 3) ||
+        (v.len != sizeof(double) * imax * jmax * 3) ||
+        (e.len != sizeof(uint8_t) * imax * jmax)) {
+        PyErr_SetString(PyExc_ValueError, "bad output array dimension");
+        goto cleanup;
     }
 
     printf("====%d\n", tsince.len);
     printf("====%d\n", r.len);
     printf("====%d\n", v.len);
+    printf("====%d\n", e.len);
     // TODO: check lengths
-
-    double *tp = (double*) tsince.buf;
-    double *rp = (double*) r.buf;
-    double *vp = (double*) v.buf;
-
-    SatrecArrayObject *satrec_array = (SatrecArrayObject*) self;
-    Py_ssize_t imax = tsince.len / sizeof(double);
-    Py_ssize_t jmax = ((SatrecArrayObject*)self)->ob_base.ob_size;
 
     for (Py_ssize_t i=0; i < imax; i++) {
         for (Py_ssize_t j=0; j < jmax; j++) {
-            SGP4Funcs::sgp4(satrec_array->satrec[j], tp[i], rp, vp);
+          //          printf("******** %d %d %f\n", i, j, tp[j]);
+            SGP4Funcs::sgp4(satrec_array->satrec[i], tp[j], rp, vp);
             rp += 3;
             vp += 3;
+            *(ep++) = (uint8_t) satrec_array->satrec[i].error;
         }
     }
 
+    Py_INCREF(Py_None);
+    rv = Py_None;
+ cleanup:
     PyBuffer_Release(&tsince);
     PyBuffer_Release(&r);
     PyBuffer_Release(&v);
-    Py_RETURN_NONE;
+    PyBuffer_Release(&e);
+    return rv;
 }
 
 static PyMethodDef SatrecArray_methods[] = {
