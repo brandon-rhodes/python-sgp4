@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -e
+
+cd "$(dirname "${BASH_SOURCE[0]}")"
+cd ..
+cp ~/sgp4-cpp/cpp/SGP4/SGP4/SGP4.cpp extension
+cp ~/sgp4-cpp/cpp/SGP4/SGP4/SGP4.h extension
