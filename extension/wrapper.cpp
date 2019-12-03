@@ -37,9 +37,9 @@ Satrec_twoline2rv(PyObject *cls, PyObject *args)
     line1[129] = '\0';
     line2[129] = '\0';
 
-    for (int i=0; i<1000; i++)
-      SGP4Funcs::twoline2rv(line1, line2, ' ', ' ', 'i', wgs84,
-                            dummy, dummy, dummy, self->satrec[i]);
+    //for (int i=0; i<1000; i++)
+    SGP4Funcs::twoline2rv(line1, line2, ' ', ' ', 'i', wgs84,
+                          dummy, dummy, dummy, self->satrec[0]);
 
     return (PyObject*) self;
 }
@@ -50,8 +50,8 @@ Satrec_sgp4(PyObject *self, PyObject *args)
     double tsince, r[3], v[3];
     if (!PyArg_ParseTuple(args, "d:sgp4", &tsince))
         return NULL;
-    for (int i=0; i<1000; i++)
-        SGP4Funcs::sgp4(((SatrecObject*)self)->satrec[i], tsince, r, v);
+    //for (int i=0; i<1000; i++)
+    SGP4Funcs::sgp4(((SatrecObject*)self)->satrec[0], tsince, r, v);
     return Py_BuildValue("(fff)(fff)", r[0], r[1], r[2], v[0], v[1], v[2]);
 }
 
