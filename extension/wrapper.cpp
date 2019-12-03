@@ -51,7 +51,7 @@ Satrec_sgp4(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "d:sgp4", &tsince))
         return NULL;
     for (int i=0; i<1000; i++)
-        SGP4Funcs::sgp4(((SatrecObject*)self)->satrec[0], tsince, r, v);
+        SGP4Funcs::sgp4(((SatrecObject*)self)->satrec[i], tsince, r, v);
     return Py_BuildValue("(fff)(fff)", r[0], r[1], r[2], v[0], v[1], v[2]);
 }
 
