@@ -180,24 +180,21 @@ SatrecArray_sgp4(PyObject *self, PyObject *args)
             goto cleanup;
         }
 
-        double *jdp = (double*) jd_buf.buf;
-        double *frp = (double*) fr_buf.buf;
-        double *rp = (double*) r_buf.buf;
-        double *vp = (double*) v_buf.buf;
-        uint8_t *ep = (uint8_t*) e_buf.buf;
+        double *jd = (double*) jd_buf.buf;
+        double *fr = (double*) fr_buf.buf;
+        double *r = (double*) r_buf.buf;
+        double *v = (double*) v_buf.buf;
+        uint8_t *e = (uint8_t*) e_buf.buf;
 
 // #pragma omp parallel for
         for (Py_ssize_t i=0; i < imax; i++) {
             for (Py_ssize_t j=0; j < jmax; j++) {
-              //double t = jdp[j] + frp[j];
-// (jdstart - satrec.jdsatepoch) * 1440.0 + (jdstartF - satrec.jdsatepochF) * 1440.0;
                 elsetrec *satrec = satrec_array->satrec + i;
-                double t = (jdp[j] - satrec->jdsatepoch) * 1440.0
-                         + (frp[j] - satrec->jdsatepochF) * 1440.0;
-                SGP4Funcs::sgp4(*satrec, t, rp, vp);
-                rp += 3;
-                vp += 3;
-                *(ep++) = (uint8_t) satrec->error;
+                double t = (jd[j] - satrec->jdsatepoch) * 1440.0
+                         + (fr[j] - satrec->jdsatepochF) * 1440.0;
+                Py_ssize_t k = i * jmax + j;
+                SGP4Funcs::sgp4(*satrec, t, r + k * 3, v + k * 3);
+                e[k] = (uint8_t) satrec->error;
             }
         }
     }
