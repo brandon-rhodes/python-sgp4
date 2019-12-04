@@ -72,3 +72,42 @@ print(r.shape)
 print(r[:10,0])
 # print(v)
 # print(e)
+
+# -------------------------------------
+#
+# Traditional pure-Python code.
+
+def trad(jd_array, fr_array):
+    from sgp4.earth_gravity import wgs72
+    from sgp4.io import twoline2rv
+    from sgp4.propagation import sgp4
+
+    sats = []
+    lines = iter(text.splitlines())
+    for name in lines:
+        line1 = next(lines)
+        line2 = next(lines)
+        sat = twoline2rv(line1, line2, wgs72)
+        sats.append(sat)
+
+    sats = sats[:20]  # first 20 sats
+
+    print(len(sats), 'pure Python sats')
+    print(len(jd_array), 'and', len(fr_array), 'times')
+
+    zipped_times = list(zip(jd_array, fr_array))
+
+    for sat in sats:
+        for jd, fr in zipped_times:
+            t = (jd - sat.jdsatepoch + fr) * 1440.0
+            r, v = sgp4(sat, t)
+        #     print(r)
+        #     print(v)
+        #     print(sat.error)
+        #     break
+        # break
+
+if False:
+    t0 = __import__('time').time()
+    trad(jd, fr)
+    print(__import__('time').time() - t0)
