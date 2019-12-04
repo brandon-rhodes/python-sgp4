@@ -55,17 +55,67 @@ static PyMethodDef Satrec_methods[] = {
     {NULL, NULL}
 };
 
+#define O(member) offsetof(SatrecObject, satrec.member)
+
 static PyMemberDef Satrec_members[] = {
-    {"satnum", T_INT, offsetof(SatrecObject, satrec.satnum), READONLY,
-     PyDoc_STR("Satellite number (characters 3-7 of each TLE line).")},
-    {"epochyr", T_INT, offsetof(SatrecObject, satrec.epochyr), READONLY,
+    /* Listed in the order they appear in a TLE record. */
+
+    {"satnum", T_INT, O(satnum), READONLY,
+     PyDoc_STR("Satellite number, from characters 3-7 of each TLE line.")},
+    {"classification", T_CHAR, O(classification), READONLY,
+     "Usually U=Unclassified, C=Classified, or S=Secret."},
+    /* intldesg: inline character array; see Satrec_getset. */
+    {"epochyr", T_INT, O(epochyr), READONLY,
      PyDoc_STR("Year of this element set's epoch (see epochdays).")},
-    {"method", T_CHAR, offsetof(SatrecObject, satrec.method), READONLY,
-     PyDoc_STR("Method, either 'n' near earth or 'd' deep space.")},
-    {"epochdays", T_DOUBLE, offsetof(SatrecObject, satrec.epochdays), READONLY,
+    {"epochdays", T_DOUBLE, O(epochdays), READONLY,
      PyDoc_STR("Day of the year of this element set's epoch (see epochyr).")},
-    /* TODO: expose other elements that are loaded from the TLE */
+    {"ndot", T_DOUBLE, O(ndot), READONLY,
+     PyDoc_STR("Ballistic Coefficient in revs/day.")},
+    {"nddot", T_DOUBLE, O(nddot), READONLY,
+     PyDoc_STR("Second Derivative of Mean Motion in revs/day^3.")},
+    {"bstar", T_DOUBLE, O(bstar), READONLY,
+     PyDoc_STR("Drag Term in inverse Earth radii.")},
+    {"ephtype", T_INT, O(ephtype), READONLY,
+     PyDoc_STR("Ephemeris type (should be 0 in published TLEs).")},
+    {"elnum", T_INT, O(elnum), READONLY,
+     PyDoc_STR("Element set number.")},
+    {"inclo", T_DOUBLE, O(inclo), READONLY,
+     PyDoc_STR("Inclination in radians.")},
+    {"nodeo", T_DOUBLE, O(nodeo), READONLY,
+     PyDoc_STR("Right ascension of ascending node in radians.")},
+    {"ecco", T_DOUBLE, O(ecco), READONLY,
+     PyDoc_STR("Eccentricity.")},
+    {"argpo", T_DOUBLE, O(argpo), READONLY,
+     PyDoc_STR("Argument of perigee in radians.")},
+    {"mo", T_DOUBLE, O(mo), READONLY,
+     PyDoc_STR("Mean anomaly in radians.")},
+    {"no_kozai", T_DOUBLE, O(no_kozai), READONLY,
+     PyDoc_STR("Mean motion in radians per minute.")},
+    {"revnum", T_LONG, O(revnum), READONLY,
+     PyDoc_STR("Integer revolution number at the epoch.")},
+
+    /* Derived values that do not appear explicitly in the TLE. */
+
+    {"method", T_CHAR, O(method), READONLY,
+     PyDoc_STR("Method, either 'n' near earth or 'd' deep space.")},
     {NULL}
+};
+
+#undef O
+
+static PyObject *
+get_intldesg(SatrecObject *self, void *closure)
+{
+  return PyUnicode_FromStringAndSize(self->satrec.intldesg, 6);
+}
+
+static PyGetSetDef Satrec_getset[] = {
+    {"intldesg", (getter)get_intldesg, NULL,
+     PyDoc_STR("A string copied from the first TLE line that typically"
+               " provides the last two digits of the launch year, a"
+               " 3-digit launch number, and a letter A-Z specifying"
+               " which piece of the launch.")},
+    {NULL},
 };
 
 static PyTypeObject SatrecType = {
@@ -234,6 +284,7 @@ PyInit_vallado_cpp(void)
     SatrecType.tp_doc = "SGP4 satellite record.";
     SatrecType.tp_methods = Satrec_methods;
     SatrecType.tp_members = Satrec_members;
+    SatrecType.tp_getset = Satrec_getset;
     SatrecType.tp_new = PyType_GenericNew;
 
     if (PyType_Ready(&SatrecType) < 0)
