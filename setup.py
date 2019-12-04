@@ -10,10 +10,15 @@ long_description = long_description.replace('entry.', 'entry.' + satdoc)
 ext_modules = []
 
 if sys.version_info[0] == 3:
-    ext_modules.append(Extension('sgp4.vallado_cpp', sources = [
-        'extension/SGP4.cpp',
-        'extension/wrapper.cpp',
-    ]))
+    ext_modules.append(Extension(
+        'sgp4.vallado_cpp',
+        sources = [
+            'extension/SGP4.cpp',
+            'extension/wrapper.cpp',
+        ],
+        # extra_compile_args=['-fopenmp'],
+        # extra_link_args=['-fopenmp'],
+    ))
 
 setup(name = 'sgp4',
       version = '1.4',

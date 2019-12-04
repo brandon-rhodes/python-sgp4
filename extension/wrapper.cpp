@@ -159,7 +159,8 @@ SatrecArray_sgp4(PyObject *self, PyObject *args)
     if (PyObject_GetBuffer(v_arg, &v, PyBUF_WRITABLE)) goto cleanup;
     if (PyObject_GetBuffer(e_arg, &e, PyBUF_WRITABLE)) goto cleanup;
 
-    // This extra block allows "goto" to cross declarations.
+    // This extra block allows the "goto" statements above to jump
+    // across these further variable declarations.
     {
         SatrecArrayObject *satrec_array = (SatrecArrayObject*) self;
         Py_ssize_t imax = ((SatrecArrayObject*) self)->ob_base.ob_size;
@@ -177,6 +178,7 @@ SatrecArray_sgp4(PyObject *self, PyObject *args)
             goto cleanup;
         }
 
+// #pragma omp parallel for
         for (Py_ssize_t i=0; i < imax; i++) {
             for (Py_ssize_t j=0; j < jmax; j++) {
                 SGP4Funcs::sgp4(satrec_array->satrec[i], tp[j], rp, vp);
