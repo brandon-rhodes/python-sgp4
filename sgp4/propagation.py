@@ -1963,7 +1963,6 @@ def sgp4(satrec, tsince, whichconst=None):
          satrec.error_message = ('mrt {0:f} is less than 1.0 indicating'
                                  ' the satellite has decayed'.format(mrt))
          satrec.error = 6;
-         return false, false;
 
      return r, v;
 

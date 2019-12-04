@@ -223,7 +223,7 @@ def generate_satellite_output(satrec, line2, error_list):
 
         r, v = sgp4(satrec, tsince)
 
-        if isnan(r[0]) and isnan(r[1]) and isnan(r[2]):
+        if satrec.error:
             error_list.append((satrec.error, satrec.error_message))
             return
         yield format_long_line(satrec, mu, r, v)
@@ -232,7 +232,7 @@ def generate_satellite_output(satrec, line2, error_list):
 
     if tsince - tend < tstep - 1e-6:  # do not miss last line!
         r, v = sgp4(satrec, tend)
-        if isnan(r[0]) and isnan(r[1]) and isnan(r[2]):
+        if satrec.error:
             error_list.append((satrec.error, satrec.error_message))
             return
         yield format_long_line(satrec, mu, r, v)
