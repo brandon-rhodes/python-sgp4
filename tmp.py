@@ -58,13 +58,14 @@ print("Number of satellites:", len(a))
 mjd = np.linspace(58805.5, 58806.5, 1000)  # 1000 time steps
 
 # t = array([0.0, 1, 2, 3, 49999999])
-t = mjd
-r = np.ndarray((len(a), len(t), 3))
-v = np.ndarray((len(a), len(t), 3))
-e = np.ndarray((len(a), len(t)), 'uint8')
+jd = (mjd // 1.0) + 2400000.5
+fr = (mjd % 1.0)
+r = np.ndarray((len(a), len(jd), 3))
+v = np.ndarray((len(a), len(jd), 3))
+e = np.ndarray((len(a), len(jd)), 'uint8')
 
 t0 = __import__('time').time()
-print(a.sgp4(t, r, v, e))
+print(a.sgp4(jd, fr, r, v, e))
 print(__import__('time').time() - t0)
 
 print(r.shape)

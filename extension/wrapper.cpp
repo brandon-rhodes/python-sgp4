@@ -144,47 +144,60 @@ SatrecArray_init(SatrecArrayObject *self, PyObject *args, PyObject *kwds)
 static PyObject *
 SatrecArray_sgp4(PyObject *self, PyObject *args)
 {
-    PyObject *tsince_arg, *r_arg, *v_arg, *e_arg;
-    Py_buffer tsince, r, v, e;
+    PyObject *jd_arg, *fr_arg, *r_arg, *v_arg, *e_arg;
+    Py_buffer jd_buf, fr_buf, r_buf, v_buf, e_buf;
     PyObject *rv = NULL;
 
-    tsince.buf = r.buf = v.buf = e.buf = NULL;  // see "cleanup:" below
+    // To prepare for "cleanup:" below.
+    jd_buf.buf = fr_buf.buf = r_buf.buf = v_buf.buf = e_buf.buf = NULL;
 
-    if (!PyArg_ParseTuple(args, "OOOO:sgp4",
-                          &tsince_arg, &r_arg, &v_arg, &e_arg))
+    if (!PyArg_ParseTuple(args, "OOOOO:sgp4",
+                          &jd_arg, &fr_arg, &r_arg, &v_arg, &e_arg))
         return NULL;
 
-    if (PyObject_GetBuffer(tsince_arg, &tsince, PyBUF_SIMPLE)) goto cleanup;
-    if (PyObject_GetBuffer(r_arg, &r, PyBUF_WRITABLE)) goto cleanup;
-    if (PyObject_GetBuffer(v_arg, &v, PyBUF_WRITABLE)) goto cleanup;
-    if (PyObject_GetBuffer(e_arg, &e, PyBUF_WRITABLE)) goto cleanup;
+    if (PyObject_GetBuffer(jd_arg, &jd_buf, PyBUF_SIMPLE)) goto cleanup;
+    if (PyObject_GetBuffer(fr_arg, &fr_buf, PyBUF_SIMPLE)) goto cleanup;
+    if (PyObject_GetBuffer(r_arg, &r_buf, PyBUF_WRITABLE)) goto cleanup;
+    if (PyObject_GetBuffer(v_arg, &v_buf, PyBUF_WRITABLE)) goto cleanup;
+    if (PyObject_GetBuffer(e_arg, &e_buf, PyBUF_WRITABLE)) goto cleanup;
+
+    if (jd_buf.len != fr_buf.len) {
+        PyErr_SetString(PyExc_ValueError, "jd and fr must have the same shape");
+        goto cleanup;
+    }
 
     // This extra block allows the "goto" statements above to jump
     // across these further variable declarations.
     {
         SatrecArrayObject *satrec_array = (SatrecArrayObject*) self;
         Py_ssize_t imax = ((SatrecArrayObject*) self)->ob_base.ob_size;
-        Py_ssize_t jmax = tsince.len / sizeof(double);
+        Py_ssize_t jmax = jd_buf.len / sizeof(double);
 
-        double *tp = (double*) tsince.buf;
-        double *rp = (double*) r.buf;
-        double *vp = (double*) v.buf;
-        uint8_t *ep = (uint8_t*) e.buf;
-
-        if ((r.len != (Py_ssize_t) sizeof(double) * imax * jmax * 3) ||
-            (v.len != (Py_ssize_t) sizeof(double) * imax * jmax * 3) ||
-            (e.len != (Py_ssize_t) sizeof(uint8_t) * imax * jmax)) {
+        if ((r_buf.len != (Py_ssize_t) sizeof(double) * imax * jmax * 3) ||
+            (v_buf.len != (Py_ssize_t) sizeof(double) * imax * jmax * 3) ||
+            (e_buf.len != (Py_ssize_t) sizeof(uint8_t) * imax * jmax)) {
             PyErr_SetString(PyExc_ValueError, "bad output array dimension");
             goto cleanup;
         }
 
+        double *jdp = (double*) jd_buf.buf;
+        double *frp = (double*) fr_buf.buf;
+        double *rp = (double*) r_buf.buf;
+        double *vp = (double*) v_buf.buf;
+        uint8_t *ep = (uint8_t*) e_buf.buf;
+
 // #pragma omp parallel for
         for (Py_ssize_t i=0; i < imax; i++) {
             for (Py_ssize_t j=0; j < jmax; j++) {
-                SGP4Funcs::sgp4(satrec_array->satrec[i], tp[j], rp, vp);
+              //double t = jdp[j] + frp[j];
+// (jdstart - satrec.jdsatepoch) * 1440.0 + (jdstartF - satrec.jdsatepochF) * 1440.0;
+                elsetrec *satrec = satrec_array->satrec + i;
+                double t = (jdp[j] - satrec->jdsatepoch) * 1440.0
+                         + (frp[j] - satrec->jdsatepochF) * 1440.0;
+                SGP4Funcs::sgp4(*satrec, t, rp, vp);
                 rp += 3;
                 vp += 3;
-                *(ep++) = (uint8_t) satrec_array->satrec[i].error;
+                *(ep++) = (uint8_t) satrec->error;
             }
         }
     }
@@ -192,10 +205,11 @@ SatrecArray_sgp4(PyObject *self, PyObject *args)
     Py_INCREF(Py_None);
     rv = Py_None;
  cleanup:
-    if (tsince.buf) PyBuffer_Release(&tsince);
-    if (r.buf) PyBuffer_Release(&r);
-    if (v.buf) PyBuffer_Release(&v);
-    if (e.buf) PyBuffer_Release(&e);
+    if (jd_buf.buf) PyBuffer_Release(&jd_buf);
+    if (fr_buf.buf) PyBuffer_Release(&fr_buf);
+    if (r_buf.buf) PyBuffer_Release(&r_buf);
+    if (v_buf.buf) PyBuffer_Release(&v_buf);
+    if (e_buf.buf) PyBuffer_Release(&e_buf);
     return rv;
 }
 
