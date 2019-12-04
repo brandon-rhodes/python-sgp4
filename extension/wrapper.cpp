@@ -69,11 +69,11 @@ static PyMemberDef Satrec_members[] = {
 };
 
 static PyTypeObject SatrecType = {
-    PyObject_HEAD_INIT(NULL)
-    tp_name : "sgp4.vallado_cpp.Satrec",
+    ob_base : PyVarObject_HEAD_INIT(NULL, 0)
+    tp_name : /*(char*)*/ "sgp4.vallado_cpp.Satrec",
     tp_basicsize : sizeof(SatrecObject),
     tp_flags : Py_TPFLAGS_DEFAULT,
-    tp_doc : "SGP4 satellite record.",
+    tp_doc : /*(char*)*/ "SGP4 satellite record.",
     tp_methods : Satrec_methods,
     tp_members : Satrec_members,
     tp_new : PyType_GenericNew,
