@@ -30,7 +30,7 @@ Satrec_twoline2rv(PyObject *cls, PyObject *args)
     if (!self)
         return NULL;
 
-    SGP4Funcs::twoline2rv(line1, line2, ' ', ' ', 'i', wgs84,
+    SGP4Funcs::twoline2rv(line1, line2, ' ', ' ', 'i', wgs72,
                           dummy, dummy, dummy, self->satrec);
 
     return (PyObject*) self;
