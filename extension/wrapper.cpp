@@ -42,9 +42,12 @@ Satrec_sgp4(PyObject *self, PyObject *args)
     double tsince, r[3], v[3];
     if (!PyArg_ParseTuple(args, "d:sgp4", &tsince))
         return NULL;
-    SGP4Funcs::sgp4(((SatrecObject *)self)->satrec, tsince, r, v);
+    elsetrec &satrec = ((SatrecObject *)self)->satrec;
+    SGP4Funcs::sgp4(satrec, tsince, r, v);
+    if (satrec.error && satrec.error < 6)
+      r[0] = r[1] = r[2] = v[0] = v[1] = v[2] = NAN;
     return Py_BuildValue("(fff)(fff)i", r[0], r[1], r[2], v[0], v[1], v[2],
-                         ((SatrecObject*)self)->satrec.error);
+                         satrec.error);
 }
 
 static PyMethodDef Satrec_methods[] = {
