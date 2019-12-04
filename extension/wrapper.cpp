@@ -45,7 +45,7 @@ Satrec_sgp4(PyObject *self, PyObject *args)
     elsetrec &satrec = ((SatrecObject *)self)->satrec;
     SGP4Funcs::sgp4(satrec, tsince, r, v);
     if (satrec.error && satrec.error < 6)
-      r[0] = r[1] = r[2] = v[0] = v[1] = v[2] = NAN;
+        r[0] = r[1] = r[2] = v[0] = v[1] = v[2] = NAN;
     return Py_BuildValue("(fff)(fff)i", r[0], r[1], r[2], v[0], v[1], v[2],
                          satrec.error);
 }
@@ -241,6 +241,9 @@ SatrecArray_sgp4(PyObject *self, PyObject *args)
                          + (fr[j] - satrec->jdsatepochF) * 1440.0;
                 Py_ssize_t k = i * jmax + j;
                 SGP4Funcs::sgp4(*satrec, t, r + k*3, v + k*3);
+                if (satrec->error && satrec->error < 6) {
+                    r[k] = r[k+1] = r[k+2] = v[k] = v[k+1] = v[k+2] = NAN;
+                }
                 e[k] = (uint8_t) satrec->error;
             }
         }
