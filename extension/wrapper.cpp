@@ -186,14 +186,14 @@ SatrecArray_sgp4(PyObject *self, PyObject *args)
         double *v = (double*) v_buf.buf;
         uint8_t *e = (uint8_t*) e_buf.buf;
 
-// #pragma omp parallel for
+#pragma omp parallel for
         for (Py_ssize_t i=0; i < imax; i++) {
+            elsetrec *satrec = satrec_array->satrec + i;
             for (Py_ssize_t j=0; j < jmax; j++) {
-                elsetrec *satrec = satrec_array->satrec + i;
                 double t = (jd[j] - satrec->jdsatepoch) * 1440.0
                          + (fr[j] - satrec->jdsatepochF) * 1440.0;
                 Py_ssize_t k = i * jmax + j;
-                SGP4Funcs::sgp4(*satrec, t, r + k * 3, v + k * 3);
+                SGP4Funcs::sgp4(*satrec, t, r + k*3, v + k*3);
                 e[k] = (uint8_t) satrec->error;
             }
         }
