@@ -31,7 +31,7 @@ print('TIME:', __import__('time').time() - t0)
 
 print(result.keys())
 print(result['eci_pos'].shape)
-print(result['eci_pos'][0])
+print(result['eci_pos'][0,:,:10,:])
 
 # -------------------------------------
 
