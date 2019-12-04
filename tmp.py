@@ -48,6 +48,7 @@ for name in lines:
     sat = Satrec.twoline2rv(line1, line2)
     # print(sat)
     # print(sat.satnum)
+    # print(sat.epochyr, sat.epochdays)
     # print(sat.method)
     sats.append(sat)
 
@@ -67,6 +68,6 @@ print(a.sgp4(t, r, v, e))
 print(__import__('time').time() - t0)
 
 print(r.shape)
-print(r[0])
+print(r[:10,0])
 # print(v)
 # print(e)

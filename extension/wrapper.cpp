@@ -58,8 +58,12 @@ static PyMethodDef Satrec_methods[] = {
 static PyMemberDef Satrec_members[] = {
     {"satnum", T_INT, offsetof(SatrecObject, satrec.satnum), READONLY,
      PyDoc_STR("Satellite number (characters 3-7 of each TLE line).")},
+    {"epochyr", T_INT, offsetof(SatrecObject, satrec.epochyr), READONLY,
+     PyDoc_STR("Year of this element set's epoch (see epochdays).")},
     {"method", T_CHAR, offsetof(SatrecObject, satrec.method), READONLY,
      PyDoc_STR("Method, either 'n' near earth or 'd' deep space.")},
+    {"epochdays", T_DOUBLE, offsetof(SatrecObject, satrec.epochdays), READONLY,
+     PyDoc_STR("Day of the year of this element set's epoch (see epochyr).")},
     /* TODO: expose other elements that are loaded from the TLE */
     {NULL}
 };
