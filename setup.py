@@ -16,8 +16,8 @@ if sys.version_info[0] == 3:
             'extension/SGP4.cpp',
             'extension/wrapper.cpp',
         ],
-        extra_compile_args=['-fopenmp'],
-        extra_link_args=['-fopenmp'],
+        # extra_compile_args=['-fopenmp'],
+        # extra_link_args=['-fopenmp'],
     ))
 
 setup(name = 'sgp4',

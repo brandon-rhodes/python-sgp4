@@ -69,14 +69,7 @@ static PyMemberDef Satrec_members[] = {
 };
 
 static PyTypeObject SatrecType = {
-    .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = /*(char*)*/ "sgp4.vallado_cpp.Satrec",
-    .tp_basicsize = sizeof(SatrecObject),
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_doc = /*(char*)*/ "SGP4 satellite record.",
-    .tp_methods = Satrec_methods,
-    .tp_members = Satrec_members,
-    .tp_new = PyType_GenericNew,
+    PyVarObject_HEAD_INIT(NULL, 0)
 };
 
 /* Satrec array that can broadcast into NumPy arrays. */
@@ -242,14 +235,21 @@ static PyModuleDef module = {
 PyMODINIT_FUNC
 PyInit_vallado_cpp(void)
 {
-    PyObject *m;
+    SatrecType.tp_name = "sgp4.vallado_cpp.Satrec";
+    SatrecType.tp_basicsize = sizeof(SatrecObject);
+    SatrecType.tp_flags = Py_TPFLAGS_DEFAULT;
+    SatrecType.tp_doc = "SGP4 satellite record.";
+    SatrecType.tp_methods = Satrec_methods;
+    SatrecType.tp_members = Satrec_members;
+    SatrecType.tp_new = PyType_GenericNew;
+
     if (PyType_Ready(&SatrecType) < 0)
         return NULL;
 
     if (PyType_Ready(&SatrecArrayType) < 0)
         return NULL;
 
-    m = PyModule_Create(&module);
+    PyObject *m = PyModule_Create(&module);
     if (m == NULL)
         return NULL;
 
