@@ -10,10 +10,13 @@ import re
 import sys
 from doctest import DocTestSuite, ELLIPSIS
 from math import pi, isnan
+import numpy as np
 
+sys.path.append(os.path.abspath('..'))
 from sgp4.earth_gravity import wgs72
 from sgp4.ext import invjday, newtonnu, rv2coe
-from sgp4.propagation import sgp4
+from sgp4.propagation import sgp4 as sgp4_vect
+from sgp4.propagation_og import sgp4
 from sgp4 import io
 
 thisdir = os.path.dirname(__file__)
@@ -214,6 +217,16 @@ def generate_satellite_output(satrec, line2, error_list):
     yield format_short_line(satrec, r, v)
 
     tstart, tend, tstep = (float(field) for field in line2[69:].split())
+
+    ### Testing Vectorized SGP4
+    t_array = np.arange(tstart, tend, tstep)
+    if t_array[-1] != tend:
+        t_array = np.hstack((t_array,tend))
+    if t_array[0] != 0.0:
+        t_array = np.hstack((0,t_array))
+    r_tup, v_tup = sgp4_vect(satrec, t_array)
+    r_arr = np.array(r_tup) # shape is (3,len(t_array)) for x, y, z
+    v_arr = np.array(v_tup) # shape is (3,len(t_array)) for x, y, z
 
     tsince = tstart
     while tsince <= tend:
