@@ -81,7 +81,7 @@ with an N where each digit should go, followed by the line you provided:
 *    typerun     - type of run                    verification 'v', catalog 'c', 
 *                                                 manual 'm'
 *    typeinput   - type of manual input           mfe 'm', epoch 'e', dayofyr 'd'
-*    afspc_mode  - True for afspc calculations, False for 'improved' mode
+*    opsmode     - mode of operation afspc or improved 'a', 'i'
 *    whichconst  - which set of constants to use  72, 84
 *
 *  outputs       :
@@ -99,7 +99,7 @@ with an N where each digit should go, followed by the line you provided:
   --------------------------------------------------------------------------- */
 """
 
-def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
+def twoline2rv(longstr1, longstr2, whichconst, opsmode='i'):
     """Return a Satellite imported from two lines of TLE data.
 
     Provide the two TLE lines as strings `longstr1` and `longstr2`,
@@ -112,7 +112,7 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
 
     Normally, computations are made using various recent improvements
     to the algorithm.  If you want to turn some of these off and go
-    back into "afspc" mode, then set `afspc_mode` to `True`.
+    back into "opsmode" mode, then set `opsmode` to `a`.
 
     """
 
@@ -139,8 +139,8 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
         line[63] == ' '):
 
         _saved_satnum = satrec.satnum = int(line[2:7])
-        # classification = line[7] or 'U'
-        # intldesg = line[9:17]
+        satrec.classification = line[7] or 'U'
+        satrec.intldesg = line[9:17]
         two_digit_year = int(line[18:20])
         satrec.epochdays = float(line[20:32])
         satrec.ndot = float(line[33:43])
@@ -148,8 +148,8 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
         nexp = int(line[50:52])
         satrec.bstar = float(line[53] + '.' + line[54:59])
         ibexp = int(line[59:61])
-        # numb = int(line[62])
-        # elnum = int(line[64:68])
+        satrec.ephtype = line[62]
+        satrec.elnum = int(line[64:68])
     else:
         raise ValueError(error_message.format(1, LINE1, line))
 
@@ -176,19 +176,18 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
         satrec.ecco = float('0.' + line[26:33].replace(' ', '0'))
         satrec.argpo = float(line[34:42])
         satrec.mo = float(line[43:51])
-        satrec.no = float(line[52:63])
-        #revnum = line[63:68]
+        satrec.no_kozai = float(line[52:63])
+        satrec.revnum = line[63:68]
     #except (AssertionError, IndexError, ValueError):
     else:
         raise ValueError(error_message.format(2, LINE2, line))
 
     #  ---- find no, ndot, nddot ----
-    satrec.no   = satrec.no / xpdotp; #   rad/min
+    satrec.no_kozai = satrec.no_kozai / xpdotp; #   rad/min
     satrec.nddot= satrec.nddot * pow(10.0, nexp);
     satrec.bstar= satrec.bstar * pow(10.0, ibexp);
 
     #  ---- convert to sgp4 units ----
-    satrec.a    = pow( satrec.no*tumin , (-2.0/3.0) );
     satrec.ndot = satrec.ndot  / (xpdotp*1440.0);  #   ? * minperday
     satrec.nddot= satrec.nddot / (xpdotp*1440.0*1440);
 
@@ -198,8 +197,6 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
     satrec.argpo = satrec.argpo  * deg2rad;
     satrec.mo    = satrec.mo     * deg2rad;
 
-    satrec.alta = satrec.a*(1.0 + satrec.ecco) - 1.0;
-    satrec.altp = satrec.a*(1.0 - satrec.ecco) - 1.0;
 
     """
     // ----------------------------------------------------------------
@@ -225,9 +222,9 @@ def twoline2rv(longstr1, longstr2, whichconst, afspc_mode=False):
                             int(sec_fraction * 1000000.0 // 1.0))
 
     #  ---------------- initialize the orbit at sgp4epoch -------------------
-    sgp4init(whichconst, afspc_mode, satrec.satnum, satrec.jdsatepoch-2433281.5, satrec.bstar,
-             satrec.ecco, satrec.argpo, satrec.inclo, satrec.mo, satrec.no,
-             satrec.nodeo, satrec)
+    sgp4init(whichconst, opsmode, satrec.satnum, satrec.jdsatepoch-2433281.5, satrec.bstar, 
+             satrec.ndot, satrec.nddot, satrec.ecco, satrec.argpo, satrec.inclo, satrec.mo, 
+             satrec.no_kozai, satrec.nodeo, satrec)
 
     return satrec
 

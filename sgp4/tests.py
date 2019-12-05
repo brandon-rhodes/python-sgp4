@@ -20,6 +20,9 @@ thisdir = os.path.dirname(__file__)
 error = 2e-7
 rad = 180.0 / pi
 
+# Handle deprecated assertRaisesRegexp, but allow its use Python 2.6 and 2.7
+if sys.version_info[:2] == (2, 7) or sys.version_info[:2] == (2, 6):
+    TestCase.assertRaisesRegex = TestCase.assertRaisesRegexp
 
 class Tests(TestCase):
 
@@ -131,8 +134,12 @@ class Tests(TestCase):
         bad = good1[:68] + '7'
         self.assertRaises(ValueError, io.verify_checksum, bad)
 
+    def test_support_for_old_no_attribute(self):
+        s = io.twoline2rv(good1, good2, wgs72)
+        assert s.no is s.no_kozai
+
     def test_bad_first_line(self):
-        with self.assertRaisesRegexp(ValueError, re.escape("""TLE format error
+        with self.assertRaisesRegex(ValueError, re.escape("""TLE format error
 
 The Two-Line Element (TLE) format was designed for punch cards, and so
 is very strict about the position of every period, space, and digit.
@@ -144,7 +151,7 @@ with an N where each digit should go, followed by the line you provided:
             io.twoline2rv(good1.replace('23 ', '234'), good2, wgs72)
 
     def test_bad_second_line(self):
-        with self.assertRaisesRegexp(ValueError, re.escape("""TLE format error
+        with self.assertRaisesRegex(ValueError, re.escape("""TLE format error
 
 The Two-Line Element (TLE) format was designed for punch cards, and so
 is very strict about the position of every period, space, and digit.
@@ -157,7 +164,7 @@ with an N where each digit should go, followed by the line you provided:
 
     def test_mismatched_lines(self):
         msg = "Object numbers in lines 1 and 2 do not match"
-        with self.assertRaisesRegexp(ValueError, re.escape(msg)):
+        with self.assertRaisesRegex(ValueError, re.escape(msg)):
             io.twoline2rv(good1, bad2, wgs72)
 
 
@@ -216,7 +223,7 @@ def generate_satellite_output(satrec, line2, error_list):
 
         r, v = sgp4(satrec, tsince)
 
-        if isnan(r[0]) and isnan(r[1]) and isnan(r[2]):
+        if satrec.error:
             error_list.append((satrec.error, satrec.error_message))
             return
         yield format_long_line(satrec, mu, r, v)
@@ -225,7 +232,7 @@ def generate_satellite_output(satrec, line2, error_list):
 
     if tsince - tend < tstep - 1e-6:  # do not miss last line!
         r, v = sgp4(satrec, tend)
-        if isnan(r[0]) and isnan(r[1]) and isnan(r[2]):
+        if satrec.error:
             error_list.append((satrec.error, satrec.error_message))
             return
         yield format_long_line(satrec, mu, r, v)

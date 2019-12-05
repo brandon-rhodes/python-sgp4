@@ -37,7 +37,7 @@ class Satellite(object):
         Argument of perigee in radians.
     ``mo``
         Mean anomaly in radians.
-    ``no``
+    ``no_kozai``
         Mean motion in radians per minute.
 
     """
@@ -48,3 +48,8 @@ class Satellite(object):
         m = (j - self.jdsatepoch) * minutes_per_day
         r, v = sgp4(self, m)
         return r, v
+
+    @property
+    def no(self):
+        """Support renamed attribute for any code still using the old name."""
+        return self.no_kozai
