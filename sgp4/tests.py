@@ -200,9 +200,69 @@ def generate_test_output(whichconst, error_list):
 
         yield '%ld xx\n' % (satrec.satnum,)
 
-        for line in generate_satellite_output(satrec, line2, error_list):
+        for line in generate_satellite_output_vect(satrec, line2, error_list):
             yield line
 
+def generate_satellite_output_vect(satrec, line2, error_list):
+    """Print a data line for each time in line2's start/stop/step field."""
+
+    mu = satrec.whichconst.mu
+    tstart, tend, tstep = (float(field) for field in line2[69:].split())
+    print("")
+    print("Satellite: {0}".format(satrec.satnum))
+    print("Satellite Method:",satrec.method)
+    print("Times info:",tstart,tend,tstep)
+
+    ### Testing Vectorized SGP4
+    t_array = np.arange(tstart, tend, tstep)
+    if t_array[-1] != tend:
+        t_array = np.hstack((t_array,tend))
+    if t_array[0] != 0.0:
+        t_array = np.hstack((0,t_array))
+    r_tup, v_tup = sgp4_vect(satrec, t_array)
+    r_arr = np.array(r_tup) # shape is (3,len(t_array)) for x, y, z
+    v_arr = np.array(v_tup) # shape is (3,len(t_array)) for x, y, z
+
+
+
+    for i,_ in enumerate(r_arr[0]):
+        t = t_array[i]
+        r = tuple(r_arr[:,i])
+        v = tuple(v_arr[:,i])
+        if i == 0:
+            # if isnan(r[0]) and isnan(r[1]) and isnan(r[2]):
+            #     error_list.append((satrec.error, satrec.error_message))
+            #     yield '(Use previous data line)'
+            #     return
+            yield format_short_line_vect(t,satrec, r, v)
+            continue
+        # if satrec.error:
+        #     error_list.append((satrec.error, satrec.error_message))
+        #     return
+        yield format_long_line_vect(t,satrec, mu, r, v)
+
+def format_short_line_vect(t,satrec, r, v):
+    """Short line, using the same format string that testcpp.cpp uses."""
+
+    return ' %16.8f %16.8f %16.8f %16.8f %12.9f %12.9f %12.9f\n' % (
+        t, r[0], r[1], r[2], v[0], v[1], v[2])
+
+
+def format_long_line_vect(t,satrec, mu, r, v):
+    """Long line, using the same format string that testcpp.cpp uses."""
+
+    short = format_short_line_vect(t,satrec, r, v).strip('\n')
+
+    jd = satrec.jdsatepoch + t / 1440.0
+    year, mon, day, hr, minute, sec = invjday(jd)
+
+    (p, a, ecc, incl, node, argp, nu, m, arglat, truelon, lonper
+     ) = rv2coe(r, v, mu)
+
+    return short + (' %14.6f %8.6f %10.5f %10.5f %10.5f %10.5f %10.5f'
+                    ' %5i%3i%3i %2i:%2i:%9.6f\n') % (
+        a, ecc, incl*rad, node*rad, argp*rad, nu*rad,
+        m*rad, year, mon, day, hr, minute, sec)
 
 def generate_satellite_output(satrec, line2, error_list):
     """Print a data line for each time in line2's start/stop/step field."""
@@ -227,6 +287,8 @@ def generate_satellite_output(satrec, line2, error_list):
     r_tup, v_tup = sgp4_vect(satrec, t_array)
     r_arr = np.array(r_tup) # shape is (3,len(t_array)) for x, y, z
     v_arr = np.array(v_tup) # shape is (3,len(t_array)) for x, y, z
+    print(r_arr[0])
+    print('')
 
     tsince = tstart
     while tsince <= tend:
