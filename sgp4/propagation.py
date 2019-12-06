@@ -1964,6 +1964,8 @@ def sgp4(satrec, tsince, whichconst=None):
                                  ' the satellite has decayed'.format(mrt))
          satrec.error = 6;
 
+         return false, false
+
      return r, v;
 
 """
