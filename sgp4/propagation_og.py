@@ -17,22 +17,20 @@ code for the first time here in its Python form.
 |   On a very hot August day in 2012
 """
 
-# try:
-#      from numba import jit
-# except ImportError:
-#      def jit(jit_this=None, **jit_options):
-#           if jit_this is not None:
-#                def fake_jit(*args, **kwargs):
-#                     return jit_this(*args, **kwargs)
-#                return fake_jit
-#           else:
-#                def partial_fake_jit(jit_this, **jit_options):
-#                     return jit(jit_this, **jit_options)
-#                return partial_fake_jit
+try:
+     from numba import jit
+except ImportError:
+     def jit(jit_this=None, **jit_options):
+          if jit_this is not None:
+               def fake_jit(*args, **kwargs):
+                    return jit_this(*args, **kwargs)
+               return fake_jit
+          else:
+               def partial_fake_jit(jit_this, **jit_options):
+                    return jit(jit_this, **jit_options)
+               return partial_fake_jit
 
-#from math import atan2, cos, fabs, pi, sin, sqrt
-from numpy import cos, fabs, pi, sin, sqrt, where, isscalar, empty, array
-from numpy import arctan2 as atan2
+from math import atan2, cos, fabs, pi, sin, sqrt
 
 deg2rad = pi / 180.0;
 _nan = float('NaN')
@@ -950,7 +948,7 @@ def _dsinit(
   ----------------------------------------------------------------------------*/
 """
 
-# @jit(cache=True)
+@jit(cache=True)
 #@jit
 def _dspace(
        irez,
@@ -1696,7 +1694,10 @@ def sgp4init(
 *    vallado, crawford, hujsak, kelso  2006
   ----------------------------------------------------------------------------*/
 """
-def _sgp4_deep(satrec, tsince, whichconst=None):
+
+@jit(cache=True)
+#@jit
+def sgp4(satrec, tsince, whichconst=None):
 
      mrt = 0.0
      if whichconst is None:
@@ -1962,275 +1963,6 @@ def _sgp4_deep(satrec, tsince, whichconst=None):
          satrec.error_message = ('mrt {0:f} is less than 1.0 indicating'
                                  ' the satellite has decayed'.format(mrt))
          satrec.error = 6;
-
-         return false, false
-
-     return r, v;
-
-# @jit(cache=True)
-#@jit
-def sgp4(satrec, tsince, whichconst=None):
-     if satrec.method == 'd':
-         if isscalar(tsince):
-             return _sgp4_deep(satrec, tsince, whichconst)
-         else:
-             rx_arr = empty(len(tsince))
-             ry_arr = empty(len(tsince))
-             rz_arr = empty(len(tsince))
-             vx_arr = empty(len(tsince))
-             vy_arr = empty(len(tsince))
-             vz_arr = empty(len(tsince))
-             for i,t in enumerate(tsince):
-                 r, v = _sgp4_deep(satrec,t,whichconst)
-                 rx_arr[i],ry_arr[i],rz_arr[i] = r
-                 vx_arr[i],vy_arr[i],vz_arr[i] = v
-             r = array([rx_arr,ry_arr,rz_arr])
-             v = array([vx_arr,vy_arr,vz_arr])
-             return r,v
-     mrt = 0.0
-     if whichconst is None:
-          whichconst = satrec.whichconst
-
-     """
-     /* ------------------ set mathematical constants --------------- */
-     // sgp4fix divisor for divide by zero check on inclination
-     // the old check used 1.0 + cos(pi-1.0e-9), but then compared it to
-     // 1.5 e-12, so the threshold was changed to 1.5e-12 for consistency
-     """
-     temp4 =   1.5e-12;
-     twopi = 2.0 * pi;
-     x2o3  = 2.0 / 3.0;
-     #  sgp4fix identify constants and allow alternate values
-     # tumin, mu, radiusearthkm, xke, j2, j3, j4, j3oj2 = whichconst
-     vkmpersec     = satrec.radiusearthkm * satrec.xke/60.0;
-
-     #  --------------------- clear sgp4 error flag -----------------
-     satrec.t     = tsince;
-     satrec.error = [];
-     satrec.error_message = []
-     nan_mask_list = []
-
-     #  ------- update for secular gravity and atmospheric drag -----
-     xmdf    = satrec.mo + satrec.mdot * satrec.t;
-     argpdf  = satrec.argpo + satrec.argpdot * satrec.t;
-     nodedf  = satrec.nodeo + satrec.nodedot * satrec.t;
-     argpm   = argpdf;
-     mm      = xmdf;
-     t2      = satrec.t * satrec.t;
-     nodem   = nodedf + satrec.nodecf * t2;
-     tempa   = 1.0 - satrec.cc1 * satrec.t;
-     tempe   = satrec.bstar * satrec.cc4 * satrec.t;
-     templ   = satrec.t2cof * t2;
-
-     if satrec.isimp != 1:
-
-         delomg = satrec.omgcof * satrec.t;
-         #  sgp4fix use mutliply for speed instead of pow
-         delmtemp =  1.0 + satrec.eta * cos(xmdf);
-         delm   = satrec.xmcof * \
-                  (delmtemp * delmtemp * delmtemp -
-                  satrec.delmo);
-         temp   = delomg + delm;
-         mm     = xmdf + temp;
-         argpm  = argpdf - temp;
-         t3     = t2 * satrec.t;
-         t4     = t3 * satrec.t;
-         tempa  = tempa - satrec.d2 * t2 - satrec.d3 * t3 - \
-                          satrec.d4 * t4;
-         tempe  = tempe + satrec.bstar * satrec.cc5 * (sin(mm) -
-                          satrec.sinmao);
-         templ  = templ + satrec.t3cof * t3 + t4 * (satrec.t4cof +
-                          satrec.t * satrec.t5cof);
-
-     nm    = satrec.no_unkozai;
-     em    = satrec.ecco;
-     inclm = satrec.inclo;
-     
-     if isscalar(nm):
-        if nm <= 0.0:
-
-            satrec.error_message = ('mean motion {0:f} is less than zero'
-                                    .format(nm))
-            satrec.error = 2;
-            #  sgp4fix add return
-            return false, false;
-     else:
-        mask_nm = nm <= 0.0
-        if mask_nm.any():
-            satrec.error_message += [('mean motion of idx {0} is less than zero'
-                                    .format(mask_nm.nonzero()))]
-            satrec.error += [2]
-            nan_mask_list += [mask_nm]
-
-     am = pow((satrec.xke / nm),x2o3) * tempa * tempa;
-     nm = satrec.xke / pow(am, 1.5);
-     em = em - tempe;
-
-     #  fix tolerance for error recognition
-     #  sgp4fix am is fixed from the previous nm check
-     
-     if isscalar(em):
-        if (em >= 1.0) or (em < -0.001):  # || (am < 0.95)
-
-            satrec.error_message = ('mean eccentricity {0:f} not within'
-                                    ' range 0.0 <= e < 1.0'.format(em))
-            satrec.error = 1;
-            #  sgp4fix to return if there is an error in eccentricity
-            return false, false;
-     else:
-        mask_em = (em >= 1.0) | (em < -0.001)
-        if mask_em.any():
-            satrec.error_message += [('mean eccentricity of idx {0} not within'
-                                    ' range 0.0 <= e < 1.0'.format(em.nonzero()))]
-            satrec.error += [1];
-            nan_mask_list += [mask_em]
-            #  sgp4fix to return if there is an error in eccentricity
-     #  sgp4fix fix tolerance to avoid a divide by zero
-     em = where(em < 1.0e-6, 1.0e-6,em);
-     mm     = mm + satrec.no_unkozai * templ;
-     xlm    = mm + argpm + nodem;
-     emsq   = em * em;
-     temp   = 1.0 - emsq;
-     nodem = where(nodem >= 0.0, nodem % twopi, -(-nodem % twopi))
-     argpm  = argpm % twopi
-     xlm    = xlm % twopi
-     mm     = (xlm - argpm - nodem) % twopi
-     
-     # sgp4fix recover singly averaged mean elements
-     satrec.am = am;
-     satrec.em = em;
-     satrec.im = inclm;
-     satrec.Om = nodem;
-     satrec.om = argpm;
-     satrec.mm = mm;
-     satrec.nm = nm;
-
-     #  ----------------- compute extra mean quantities -------------
-     sinim = sin(inclm);
-     cosim = cos(inclm);
-
-     #  -------------------- add lunar-solar periodics --------------
-     ep     = em;
-     xincp  = inclm;
-     argpp  = argpm;
-     nodep  = nodem;
-     mp     = mm;
-     sinip  = sinim;
-     cosip  = cosim;
-
-     axnl = ep * cos(argpp);
-     temp = 1.0 / (am * (1.0 - ep * ep));
-     aynl = ep* sin(argpp) + temp * satrec.aycof;
-     xl   = mp + argpp + nodep + temp * satrec.xlcof * axnl;
-
-     #  --------------------- solve kepler's equation ---------------
-     u    = (xl - nodep) % twopi
-     eo1  = u;
-     tem5 = 9999.9;
-     ktr = 1;
-     #    sgp4fix for kepler iteration
-     #    the following iteration needs better limits on corrections
-     # dsholes: I don't think I'm handling this properly
-     while (fabs(tem5) >= 1.0e-12).any() and ktr <= 10:
-
-         sineo1 = sin(eo1);
-         coseo1 = cos(eo1);
-         tem5   = 1.0 - coseo1 * axnl - sineo1 * aynl;
-         tem5   = (u - aynl * coseo1 + axnl * sineo1 - eo1) / tem5;
-         if (fabs(tem5) >= 0.95).any():
-             tem5 = where(tem5 > 0.0, 0.95, -0.95);
-         eo1    = eo1 + tem5;
-         ktr = ktr + 1;
-
-     #  ------------- short period preliminary quantities -----------
-     ecose = axnl*coseo1 + aynl*sineo1;
-     esine = axnl*sineo1 - aynl*coseo1;
-     el2   = axnl*axnl + aynl*aynl;
-     pl    = am*(1.0-el2);
-     if isscalar(pl):
-        if pl < 0.0:
-
-            satrec.error_message = ('semilatus rectum {0:f} is less than zero'
-                                    .format(pl))
-            satrec.error = 4;
-            #  sgp4fix add return
-            return false, false;
-     else:
-        mask_pl = pl < 0.0
-        if mask_pl.any():
-            satrec.error_message += [('semilatus rectum of idx {0} is less than zero'
-                                    .format(pl.nonzero()))]
-            satrec.error += [4];
-            nan_mask_list += [mask_pl]
-
-     rl     = am * (1.0 - ecose);
-     rdotl  = sqrt(am) * esine/rl;
-     rvdotl = sqrt(pl) / rl;
-     betal  = sqrt(1.0 - el2);
-     temp   = esine / (1.0 + betal);
-     sinu   = am / rl * (sineo1 - aynl - axnl * temp);
-     cosu   = am / rl * (coseo1 - axnl + aynl * temp);
-     su     = atan2(sinu, cosu);
-     sin2u  = (cosu + cosu) * sinu;
-     cos2u  = 1.0 - 2.0 * sinu * sinu;
-     temp   = 1.0 / pl;
-     temp1  = 0.5 * satrec.j2 * temp;
-     temp2  = temp1 * temp;
-
-     #  -------------- update for short period periodics ------------
-
-     mrt   = rl * (1.0 - 1.5 * temp2 * betal * satrec.con41) + \
-             0.5 * temp1 * satrec.x1mth2 * cos2u;
-     su    = su - 0.25 * temp2 * satrec.x7thm1 * sin2u;
-     xnode = nodep + 1.5 * temp2 * cosip * sin2u;
-     xinc  = xincp + 1.5 * temp2 * cosip * sinip * cos2u;
-     mvt   = rdotl - nm * temp1 * satrec.x1mth2 * sin2u / satrec.xke;
-     rvdot = rvdotl + nm * temp1 * (satrec.x1mth2 * cos2u +
-             1.5 * satrec.con41) / satrec.xke;
-
-     #  --------------------- orientation vectors -------------------
-     sinsu =  sin(su);
-     cossu =  cos(su);
-     snod  =  sin(xnode);
-     cnod  =  cos(xnode);
-     sini  =  sin(xinc);
-     cosi  =  cos(xinc);
-     xmx   = -snod * cosi;
-     xmy   =  cnod * cosi;
-     ux    =  xmx * sinsu + cnod * cossu;
-     uy    =  xmy * sinsu + snod * cossu;
-     uz    =  sini * sinsu;
-     vx    =  xmx * cossu - cnod * sinsu;
-     vy    =  xmy * cossu - snod * sinsu;
-     vz    =  sini * cossu;
-
-     #  --------- position and velocity (in km and km/sec) ----------
-     _mr = mrt * satrec.radiusearthkm
-     r = array([_mr * ux, _mr * uy, _mr * uz])
-     v = array([(mvt * ux + rvdot * vx) * vkmpersec,
-                (mvt * uy + rvdot * vy) * vkmpersec,
-                (mvt * uz + rvdot * vz) * vkmpersec])
-
-     #  sgp4fix for decaying satellites
-     if isscalar(mrt):
-        if (mrt < 1.0):
-
-            satrec.error_message = ('mrt {0:} is less than 1.0 indicating'
-                                    ' the satellite has decayed'.format(mrt))
-            satrec.error = 6;
-            return false, false
-     
-     else:
-        mask_mrt = (mrt < 1.0)
-        if mask_mrt.any():
-            satrec.error_message += [('mrt of idx {0} is less than 1.0 indicating'
-                                    ' the satellite has decayed'.format(mrt.nonzero()))]
-            satrec.error += [6];
-            nan_mask_list += [mask_mrt]
-     if nan_mask_list:
-         nan_mask = array(nan_mask_list).any(axis=0)
-         r[:,nan_mask] = _nan
-         v[:,nan_mask] = _nan
 
      return r, v;
 
