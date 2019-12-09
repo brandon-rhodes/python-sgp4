@@ -2,8 +2,6 @@
 # TODO: turn Skyfield time into two JD floats.
 # Hmm. That's complicated.
 
-from .vallado_cpp import Satrec, SatrecArray
-
 # jd = 58805.5 # TODO
 # fr = 0.0
 
@@ -21,4 +19,7 @@ from .vallado_cpp import Satrec, SatrecArray
 try:
     from .vallado_cpp import Satrec, SatrecArray
 except ImportError:
-    from .TODO import Satrec, SatrecArray
+    accelerated = False
+    from .model import Satrec#, SatrecArray
+else:
+    accelerated = True

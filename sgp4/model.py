@@ -1,5 +1,6 @@
 """The Satellite class."""
 
+from sgp4.earth_gravity import wgs72
 from sgp4.ext import jday
 from sgp4.propagation import sgp4
 
@@ -12,8 +13,23 @@ minutes_per_day = 1440.
 #  have legacy old function in io.py that on-the-fly imports and builds old compat model.
 #  Hmm. Really? That will make things more expensive for all old users,
 #  is there an alternative?
+
+from sgp4.io import twoline2rv
+
+class Satrec(object):
+    @classmethod
+    def twoline2rv(cls, line1, line2):
+        self = cls()
+        twoline2rv(line1, line2, wgs72, 'i', self)
+        return self
+
+    def sgp4(self, jd, fr):
+        tsince = ((jd + fr) - self.jdsatepoch) * minutes_per_day
+        r, v = sgp4(self, tsince)
+        return self.error, r, v
+
 class Satellite(object):
-    """An earth-orbiting satellite as represented by the SGP4 model.
+    """The old Satellite object for compatibility with sgp4 1.x.
 
     Most of this class's hundred-plus attributes are intermediate values
     of interest only to the propagation algorithm itself.  Here are the

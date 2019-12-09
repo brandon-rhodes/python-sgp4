@@ -7,7 +7,6 @@ import re
 from datetime import datetime
 from math import pi, pow
 from sgp4.ext import days2mdhms, jday
-from sgp4.model import Satellite
 from sgp4.propagation import sgp4init
 
 INT_RE = re.compile(r'[+-]?\d*')
@@ -99,7 +98,7 @@ with an N where each digit should go, followed by the line you provided:
   --------------------------------------------------------------------------- */
 """
 
-def twoline2rv(longstr1, longstr2, whichconst, opsmode='i'):
+def twoline2rv(longstr1, longstr2, whichconst, opsmode='i', satrec=None):
     """Return a Satellite imported from two lines of TLE data.
 
     Provide the two TLE lines as strings `longstr1` and `longstr2`,
@@ -121,7 +120,13 @@ def twoline2rv(longstr1, longstr2, whichconst, opsmode='i'):
 
     tumin = whichconst.tumin
 
-    satrec = Satellite()
+    # For compatibility with our 1.x API, build an old Satellite object
+    # if the caller fails to supply a satrec.  In that case we perform
+    # the necessary import here to avoid an import loop.
+    if satrec is None:
+        from sgp4.model import Satellite
+        satrec = Satellite()
+
     satrec.error = 0;
     satrec.whichconst = whichconst  # Python extension: remembers its consts
 
