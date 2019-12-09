@@ -50,7 +50,12 @@ June 2000:
 >>> print(velocity)
 (-1.45..., -5.52..., 5.10...)
 
-
+>>> from sgp4.api import jday
+>>> jd, fr = jday(2019, 12, 9, 12, 0, 0)
+>>> jd
+2458826.5
+>>> fr
+0.5
 
 >>> from sgp4.earth_gravity import wgs72
 >>> from sgp4.io import twoline2rv
