@@ -5,6 +5,13 @@ from sgp4.propagation import sgp4
 
 minutes_per_day = 1440.
 
+# TODO: have this be a subclass of a plainer Satrec class.
+# TODO: add a SatrecArray to this file too?
+# TODO: okay, complicated: need to import twoline2rv but drat it imports us;
+#  so, switch things around so it expects blank object to be passed it;
+#  have legacy old function in io.py that on-the-fly imports and builds old compat model.
+#  Hmm. Really? That will make things more expensive for all old users,
+#  is there an alternative?
 class Satellite(object):
     """An earth-orbiting satellite as represented by the SGP4 model.
 
@@ -41,6 +48,7 @@ class Satellite(object):
         Mean motion in radians per minute.
 
     """
+    # TODO: only offer this on legacy class we no longer document
     def propagate(self, year, month=1, day=1, hour=0, minute=0, second=0.0):
         """Return a position and velocity vector for a given date and time."""
 

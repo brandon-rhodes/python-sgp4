@@ -39,15 +39,17 @@ Satrec_twoline2rv(PyObject *cls, PyObject *args)
 static PyObject *
 Satrec_sgp4(PyObject *self, PyObject *args)
 {
-    double tsince, r[3], v[3];
-    if (!PyArg_ParseTuple(args, "d:sgp4", &tsince))
+    double jd, fr, r[3], v[3];
+    if (!PyArg_ParseTuple(args, "dd:sgp4", &jd, &fr))
         return NULL;
-    elsetrec &satrec = ((SatrecObject *)self)->satrec;
+    elsetrec &satrec = ((SatrecObject*) self)->satrec;
+    double tsince = (jd - satrec.jdsatepoch) * 1440.0
+                  + (fr - satrec.jdsatepochF) * 1440.0;
     SGP4Funcs::sgp4(satrec, tsince, r, v);
     if (satrec.error && satrec.error < 6)
         r[0] = r[1] = r[2] = v[0] = v[1] = v[2] = NAN;
-    return Py_BuildValue("(fff)(fff)i", r[0], r[1], r[2], v[0], v[1], v[2],
-                         satrec.error);
+    return Py_BuildValue("i(fff)(fff)", satrec.error,
+                         r[0], r[1], r[2], v[0], v[1], v[2]);
 }
 
 static PyMethodDef Satrec_methods[] = {
@@ -65,6 +67,10 @@ static PyMemberDef Satrec_members[] = {
 
     {"satnum", T_INT, O(satnum), READONLY,
      PyDoc_STR("Satellite number, from characters 3-7 of each TLE line.")},
+    {"jdsatepoch", T_DOUBLE, O(jdsatepoch), READONLY,
+     PyDoc_STR("Julian date of epoch, day number (see jdsatepochF).")},
+    {"jdsatepochF", T_DOUBLE, O(jdsatepochF), READONLY,
+     PyDoc_STR("Julian date of epoch, fraction of day (see jdsatepoch).")},
     {"classification", T_CHAR, O(classification), READONLY,
      "Usually U=Unclassified, C=Classified, or S=Secret."},
     /* intldesg: inline character array; see Satrec_getset. */
@@ -191,22 +197,22 @@ SatrecArray_init(SatrecArrayObject *self, PyObject *args, PyObject *kwds)
 static PyObject *
 SatrecArray_sgp4(PyObject *self, PyObject *args)
 {
-    PyObject *jd_arg, *fr_arg, *r_arg, *v_arg, *e_arg;
-    Py_buffer jd_buf, fr_buf, r_buf, v_buf, e_buf;
+    PyObject *jd_arg, *fr_arg, *e_arg, *r_arg, *v_arg;
+    Py_buffer jd_buf, fr_buf, e_buf, r_buf, v_buf;
     PyObject *rv = NULL;
 
     // To prepare for "cleanup:" below.
-    jd_buf.buf = fr_buf.buf = r_buf.buf = v_buf.buf = e_buf.buf = NULL;
+    jd_buf.buf = fr_buf.buf = e_buf.buf = r_buf.buf = v_buf.buf = NULL;
 
     if (!PyArg_ParseTuple(args, "OOOOO:sgp4",
-                          &jd_arg, &fr_arg, &r_arg, &v_arg, &e_arg))
+                          &jd_arg, &fr_arg, &e_arg, &r_arg, &v_arg))
         return NULL;
 
     if (PyObject_GetBuffer(jd_arg, &jd_buf, PyBUF_SIMPLE)) goto cleanup;
     if (PyObject_GetBuffer(fr_arg, &fr_buf, PyBUF_SIMPLE)) goto cleanup;
+    if (PyObject_GetBuffer(e_arg, &e_buf, PyBUF_WRITABLE)) goto cleanup;
     if (PyObject_GetBuffer(r_arg, &r_buf, PyBUF_WRITABLE)) goto cleanup;
     if (PyObject_GetBuffer(v_arg, &v_buf, PyBUF_WRITABLE)) goto cleanup;
-    if (PyObject_GetBuffer(e_arg, &e_buf, PyBUF_WRITABLE)) goto cleanup;
 
     if (jd_buf.len != fr_buf.len) {
         PyErr_SetString(PyExc_ValueError, "jd and fr must have the same shape");
@@ -235,16 +241,16 @@ SatrecArray_sgp4(PyObject *self, PyObject *args)
 
 #pragma omp parallel for
         for (Py_ssize_t i=0; i < imax; i++) {
-            elsetrec *satrec = satrec_array->satrec + i;
+            elsetrec &satrec = satrec_array->satrec[i];
             for (Py_ssize_t j=0; j < jmax; j++) {
-                double t = (jd[j] - satrec->jdsatepoch) * 1440.0
-                         + (fr[j] - satrec->jdsatepochF) * 1440.0;
+                double t = (jd[j] - satrec.jdsatepoch) * 1440.0
+                         + (fr[j] - satrec.jdsatepochF) * 1440.0;
                 Py_ssize_t k = i * jmax + j;
-                SGP4Funcs::sgp4(*satrec, t, r + k*3, v + k*3);
-                if (satrec->error && satrec->error < 6) {
+                SGP4Funcs::sgp4(satrec, t, r + k*3, v + k*3);
+                if (satrec.error && satrec.error < 6) {
                     r[k] = r[k+1] = r[k+2] = v[k] = v[k+1] = v[k+2] = NAN;
                 }
-                e[k] = (uint8_t) satrec->error;
+                e[k] = (uint8_t) satrec.error;
             }
         }
     }

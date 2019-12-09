@@ -35,6 +35,23 @@ familiar with this library in other languages.  Here is how to compute
 the x,y,z position and velocity for Vanguard 1 at 12:50:19 on 29
 June 2000:
 
+>>> from sgp4.api import Satrec
+>>>
+>>> s = '1 25544U 98067A   19343.69339541  .00001764  00000-0  38792-4 0  9991'
+>>> t = '2 25544  51.6439 211.2001 0007417  17.6667  85.6398 15.50103472202482'
+>>>
+>>> satellite = Satrec.twoline2rv(s, t)
+>>> jd, fr = 2458827, 0.362605
+>>> error, position, velocity = satellite.sgp4(jd, fr)
+>>> error
+0
+>>> print(position)
+(-6102.443287146553, -986.3320567944508, -2820.313033151739)
+>>> print(velocity)
+(-1.455252671326664, -5.527413826423578, 5.10104205590169)
+
+
+
 >>> from sgp4.earth_gravity import wgs72
 >>> from sgp4.io import twoline2rv
 >>>
