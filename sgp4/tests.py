@@ -12,7 +12,7 @@ from doctest import DocTestSuite, ELLIPSIS
 from math import pi, isnan
 
 from sgp4.earth_gravity import wgs72
-from sgp4.ext import invjday, newtonnu, rv2coe
+from sgp4.ext import invjday, jday2, newtonnu, rv2coe
 from sgp4.propagation import sgp4
 from sgp4 import io
 
@@ -167,11 +167,15 @@ with an N where each digit should go, followed by the line you provided:
         with self.assertRaisesRegex(ValueError, re.escape(msg)):
             io.twoline2rv(good1, bad2, wgs72)
 
+    def test_jday2(self):
+        jd, fr = jday2(2019, 10, 9, 16, 57, 15)
+        self.assertEqual(jd, 2458765.5)
+        self.assertAlmostEqual(fr, 0.7064236111111111)
+
 
 good1 = '1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753'
 good2 = '2 00005  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413667'
 bad2  = '2 00007  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413669'
-
 
 
 def generate_test_output(whichconst, error_list):
