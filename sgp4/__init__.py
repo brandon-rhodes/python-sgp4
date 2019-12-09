@@ -125,4 +125,4 @@ Changelog
 
 """
 
-__version__ = 'dsholes-dev'
+__version__ = '1.4+dsholes-dev'
