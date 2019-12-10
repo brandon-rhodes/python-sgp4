@@ -267,7 +267,7 @@ SatrecArray_sgp4(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef SatrecArray_methods[] = {
-    {"sgp4", (PyCFunction)SatrecArray_sgp4, METH_VARARGS,
+    {"_sgp4", (PyCFunction)SatrecArray_sgp4, METH_VARARGS,
      PyDoc_STR("Given array of minutes since epoch, write"
                " positions, velocities, and errors to arrays.")},
     {NULL, NULL}
@@ -306,7 +306,7 @@ PyInit_vallado_cpp(void)
     SatrecArrayType.tp_basicsize = sizeof(SatrecArrayObject);
     SatrecArrayType.tp_itemsize = sizeof(elsetrec);
     SatrecArrayType.tp_as_sequence = &SatrecArray_as_sequence;
-    SatrecArrayType.tp_flags = Py_TPFLAGS_DEFAULT;
+    SatrecArrayType.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
     SatrecArrayType.tp_doc = "SGP4 array of satellites.";
     SatrecArrayType.tp_methods = SatrecArray_methods;
     SatrecArrayType.tp_init = (initproc) SatrecArray_init;

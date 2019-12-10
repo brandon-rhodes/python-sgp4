@@ -4,6 +4,7 @@
 import numpy as np
 from cysgp4 import PyTle, PyObserver, propagate_many
 
+# http://celestrak.com/NORAD/elements/science.txt
 with open('science.txt') as f:
     text = f.read()
 
@@ -65,7 +66,7 @@ v = np.ndarray((len(a), len(jd), 3))
 e = np.ndarray((len(a), len(jd)), 'uint8')
 
 t0 = __import__('time').time()
-print(a.sgp4(jd, fr, r, v, e))
+print(a._sgp4(jd, fr, e, r, v))
 print(__import__('time').time() - t0)
 
 print(r.shape)

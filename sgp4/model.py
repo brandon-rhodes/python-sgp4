@@ -28,6 +28,18 @@ class Satrec(object):
         r, v = sgp4(self, tsince)
         return self.error, r, v
 
+class SatrecArray(object):
+    def __init__(self, satrecs):
+        self._satrecs = satrecs
+        # Cache optional import that we now know we need.
+        from numpy import array
+        self.array = array
+
+    def sgp4(self, jd, fr):
+        tsince = ((jd + fr) - self.jdsatepoch) * minutes_per_day
+        r, v = sgp4(self, tsince)
+        return self.error, r, v
+
 class Satellite(object):
     """The old Satellite object for compatibility with sgp4 1.x.
 
