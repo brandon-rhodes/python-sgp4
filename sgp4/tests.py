@@ -1,12 +1,5 @@
 """Test suite for SGP4."""
 
-# Avoid a Travis CI failure under Python 2.7 by pre-importing the "io"
-# module from the Standard Library, so that NumPy does not accidentally
-# import the "io.py" here in the "sgp4" directory (which cannot be
-# renamed, because, backwards compatibility).
-from __future__ import absolute_import
-import io
-
 try:
     from unittest2 import TestCase, main
 except:
