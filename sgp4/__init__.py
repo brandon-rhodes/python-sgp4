@@ -61,14 +61,15 @@ June 2000:
 >>> t = '2 20580  28.4682 146.6676 0002639 185.9222 322.7238 15.09309432427086'
 >>> satellite2 = Satrec.twoline2rv(s, t)
 
->>> import numpy as np
->>> np.set_printoptions(precision=2)
 
+>>> import numpy as np
 >>> from sgp4.api import SatrecArray
 >>> a = SatrecArray([satellite, satellite2])
 >>> jd = np.array((2458826, 2458826, 2458826, 2458826))
 >>> fr = np.array((0.0001, 0.0002, 0.0003, 0.0004))
 >>> e, r, v = a.sgp4(jd, fr)
+
+>>> np.set_printoptions(precision=2)
 >>> print(e)
 [[0 0 0 0]
  [0 0 0 0]]

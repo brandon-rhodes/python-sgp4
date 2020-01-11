@@ -24,7 +24,7 @@ class Satrec(object):
         return self
 
     def sgp4(self, jd, fr):
-        tsince = ((jd + fr) - self.jdsatepoch) * minutes_per_day
+        tsince = (jd - self.jdsatepoch + fr) * minutes_per_day
         r, v = sgp4(self, tsince)
         return self.error, r, v
 
@@ -36,9 +36,10 @@ class SatrecArray(object):
         self.array = array
 
     def sgp4(self, jd, fr):
-        tsince = ((jd + fr) - self.jdsatepoch) * minutes_per_day
-        r, v = sgp4(self, tsince)
-        return self.error, r, v
+        result = []
+        for satrec in self._satrecs:
+            result.append(satrec.sgp4(jd, fr))
+        return self.array(result).T #self.error, r, v
 
 class Satellite(object):
     """The old Satellite object for compatibility with sgp4 1.x.
