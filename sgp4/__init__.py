@@ -6,8 +6,8 @@ earth-orbiting satellite, given the satellite's TLE orbital elements
 from a source like `Celestrak <http://celestrak.com/>`_.  It implements
 the most recent version of SGP4, and is regularly run against the SGP4
 test suite to make sure that its satellite position predictions **agree
-to within 0.1 mm** of the predictions of the standard C++ implementation
-of the algorithm.  This error is far less than the 1–3 km/day by which
+to within 0.1 mm** with the predictions of the standard distribution of
+the algorithm.  This error is far less than the 1–3 km/day by which
 satellites themselves deviate from the ideal orbits described in TLE
 files.
 

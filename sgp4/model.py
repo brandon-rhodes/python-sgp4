@@ -17,6 +17,8 @@ minutes_per_day = 1440.
 from sgp4.io import twoline2rv
 
 class Satrec(object):
+    """Slow Python-only version of the satellite object."""
+
     @classmethod
     def twoline2rv(cls, line1, line2):
         self = cls()
@@ -29,6 +31,8 @@ class Satrec(object):
         return self.error, r, v
 
 class SatrecArray(object):
+    """Slow Python-only version of the satellite array."""
+
     def __init__(self, satrecs):
         self._satrecs = satrecs
         # Cache optional import that we now know we need.
@@ -43,7 +47,7 @@ class SatrecArray(object):
         return a tuple ``(e, r, v)`` of three vectors that are each as
         long as ``jd`` and ``fr``:
 
-        * ``e``: 1 for any dates that produced errors, 0 otherwise.
+        * ``e``: nonzero for any dates that produced errors, 0 otherwise.
         * ``r``: (x,y,z) position vector in kilometers.
         * ``v``: (dx,dy,dz) velocity vector in kilometers per second.
 

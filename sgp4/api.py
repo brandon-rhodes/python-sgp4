@@ -5,7 +5,7 @@ __all__ = 'Satrec', 'SatrecArray', 'jday'
 from .ext import jday2 as jday
 
 try:
-    from .vallado_cpp import Satrec, SatrecArray as _SatrecArray
+    from .vallado_cpp import Satrec
 except ImportError:
     accelerated = False
     from .model import Satrec, SatrecArray
