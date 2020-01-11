@@ -9,6 +9,8 @@ satdoc = dedent(sgp4.model.Satellite.__doc__.split('\n', 1)[1])
 long_description = long_description.replace('entry.', 'entry.' + satdoc)
 ext_modules = []
 
+# It is hard to write C extensions that support both Python 2 and 3, so
+# we opt here to support the acceleration only for Python 3.
 if sys.version_info[0] == 3:
     ext_modules.append(Extension(
         'sgp4.vallado_cpp',
@@ -16,8 +18,15 @@ if sys.version_info[0] == 3:
             'extension/SGP4.cpp',
             'extension/wrapper.cpp',
         ],
+
+        # TODO: can we safely figure out how to use a pair of options
+        # like these, adapted to as many platforms as possible, to use
+        # multiple processors when available?
         # extra_compile_args=['-fopenmp'],
         # extra_link_args=['-fopenmp'],
+
+        # Fall back to pure Python for folks without compilers.
+        optional=True,
     ))
 
 setup(name = 'sgp4',
