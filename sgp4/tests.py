@@ -278,9 +278,11 @@ def load_tests(loader, tests, ignore):
         # numpy, it does so with this directory on sys.path, so numpy
         # imports sgp4's sgp4/io.py instead of the Standard Library "io"
         # module.
-        directory = sys.path.pop(0)
+        original = sys.path
+        filtered = [path for path in sys.path if '/sgp4' not in path]
+        sys.path = filtered
         import numpy
-        sys.path[0:0] = [directory]
+        sys.path = original
 
         tests.addTests(DocTestSuite('sgp4', optionflags=ELLIPSIS))
 
