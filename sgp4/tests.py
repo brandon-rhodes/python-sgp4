@@ -275,13 +275,12 @@ def load_tests(loader, tests, ignore):
 
         # Defeat a problem on Travis CI by importing numpy early.
         # Otherwise, on Travis CI, when the doctest tries to import
-        # numpy, it does so with this as the current directory, so numpy
+        # numpy, it does so with this directory on sys.path, so numpy
         # imports sgp4's sgp4/io.py instead of the Standard Library "io"
         # module.
-        directory = os.getcwd()
-        os.chdir('/tmp')
+        directory = sys.path.pop(0)
         import numpy
-        os.chdir(directory)
+        sys.path[0:0] = [directory]
 
         tests.addTests(DocTestSuite('sgp4', optionflags=ELLIPSIS))
 
