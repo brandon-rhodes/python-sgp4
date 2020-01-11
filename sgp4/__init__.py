@@ -47,13 +47,25 @@ June 2000:
 >>> satellite = Satrec.twoline2rv(s, t)
 >>>
 >>> jd, fr = 2458827, 0.362605
->>> error, position, velocity = satellite.sgp4(jd, fr)
->>> error
+>>> e, r, v = satellite.sgp4(jd, fr)
+>>> e
 0
->>> print(position)
+>>> print(r)
 (-6102.44..., -986.33..., -2820.31...)
->>> print(velocity)
+>>> print(v)
 (-1.45..., -5.52..., 5.10...)
+
+Here is how to intrepret the results:
+
+* ``e`` will be a non-zero error code if the satellite position could
+  not be computed for the given date.
+
+* ``r`` measures the satellite position in **kilometers** from the
+  center of the earth in the idiosyncratic True Equator Mean Equinox
+  coordinate frame used by SGP4.
+
+* ``v`` velocity is the rate at which the position is changing,
+  expressed in **kilometers per second**.
 
 If your application does not natively handle Julian dates, you can
 compute ``jd`` and ``fr`` from calendar dates using ``jday()``.
@@ -67,13 +79,16 @@ compute ``jd`` and ``fr`` from calendar dates using ``jday()``.
 
 To avoid the expense of Python loops when you have many satellites and
 dates, build a ``SatrecArray`` from several individual satellites.  Its
-``sgp4()`` method will expect both ``jd`` and ``fr`` to be NumPy arrays;
-if you only have one date, simply provide NumPy arrays of length one.
-Here is a sample computation for 2 satellites and 4 dates:
+``sgp4()`` method will expect both ``jd`` and ``fr`` to be NumPy arrays,
+so if you only have one date, be sure to provide NumPy arrays of length
+one.  Here is a sample computation for 2 satellites and 4 dates:
 
 >>> s = '1 20580U 90037B   19342.88042116  .00000361  00000-0  11007-4 0  9996'
 >>> t = '2 20580  28.4682 146.6676 0002639 185.9222 322.7238 15.09309432427086'
 >>> satellite2 = Satrec.twoline2rv(s, t)
+
+>>> # (I will tell the sad story of this import some other time. Ignore.)
+>>> from __future__ import absolute_import
 
 >>> import numpy as np
 >>> jd = np.array((2458826, 2458826, 2458826, 2458826))
@@ -107,10 +122,6 @@ Here is a sample computation for 2 satellites and 4 dates:
   [-3.79  6.3  -1.88]
   [-3.85  6.28 -1.85]
   [-3.91  6.25 -1.83]]]
-
-The position vector measures the satellite position in **kilometers**
-from the center of the earth.  The velocity is the rate at which those
-three parameters are changing, expressed in **kilometers per second**.
 
 The attributes of a ``Satrec`` object carry the data loaded from the TLE
 entry.  Look at the class's documentation for details.
