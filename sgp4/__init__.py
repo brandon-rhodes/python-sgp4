@@ -11,16 +11,21 @@ the algorithm.  This error is far less than the 1–3 km/day by which
 satellites themselves deviate from the ideal orbits described in TLE
 files.
 
-Note that these official SGP4 routines do not implement all the steps
-necessary to convert satellite positions into geographic coordinates;
-they need to be integrated into a more comprehensive astronomy library.
-One example is the Python `Skyfield <http://rhodesmill.org/skyfield/>`_
-package, which uses this SGP4 library when you ask it to turn satellite
-elements into Earth positions as described in its documentation:
+* If your platform supports it, this package compiles the verbatim
+  source code from the official C++ version of SGP4.  You can call the
+  routine directly, or through an array API that loops over arrays of
+  satellites and arrays of times with machine code instead of Python.
+
+* Otherwise, a slower but reliable Python implementation of SGP4 is used
+  instead.
+
+Note that this package produces raw Earth-centered Earth-fixed
+coordinates.  It does not implement all the steps necessary to convert
+satellite positions into geographic coordinates.  For that, look for a
+comprehensive astronomy library that is built atop this one, like the
+`Skyfield <http://rhodesmill.org/skyfield/>`_ library:
 
 http://rhodesmill.org/skyfield/earth-satellites.html
-
-These SGP4 routines, by contrast, produce only raw spatial coordinates.
 
 To run the test suite for this module, clone its repository from GitHub:
 
@@ -39,8 +44,8 @@ June 2000:
 >>>
 >>> s = '1 25544U 98067A   19343.69339541  .00001764  00000-0  38792-4 0  9991'
 >>> t = '2 25544  51.6439 211.2001 0007417  17.6667  85.6398 15.50103472202482'
->>>
 >>> satellite = Satrec.twoline2rv(s, t)
+>>>
 >>> jd, fr = 2458827, 0.362605
 >>> error, position, velocity = satellite.sgp4(jd, fr)
 >>> error
@@ -50,6 +55,9 @@ June 2000:
 >>> print(velocity)
 (-1.45..., -5.52..., 5.10...)
 
+If your application does not natively handle Julian dates, you can
+compute ``jd`` and ``fr`` from calendar dates using ``jday()``.
+
 >>> from sgp4.api import jday
 >>> jd, fr = jday(2019, 12, 9, 12, 0, 0)
 >>> jd
@@ -57,10 +65,15 @@ June 2000:
 >>> fr
 0.5
 
+To avoid the expense of Python loops when you have many satellites and
+dates, build a ``SatrecArray`` from several individual satellites.  Its
+``sgp4()`` method will expect both ``jd`` and ``fr`` to be NumPy arrays;
+if you only have one date, simply provide NumPy arrays of length one.
+Here is a sample computation for 2 satellites and 4 dates:
+
 >>> s = '1 20580U 90037B   19342.88042116  .00000361  00000-0  11007-4 0  9996'
 >>> t = '2 20580  28.4682 146.6676 0002639 185.9222 322.7238 15.09309432427086'
 >>> satellite2 = Satrec.twoline2rv(s, t)
-
 
 >>> import numpy as np
 >>> jd = np.array((2458826, 2458826, 2458826, 2458826))
@@ -95,62 +108,12 @@ June 2000:
   [-3.85  6.28 -1.85]
   [-3.91  6.25 -1.83]]]
 
->>> from sgp4.earth_gravity import wgs72
->>> from sgp4.io import twoline2rv
->>>
->>> line1 = ('1 00005U 58002B   00179.78495062  '
-...          '.00000023  00000-0  28098-4 0  4753')
->>> line2 = ('2 00005  34.2682 348.7242 1859667 '
-...          '331.7664  19.3264 10.82419157413667')
->>>
->>> satellite = twoline2rv(line1, line2, wgs72)
->>> position, velocity = satellite.propagate(
-...     2000, 6, 29, 12, 50, 19)
->>>
->>> print(satellite.error)    # nonzero on error
-0
->>> print(satellite.error_message)
-None
->>> print(position)
-(5576.056952..., -3999.371134..., -1521.957159...)
->>> print(velocity)
-(4.772627..., 5.119817..., 4.275553...)
-
 The position vector measures the satellite position in **kilometers**
 from the center of the earth.  The velocity is the rate at which those
 three parameters are changing, expressed in **kilometers per second**.
 
-There are three gravity models available that you can import from the
-``earth_gravity`` module:
-
-* ``wgs72``
-* ``wgs72old``
-* ``wgs84``
-
-The ``wgs72`` model seems to be the most commonly used in the satellite
-tracking community, and is probably the model behind most TLE elements
-that are available for download.
-
-The ``twoline2rv()`` function returns a ``Satellite`` object whose
-attributes carry the data loaded from the TLE entry:
-
-* Unique satellite number, as given in the TLE file.
-
-  >>> satellite.satnum
-  5
-
-* The epoch of the element set, expressed three ways:
-  as the integer year plus the floating point number of days into the year;
-  as a floating-point Julian date; and as Python ``datetime`` object.
-
-  >>> satellite.epochyr
-  2000
-  >>> satellite.epochdays
-  179.78495062
-  >>> satellite.jdsatepoch
-  2451723.28495062
-  >>> satellite.epoch
-  datetime.datetime(2000, 6, 27, 18, 50, 19, 733567)
+The attributes of a ``Satrec`` object carry the data loaded from the TLE
+entry.  Look at the class's documentation for details.
 
 This implementation passes all of the automated tests in the August 2010
 release of the reference implementation of SGP4 by Vallado et al., who
@@ -164,14 +127,15 @@ always download the latest version of their code for comparison against
 this Python module (or other implementations) at `AIAA-2006-6753.zip
 <http://www.celestrak.com/publications/AIAA/2006-6753/AIAA-2006-6753.zip>`_.
 
-This module was adapted from Vallado's C++ code since its revision date
-was the most recently updated SGP4 implementation in their zip file:
+Legacy API
+----------
 
-* C++, August 2010
-* Fortran, August 2008
-* Pascal, August 2008
-* Matlab, May 2008
-* Java, July 2005
+Before this library pivoted to wrapping Vallado's official C++ code and
+was operating in pure Python only, it had a slightly quirkier API, which
+is still supported for compatibility with older clients.  You can learn
+about it by reading the documentation from version 1.4 or earlier:
+
+https://pypi.org/project/sgp4/1.4/
 
 Changelog
 ---------
