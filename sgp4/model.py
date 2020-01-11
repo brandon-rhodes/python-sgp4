@@ -36,10 +36,35 @@ class SatrecArray(object):
         self.array = array
 
     def sgp4(self, jd, fr):
-        result = []
+        """Compute positions and velocities for the satellites in this array.
+
+        Given NumPy scalars or arrays ``jd`` and ``fr`` supplying the
+        whole part and the fractional part of one or more Julian dates,
+        return a tuple ``(e, r, v)`` of three vectors that are each as
+        long as ``jd`` and ``fr``:
+
+        * ``e``: 1 for any dates that produced errors, 0 otherwise.
+        * ``r``: (x,y,z) position vector in kilometers.
+        * ``v``: (dx,dy,dz) velocity vector in kilometers per second.
+
+        """
+        results = []
+        z = list(zip(jd, fr))
         for satrec in self._satrecs:
-            result.append(satrec.sgp4(jd, fr))
-        return self.array(result).T #self.error, r, v
+            for jd_i, fr_i in z:
+                results.append(satrec.sgp4(jd_i, fr_i))
+        elist, rlist, vlist = zip(*results)
+
+        e = self.array(elist)
+        r = self.array(rlist)
+        v = self.array(vlist)
+
+        jdlen = len(jd)
+        mylen = len(self._satrecs)
+        e.shape = (mylen, jdlen)
+        r.shape = v.shape = (mylen, jdlen, 3)
+
+        return e, r, v
 
 class Satellite(object):
     """The old Satellite object for compatibility with sgp4 1.x.

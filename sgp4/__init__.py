@@ -63,10 +63,11 @@ June 2000:
 
 
 >>> import numpy as np
->>> from sgp4.api import SatrecArray
->>> a = SatrecArray([satellite, satellite2])
 >>> jd = np.array((2458826, 2458826, 2458826, 2458826))
 >>> fr = np.array((0.0001, 0.0002, 0.0003, 0.0004))
+
+>>> from sgp4.api import SatrecArray
+>>> a = SatrecArray([satellite, satellite2])
 >>> e, r, v = a.sgp4(jd, fr)
 
 >>> np.set_printoptions(precision=2)

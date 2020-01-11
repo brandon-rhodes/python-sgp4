@@ -13,3 +13,4 @@ sgp4/model.py
 sgp4/propagation.py
 sgp4/tcppver.out
 sgp4/tests.py
+sgp4/wrapper.py
