@@ -1,5 +1,12 @@
 """Test suite for SGP4."""
 
+# Avoid a Travis CI failure under Python 2.7 by pre-importing the "io"
+# module from the Standard Library, so that NumPy does not accidentally
+# import the "io.py" here in the "sgp4" directory (which cannot be
+# renamed, because, backwards compatibility).
+from __future__ import absolute_import
+import io
+
 try:
     from unittest2 import TestCase, main
 except:
@@ -272,18 +279,6 @@ def load_tests(loader, tests, ignore):
     # Python 2.6 formats floating-point numbers a bit differently and
     # breaks the doctest.
     if sys.version_info >= (2, 7):
-
-        # Defeat a problem on Travis CI by importing numpy early.
-        # Otherwise, on Travis CI, when the doctest tries to import
-        # numpy, it does so with this directory on sys.path, so numpy
-        # imports sgp4's sgp4/io.py instead of the Standard Library "io"
-        # module.
-        original = sys.path
-        filtered = [path for path in sys.path if '/sgp4' not in path]
-        sys.path = filtered
-        import numpy
-        sys.path = original
-
         tests.addTests(DocTestSuite('sgp4', optionflags=ELLIPSIS))
 
     return tests
