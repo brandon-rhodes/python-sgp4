@@ -87,9 +87,6 @@ one.  Here is a sample computation for 2 satellites and 4 dates:
 >>> t = '2 20580  28.4682 146.6676 0002639 185.9222 322.7238 15.09309432427086'
 >>> satellite2 = Satrec.twoline2rv(s, t)
 
->>> # (I will tell the sad story of this import some other time. Ignore.)
->>> from __future__ import absolute_import
-
 >>> import numpy as np
 >>> jd = np.array((2458826, 2458826, 2458826, 2458826))
 >>> fr = np.array((0.0001, 0.0002, 0.0003, 0.0004))

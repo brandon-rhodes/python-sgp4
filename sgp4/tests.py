@@ -272,6 +272,14 @@ def load_tests(loader, tests, ignore):
     # Python 2.6 formats floating-point numbers a bit differently and
     # breaks the doctest.
     if sys.version_info >= (2, 7):
+
+        # Defeat a problem on Travis CI by importing numpy early.
+        # Otherwise, on Travis CI, when the doctest tries to import
+        # numpy, it does so with this as the current directory, so numpy
+        # imports sgp4's sgp4/io.py instead of the Standard Library "io"
+        # module.
+        import numpy
+
         tests.addTests(DocTestSuite('sgp4', optionflags=ELLIPSIS))
 
     return tests
