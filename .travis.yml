@@ -49,5 +49,6 @@ script:
   - python -m cibuildwheel --output-dir wheelhouse
 
 after_success:
+  - ls -l wheelhouse/
   # if the release was tagged, upload them to PyPI
   - if [[ $TRAVIS_TAG ]]; then python -m twine upload wheelhouse/*.whl; fi
