@@ -19,6 +19,8 @@ from sgp4.io import twoline2rv
 class Satrec(object):
     """Slow Python-only version of the satellite object."""
 
+    jdsatepochF = 0.0  # for compatibility with accelerated version
+
     @classmethod
     def twoline2rv(cls, line1, line2):
         self = cls()
