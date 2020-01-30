@@ -55,10 +55,25 @@ class FunctionTests(TestCase):
         self.assertAlmostEqual(fr, 0.7064236111111111)
 
 
-class SatelliteObjectTests(TestCase):
+class SatelliteObjectTests(object):
+    """Suite of tests, that becomes a TestCase instance only in subclasses."""
 
-    def build_satrec(self, line1, line2):
-        return io.twoline2rv(line1, line2, wgs72)
+    def test_satrec_attributes(self):
+        # Make sure the Satrec has the same attributes.
+        sat = self.build_satrec(good1, good2)
+        self.assertEqual(sat.satnum, 5)
+        self.assertEqual(sat.epochyr, 2000)
+        self.assertEqual(sat.epochdays, 179.78495062)
+        self.assertEqual(sat.jdsatepoch, 2451723.28495062)
+        self.assertEqual(sat.ndot, 6.96919666594958e-13)
+        self.assertEqual(sat.nddot, 0.0)
+        self.assertEqual(sat.bstar, 2.8098e-05)
+        self.assertEqual(sat.inclo, 0.5980929187319208)
+        self.assertEqual(sat.nodeo, 6.08638547138321)
+        self.assertEqual(sat.ecco, 0.1859667)
+        self.assertEqual(sat.argpo, 5.790416027488515)
+        self.assertEqual(sat.mo, 0.3373093125574321)
+        self.assertEqual(sat.no_kozai, 0.04722944544077857)
 
     def test_tle_verify(self):
         # Check whether a test run produces the output in tcppver.out
@@ -177,10 +192,14 @@ with an N where each digit should go, followed by the line you provided:
         with self.assertRaisesRegex(ValueError, re.escape(msg)):
             self.build_satrec(good1, bad2)
 
-
 good1 = '1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753'
 good2 = '2 00005  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413667'
 bad2  = '2 00007  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413669'
+
+
+class LegacySatelliteObjectTests(TestCase, SatelliteObjectTests):
+    def build_satrec(self, line1, line2):
+        return io.twoline2rv(line1, line2, wgs72)
 
 
 def generate_test_output(build_satrec, error_list):
