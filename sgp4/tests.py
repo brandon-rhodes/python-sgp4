@@ -24,7 +24,38 @@ rad = 180.0 / pi
 if sys.version_info[:2] == (2, 7) or sys.version_info[:2] == (2, 6):
     TestCase.assertRaisesRegex = TestCase.assertRaisesRegexp
 
-class Tests(TestCase):
+class FunctionTests(TestCase):
+
+    def test_hyperbolic_orbit(self):
+        # Exercise the newtonnu() code path with asinh() to see whether
+        # we can replace it with the one from Python's math module.
+
+        e0, m = newtonnu(1.0, 2.9)  # parabolic
+        self.assertAlmostEqual(e0, 8.238092752965605, places=12)
+        self.assertAlmostEqual(m, 194.60069989482898, places=12)
+
+        e0, m = newtonnu(1.1, 2.7)   # hyperbolic
+        self.assertAlmostEqual(e0, 4.262200676156417, places=12)
+        self.assertAlmostEqual(m, 34.76134082028372, places=12)
+
+    def test_good_tle_checksum(self):
+        for line, expected in (good1, 3), (good2, 7):
+            self.assertEqual(io.compute_checksum(line), expected)
+            self.assertEqual(io.fix_checksum(line[:68]), line)
+            io.verify_checksum(line)
+
+    def test_bad_tle_checksum(self):
+        self.assertEqual(io.compute_checksum(good1), 3)
+        bad = good1[:68] + '7'
+        self.assertRaises(ValueError, io.verify_checksum, bad)
+
+    def test_jday2(self):
+        jd, fr = jday2(2019, 10, 9, 16, 57, 15)
+        self.assertEqual(jd, 2458765.5)
+        self.assertAlmostEqual(fr, 0.7064236111111111)
+
+
+class SatelliteObjectTests(TestCase):
 
     def test_tle_verify(self):
         # Check whether a test run produces the output in tcppver.out
@@ -111,29 +142,6 @@ class Tests(TestCase):
              ' indicating the satellite has decayed'),
             ])
 
-    def test_hyperbolic_orbit(self):
-        # Exercise the newtonnu() code path with asinh() to see whether
-        # we can replace it with the one from Python's math module.
-
-        e0, m = newtonnu(1.0, 2.9)  # parabolic
-        self.assertAlmostEqual(e0, 8.238092752965605, places=12)
-        self.assertAlmostEqual(m, 194.60069989482898, places=12)
-
-        e0, m = newtonnu(1.1, 2.7)   # hyperbolic
-        self.assertAlmostEqual(e0, 4.262200676156417, places=12)
-        self.assertAlmostEqual(m, 34.76134082028372, places=12)
-
-    def test_good_tle_checksum(self):
-        for line, expected in (good1, 3), (good2, 7):
-            self.assertEqual(io.compute_checksum(line), expected)
-            self.assertEqual(io.fix_checksum(line[:68]), line)
-            io.verify_checksum(line)
-
-    def test_bad_tle_checksumx(self):
-        self.assertEqual(io.compute_checksum(good1), 3)
-        bad = good1[:68] + '7'
-        self.assertRaises(ValueError, io.verify_checksum, bad)
-
     def test_support_for_old_no_attribute(self):
         s = io.twoline2rv(good1, good2, wgs72)
         assert s.no is s.no_kozai
@@ -166,11 +174,6 @@ with an N where each digit should go, followed by the line you provided:
         msg = "Object numbers in lines 1 and 2 do not match"
         with self.assertRaisesRegex(ValueError, re.escape(msg)):
             io.twoline2rv(good1, bad2, wgs72)
-
-    def test_jday2(self):
-        jd, fr = jday2(2019, 10, 9, 16, 57, 15)
-        self.assertEqual(jd, 2458765.5)
-        self.assertAlmostEqual(fr, 0.7064236111111111)
 
 
 good1 = '1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753'
