@@ -65,7 +65,7 @@ static PyMethodDef Satrec_methods[] = {
 static PyMemberDef Satrec_members[] = {
     /* Listed in the order they appear in a TLE record. */
 
-    {"satnum", T_INT, O(satnum), READONLY,
+    {"satnum", T_LONG, O(satnum), READONLY,
      PyDoc_STR("Satellite number, from characters 3-7 of each TLE line.")},
     {"jdsatepoch", T_DOUBLE, O(jdsatepoch), READONLY,
      PyDoc_STR("Julian date of epoch, day number (see jdsatepochF).")},
