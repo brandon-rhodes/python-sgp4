@@ -11,9 +11,9 @@ import sys
 from doctest import DocTestSuite, ELLIPSIS
 from math import pi, isnan
 
-from sgp4.api import Satrec, ERROR_MESSAGES
+from sgp4.api import Satrec, SGP4_ERRORS, jday
 from sgp4.earth_gravity import wgs72
-from sgp4.ext import invjday, jday2, newtonnu, rv2coe
+from sgp4.ext import invjday, newtonnu, rv2coe
 from sgp4.propagation import sgp4
 from sgp4 import io
 
@@ -51,7 +51,7 @@ class FunctionTests(TestCase):
         self.assertRaises(ValueError, io.verify_checksum, bad)
 
     def test_jday2(self):
-        jd, fr = jday2(2019, 10, 9, 16, 57, 15)
+        jd, fr = jday(2019, 10, 9, 16, 57, 15)
         self.assertEqual(jd, 2458765.5)
         self.assertAlmostEqual(fr, 0.7064236111111111)
 
@@ -159,7 +159,7 @@ class SatelliteObjectTests(object):
 
 class NewSatelliteObjectTests(TestCase, SatelliteObjectTests):
 
-    expected_errors = [(e, ERROR_MESSAGES[e]) for e in [1,1,6,6,4,3,6]]
+    expected_errors = [(e, SGP4_ERRORS[e]) for e in [1,1,6,6,4,3,6]]
 
     def build_satrec(self, line1, line2):
         return Satrec.twoline2rv(line1, line2)
@@ -169,7 +169,7 @@ class NewSatelliteObjectTests(TestCase, SatelliteObjectTests):
         jd = satrec.jdsatepoch + whole
         fr = satrec.jdsatepochF + fraction
         e, r, v = satrec.sgp4(jd, fr)
-        return e, ERROR_MESSAGES[e] if e else '', r, v
+        return e, SGP4_ERRORS[e] if e else '', r, v
 
 
 class LegacySatelliteObjectTests(TestCase, SatelliteObjectTests):

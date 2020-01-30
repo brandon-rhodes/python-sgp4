@@ -2,9 +2,9 @@
 
 __all__ = 'Satrec', 'SatrecArray', 'jday'
 
-from .ext import jday2 as jday
+from .functions import jday
 
-ERROR_MESSAGES = {
+SGP4_ERRORS = {
     1: 'mean eccentricity is outside the range 0.0 to 1.0',
     2: 'nm is less than zero',
     3: 'perturbed eccentricity is outside the range 0.0 to 1.0',
