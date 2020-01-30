@@ -57,12 +57,14 @@ class FunctionTests(TestCase):
 
 class SatelliteObjectTests(TestCase):
 
+    def build_satrec(self, line1, line2):
+        return io.twoline2rv(line1, line2, wgs72)
+
     def test_tle_verify(self):
         # Check whether a test run produces the output in tcppver.out
 
-        whichconst = 'wgs72'
         error_list = []
-        actual = generate_test_output(whichconst, error_list)
+        actual = generate_test_output(self.build_satrec, error_list)
         previous_data_line = None
 
         # Iterate across "tcppver.out", making sure that we ourselves
@@ -143,7 +145,7 @@ class SatelliteObjectTests(TestCase):
             ])
 
     def test_support_for_old_no_attribute(self):
-        s = io.twoline2rv(good1, good2, wgs72)
+        s = self.build_satrec(good1, good2)
         assert s.no is s.no_kozai
 
     def test_bad_first_line(self):
@@ -156,7 +158,7 @@ with an N where each digit should go, followed by the line you provided:
 
 1 NNNNNC NNNNNAAA NNNNN.NNNNNNNN +.NNNNNNNN +NNNNN-N +NNNNN-N N NNNNN
 1 00005U 58002B   00179.78495062  .000000234 00000-0  28098-4 0  4753""")):
-            io.twoline2rv(good1.replace('23 ', '234'), good2, wgs72)
+            self.build_satrec(good1.replace('23 ', '234'), good2)
 
     def test_bad_second_line(self):
         with self.assertRaisesRegex(ValueError, re.escape("""TLE format error
@@ -168,12 +170,12 @@ with an N where each digit should go, followed by the line you provided:
 
 2 NNNNN NNN.NNNN NNN.NNNN NNNNNNN NNN.NNNN NNN.NNNN NN.NNNNNNNNNNNNNN
 2 00005 34 .268234 8.7242 1859667 331.7664  19.3264 10.82419157413667""")):
-            io.twoline2rv(good1, good2.replace(' 34', '34 '), wgs72)
+            self.build_satrec(good1, good2.replace(' 34', '34 '))
 
     def test_mismatched_lines(self):
         msg = "Object numbers in lines 1 and 2 do not match"
         with self.assertRaisesRegex(ValueError, re.escape(msg)):
-            io.twoline2rv(good1, bad2, wgs72)
+            self.build_satrec(good1, bad2)
 
 
 good1 = '1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753'
@@ -181,7 +183,7 @@ good2 = '2 00005  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413667'
 bad2  = '2 00007  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413669'
 
 
-def generate_test_output(whichconst, error_list):
+def generate_test_output(build_satrec, error_list):
     """Generate lines like those in the test file tcppver.out.
 
     This iterates through the satellites in "SGP4-VER.TLE", which are
@@ -189,7 +191,6 @@ def generate_test_output(whichconst, error_list):
     supposed to print results.
 
     """
-    whichconst = wgs72
     tlepath = os.path.join(thisdir, 'SGP4-VER.TLE')
     with open(tlepath) as tlefile:
         tlelines = iter(tlefile.readlines())
@@ -200,7 +201,7 @@ def generate_test_output(whichconst, error_list):
             continue
 
         line2 = next(tlelines)
-        satrec = io.twoline2rv(line1, line2, whichconst)
+        satrec = build_satrec(line1, line2)
 
         yield '%ld xx\n' % (satrec.satnum,)
 
