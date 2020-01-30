@@ -2,5 +2,6 @@
 *.pyc
 /.tox/
 /.coverage
+/MANIFEST
 /dist/
 /htmlcov/
