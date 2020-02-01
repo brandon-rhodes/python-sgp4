@@ -103,6 +103,12 @@ static PyMemberDef Satrec_members[] = {
     {"revnum", T_LONG, O(revnum), READONLY,
      PyDoc_STR("Integer revolution number at the epoch.")},
 
+    /* For compatibility with the old struct members, also accept the
+       plain name "no". */
+
+    {"no", T_DOUBLE, O(no_kozai), READONLY,
+     PyDoc_STR("Alias for the more carefully named ``no_kozai``.")},
+
     /* Derived values that do not appear explicitly in the TLE. */
 
     {"method", T_CHAR, O(method), READONLY,
