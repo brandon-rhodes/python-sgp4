@@ -11,7 +11,7 @@ typedef struct {
 } SatrecObject;
 
 static PyObject *
-Satrec_twoline2rv(PyObject *cls, PyObject *args)
+Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
 {
     char *string1, *string2, line1[130], line2[130];
     double dummy;
@@ -25,8 +25,7 @@ Satrec_twoline2rv(PyObject *cls, PyObject *args)
     line1[129] = '\0';
     line2[129] = '\0';
 
-    PyTypeObject *type = (PyTypeObject*) cls;
-    SatrecObject *self = (SatrecObject*) PyObject_New(SatrecObject, type);
+    SatrecObject *self = (SatrecObject*) cls->tp_alloc(cls, 0);
     if (!self)
         return NULL;
 
@@ -188,7 +187,7 @@ SatrecArray_init(SatrecArrayObject *self, PyObject *args, PyObject *kwds)
         PyObject *item = PySequence_GetItem(sequence, i);
         if (!item)
             return -1;
-        if (item->ob_type != &SatrecType) {
+        if (!PyObject_IsInstance(item, (PyObject*) &SatrecType)) {
             PyErr_Format(PyExc_ValueError, "every item must be a Satrec,"
                          " but element %d is: %R", i, item);
             Py_DECREF(item);
@@ -298,7 +297,8 @@ PyInit_vallado_cpp(void)
 {
     SatrecType.tp_name = "sgp4.vallado_cpp.Satrec";
     SatrecType.tp_basicsize = sizeof(SatrecObject);
-    SatrecType.tp_flags = Py_TPFLAGS_DEFAULT;
+    SatrecArrayType.tp_itemsize = 0;
+    SatrecType.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
     SatrecType.tp_doc = "SGP4 satellite record.";
     SatrecType.tp_methods = Satrec_methods;
     SatrecType.tp_members = Satrec_members;

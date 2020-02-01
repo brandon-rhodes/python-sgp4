@@ -14,10 +14,8 @@ SGP4_ERRORS = {
 }
 
 try:
-    from .vallado_cpp import Satrec
-except ImportError:
-    accelerated = False
-    from .model import Satrec, SatrecArray
-else:
+    from .wrapper import Satrec, SatrecArray
     accelerated = True
-    from .wrapper import SatrecArray
+except ImportError:
+    from .model import Satrec, SatrecArray
+    accelerated = False

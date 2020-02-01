@@ -1,7 +1,13 @@
-from .vallado_cpp import SatrecArray as _SatrecArray
+from . import vallado_cpp
 
-class SatrecArray(_SatrecArray):
+class Satrec(vallado_cpp.Satrec):
+
+    __slots__ = ()
+
+class SatrecArray(vallado_cpp.SatrecArray):
     """High-speed satellite array for computing positions and velocities."""
+
+    __slots__ = ()
 
     def sgp4(self, jd, fr):
         """Compute positions and velocities for the satellites in this array.
