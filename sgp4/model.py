@@ -10,6 +10,7 @@ minutes_per_day = 1440.
 class Satrec(object):
     """Slow Python-only version of the satellite object."""
 
+    array = None       # replaced, if needed, with NumPy array()
     jdsatepochF = 0.0  # for compatibility with accelerated version
 
     @classmethod
@@ -23,14 +24,48 @@ class Satrec(object):
         r, v = sgp4(self, tsince)
         return self.error, r, v
 
+    def sgp4_array(self, jd, fr):
+        """Compute positions and velocities for the times in a NumPy array.
+
+        Given NumPy arrays ``jd`` and ``fr`` of the same length that
+        supply the whole part and the fractional part of one or more
+        Julian dates, return a tuple ``(e, r, v)`` of three vectors:
+
+        * ``e``: nonzero for any dates that produced errors, 0 otherwise.
+        * ``r``: position vectors in kilometers.
+        * ``v``: velocity vectors in kilometers per second.
+
+        """
+        # Import NumPy the first time sgp4_array() is called.
+        array = self.array
+        if array is None:
+            from numpy import array
+            Satrec.array = array
+
+        results = []
+        z = list(zip(jd, fr))
+        for jd_i, fr_i in z:
+            results.append(self.sgp4(jd_i, fr_i))
+        elist, rlist, vlist = zip(*results)
+
+        e = self.array(elist)
+        r = self.array(rlist)
+        v = self.array(vlist)
+
+        r.shape = v.shape = len(jd), 3
+        return e, r, v
+
 class SatrecArray(object):
     """Slow Python-only version of the satellite array."""
 
+    array = None  # replaced with NumPy array(), if the user tries calling
+
     def __init__(self, satrecs):
         self._satrecs = satrecs
-        # Cache optional import that we now know we need.
-        from numpy import array
-        self.array = array
+        # Import NumPy the first time a SatrecArray is instantiated.
+        if self.array is None:
+            from numpy import array
+            SatrecArray.array = array
 
     def sgp4(self, jd, fr):
         """Compute positions and velocities for the satellites in this array.
