@@ -3,12 +3,93 @@
 #include "SGP4.h"
 #include "structmember.h"
 
-/* Satrec object that wraps a single raw SGP4 struct. */
+/* Satrec object that wraps a single raw SGP4 struct, and a Satrec array
+   that can broadcast into NumPy arrays. */
 
 typedef struct {
     PyObject_HEAD
     elsetrec satrec;
 } SatrecObject;
+
+typedef struct {
+    PyObject_VAR_HEAD
+    elsetrec satrec[0];
+} SatrecArrayObject;
+
+/* Support routine that is used to support NumPy array broadcasting for
+   both individual satellite objects and also arrays. */
+
+static PyObject *
+_vectorized_sgp4(PyObject *args, elsetrec *raw_satrec_array, int imax)
+{
+    PyObject *jd_arg, *fr_arg, *e_arg, *r_arg, *v_arg;
+    Py_buffer jd_buf, fr_buf, e_buf, r_buf, v_buf;
+    PyObject *rv = NULL;
+
+    // To prepare for "cleanup:" below.
+    jd_buf.buf = fr_buf.buf = e_buf.buf = r_buf.buf = v_buf.buf = NULL;
+
+    if (!PyArg_ParseTuple(args, "OOOOO:sgp4",
+                          &jd_arg, &fr_arg, &e_arg, &r_arg, &v_arg))
+        return NULL;
+
+    if (PyObject_GetBuffer(jd_arg, &jd_buf, PyBUF_SIMPLE)) goto cleanup;
+    if (PyObject_GetBuffer(fr_arg, &fr_buf, PyBUF_SIMPLE)) goto cleanup;
+    if (PyObject_GetBuffer(e_arg, &e_buf, PyBUF_WRITABLE)) goto cleanup;
+    if (PyObject_GetBuffer(r_arg, &r_buf, PyBUF_WRITABLE)) goto cleanup;
+    if (PyObject_GetBuffer(v_arg, &v_buf, PyBUF_WRITABLE)) goto cleanup;
+
+    if (jd_buf.len != fr_buf.len) {
+        PyErr_SetString(PyExc_ValueError, "jd and fr must have the same shape");
+        goto cleanup;
+    }
+
+    // This extra block allows the "goto" statements above to jump
+    // across these further variable declarations.
+    {
+        Py_ssize_t jmax = jd_buf.len / sizeof(double);
+
+        if ((r_buf.len != (Py_ssize_t) sizeof(double) * imax * jmax * 3) ||
+            (v_buf.len != (Py_ssize_t) sizeof(double) * imax * jmax * 3) ||
+            (e_buf.len != (Py_ssize_t) sizeof(uint8_t) * imax * jmax)) {
+            PyErr_SetString(PyExc_ValueError, "bad output array dimension");
+            goto cleanup;
+        }
+
+        double *jd = (double*) jd_buf.buf;
+        double *fr = (double*) fr_buf.buf;
+        double *r = (double*) r_buf.buf;
+        double *v = (double*) v_buf.buf;
+        uint8_t *e = (uint8_t*) e_buf.buf;
+
+#pragma omp parallel for
+        for (Py_ssize_t i=0; i < imax; i++) {
+            elsetrec &satrec = raw_satrec_array[i];
+            for (Py_ssize_t j=0; j < jmax; j++) {
+                double t = (jd[j] - satrec.jdsatepoch) * 1440.0
+                         + (fr[j] - satrec.jdsatepochF) * 1440.0;
+                Py_ssize_t k = i * jmax + j;
+                SGP4Funcs::sgp4(satrec, t, r + k*3, v + k*3);
+                if (satrec.error && satrec.error < 6) {
+                    r[k] = r[k+1] = r[k+2] = v[k] = v[k+1] = v[k+2] = NAN;
+                }
+                e[k] = (uint8_t) satrec.error;
+            }
+        }
+    }
+
+    Py_INCREF(Py_None);
+    rv = Py_None;
+ cleanup:
+    if (jd_buf.buf) PyBuffer_Release(&jd_buf);
+    if (fr_buf.buf) PyBuffer_Release(&fr_buf);
+    if (r_buf.buf) PyBuffer_Release(&r_buf);
+    if (v_buf.buf) PyBuffer_Release(&v_buf);
+    if (e_buf.buf) PyBuffer_Release(&e_buf);
+    return rv;
+}
+
+/* Details of the "Satrec" satellite object. */
 
 static PyObject *
 Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
@@ -51,11 +132,22 @@ Satrec_sgp4(PyObject *self, PyObject *args)
                          r[0], r[1], r[2], v[0], v[1], v[2]);
 }
 
+static PyObject *
+Satrec__sgp4(PyObject *self, PyObject *args)
+{
+    SatrecObject *obj = (SatrecObject*) self;
+    elsetrec *raw_satrec_array = &(obj->satrec);
+    Py_ssize_t imax = 1;
+    return _vectorized_sgp4(args, raw_satrec_array, imax);
+}
+
 static PyMethodDef Satrec_methods[] = {
     {"twoline2rv", (PyCFunction)Satrec_twoline2rv, METH_VARARGS | METH_CLASS,
      PyDoc_STR("Initialize the record from two lines of TLE text.")},
     {"sgp4", (PyCFunction)Satrec_sgp4, METH_VARARGS,
-     PyDoc_STR("Given minutes since epoch, return a position and velocity.")},
+     PyDoc_STR("Given minutes since epoch, return position and velocity.")},
+    {"_sgp4", (PyCFunction)Satrec__sgp4, METH_VARARGS,
+     PyDoc_STR("Given an array of minutes since epoch, return position and velocity arrays.")},
     {NULL, NULL}
 };
 
@@ -137,12 +229,7 @@ static PyTypeObject SatrecType = {
     /* See the module initialization function at the bottom of this file. */
 };
 
-/* Satrec array that can broadcast into NumPy arrays. */
-
-typedef struct {
-    PyObject_VAR_HEAD
-    elsetrec satrec[0];
-} SatrecArrayObject;
+/* Details of the SatrecArray. */
 
 static Py_ssize_t
 Satrec_len(PyObject *self) {
@@ -202,73 +289,10 @@ SatrecArray_init(SatrecArrayObject *self, PyObject *args, PyObject *kwds)
 static PyObject *
 SatrecArray_sgp4(PyObject *self, PyObject *args)
 {
-    PyObject *jd_arg, *fr_arg, *e_arg, *r_arg, *v_arg;
-    Py_buffer jd_buf, fr_buf, e_buf, r_buf, v_buf;
-    PyObject *rv = NULL;
-
-    // To prepare for "cleanup:" below.
-    jd_buf.buf = fr_buf.buf = e_buf.buf = r_buf.buf = v_buf.buf = NULL;
-
-    if (!PyArg_ParseTuple(args, "OOOOO:sgp4",
-                          &jd_arg, &fr_arg, &e_arg, &r_arg, &v_arg))
-        return NULL;
-
-    if (PyObject_GetBuffer(jd_arg, &jd_buf, PyBUF_SIMPLE)) goto cleanup;
-    if (PyObject_GetBuffer(fr_arg, &fr_buf, PyBUF_SIMPLE)) goto cleanup;
-    if (PyObject_GetBuffer(e_arg, &e_buf, PyBUF_WRITABLE)) goto cleanup;
-    if (PyObject_GetBuffer(r_arg, &r_buf, PyBUF_WRITABLE)) goto cleanup;
-    if (PyObject_GetBuffer(v_arg, &v_buf, PyBUF_WRITABLE)) goto cleanup;
-
-    if (jd_buf.len != fr_buf.len) {
-        PyErr_SetString(PyExc_ValueError, "jd and fr must have the same shape");
-        goto cleanup;
-    }
-
-    // This extra block allows the "goto" statements above to jump
-    // across these further variable declarations.
-    {
-        SatrecArrayObject *satrec_array = (SatrecArrayObject*) self;
-        Py_ssize_t imax = ((SatrecArrayObject*) self)->ob_base.ob_size;
-        Py_ssize_t jmax = jd_buf.len / sizeof(double);
-
-        if ((r_buf.len != (Py_ssize_t) sizeof(double) * imax * jmax * 3) ||
-            (v_buf.len != (Py_ssize_t) sizeof(double) * imax * jmax * 3) ||
-            (e_buf.len != (Py_ssize_t) sizeof(uint8_t) * imax * jmax)) {
-            PyErr_SetString(PyExc_ValueError, "bad output array dimension");
-            goto cleanup;
-        }
-
-        double *jd = (double*) jd_buf.buf;
-        double *fr = (double*) fr_buf.buf;
-        double *r = (double*) r_buf.buf;
-        double *v = (double*) v_buf.buf;
-        uint8_t *e = (uint8_t*) e_buf.buf;
-
-#pragma omp parallel for
-        for (Py_ssize_t i=0; i < imax; i++) {
-            elsetrec &satrec = satrec_array->satrec[i];
-            for (Py_ssize_t j=0; j < jmax; j++) {
-                double t = (jd[j] - satrec.jdsatepoch) * 1440.0
-                         + (fr[j] - satrec.jdsatepochF) * 1440.0;
-                Py_ssize_t k = i * jmax + j;
-                SGP4Funcs::sgp4(satrec, t, r + k*3, v + k*3);
-                if (satrec.error && satrec.error < 6) {
-                    r[k] = r[k+1] = r[k+2] = v[k] = v[k+1] = v[k+2] = NAN;
-                }
-                e[k] = (uint8_t) satrec.error;
-            }
-        }
-    }
-
-    Py_INCREF(Py_None);
-    rv = Py_None;
- cleanup:
-    if (jd_buf.buf) PyBuffer_Release(&jd_buf);
-    if (fr_buf.buf) PyBuffer_Release(&fr_buf);
-    if (r_buf.buf) PyBuffer_Release(&r_buf);
-    if (v_buf.buf) PyBuffer_Release(&v_buf);
-    if (e_buf.buf) PyBuffer_Release(&e_buf);
-    return rv;
+    SatrecArrayObject *satrec_array = (SatrecArrayObject*) self;
+    elsetrec *raw_satrec_array = &(satrec_array->satrec[0]);
+    Py_ssize_t imax = satrec_array->ob_base.ob_size;
+    return _vectorized_sgp4(args, raw_satrec_array, imax);
 }
 
 static PyMethodDef SatrecArray_methods[] = {

@@ -11,7 +11,9 @@ import sys
 from doctest import DocTestSuite, ELLIPSIS
 from math import pi, isnan
 
-from sgp4.api import Satrec, SGP4_ERRORS, jday
+import numpy as np
+
+from sgp4.api import Satrec, SatrecArray, SGP4_ERRORS, jday
 from sgp4.earth_gravity import wgs72
 from sgp4.ext import invjday, newtonnu, rv2coe
 from sgp4.propagation import sgp4
@@ -229,6 +231,7 @@ with an N where each digit should go, followed by the line you provided:
         msg = "Object numbers in lines 1 and 2 do not match"
         with self.assertRaisesRegex(ValueError, re.escape(msg)):
             self.build_satrec(good1, bad2)
+
 
 good1 = '1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753'
 good2 = '2 00005  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413667'
