@@ -69,7 +69,6 @@ class SatelliteObjectTests(object):
         # Make sure the Satrec has the same attributes.
         sat = self.build_satrec(good1, good2)
         self.assertEqual(sat.satnum, 5)
-        #self.assertEqual(sat.epochyr, 2000)  # TODO: fix this
         self.assertEqual(sat.epochdays, 179.78495062)
         if sat.jdsatepoch % 1.0 == 0.5:
             self.assertEqual(sat.jdsatepoch, 2451722.5)
@@ -173,6 +172,13 @@ class NewSatelliteObjectTests(TestCase, SatelliteObjectTests):
         e, r, v = satrec.sgp4(jd, fr)
         return e, SGP4_ERRORS[e] if e else '', r, v
 
+    def test_correct_epochyr(self):
+        # Make sure that the non-standard four-digit epochyr I switched
+        # to in the Python version of SGP4 is reverted back to the
+        # official behavior when that code is used behind Satrec.
+        sat = self.build_satrec(good1, good2)
+        self.assertEqual(sat.epochyr, 0)
+
 
 class LegacySatelliteObjectTests(TestCase, SatelliteObjectTests):
 
@@ -198,6 +204,12 @@ class LegacySatelliteObjectTests(TestCase, SatelliteObjectTests):
         e = satrec.error
         emsg = satrec.error_message
         return e, emsg, r, v
+
+    def test_legacy_epochyr(self):
+        # Apparently I saw fit to change the meaning of this attribute
+        # in the Python version of SGP4.
+        sat = self.build_satrec(good1, good2)
+        self.assertEqual(sat.epochyr, 2000)
 
     def test_support_for_old_no_attribute(self):
         s = self.build_satrec(good1, good2)

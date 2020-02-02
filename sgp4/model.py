@@ -37,10 +37,15 @@ class Satrec(object):
     array = None       # replaced, if needed, with NumPy array()
     jdsatepochF = 0.0  # for compatibility with accelerated version
 
+    @property
+    def no(self):
+        return self.no_kozai
+
     @classmethod
     def twoline2rv(cls, line1, line2):
         self = cls()
         twoline2rv(line1, line2, wgs72, 'i', self)
+        self.epochyr %= 100  # undo my non-standard 4-digit year
         return self
 
     def sgp4(self, jd, fr):

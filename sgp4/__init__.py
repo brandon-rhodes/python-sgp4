@@ -170,6 +170,7 @@ https://pypi.org/project/sgp4/1.4/
 Changelog
 ---------
 
+| 2020-02-02 — 2.2 — Fix the Satrec ``.epochyr`` attribute so it behaves the same way in Python as it does in C, where it is only the last 2 digits of the year; and make ``.no`` available in both cases as well.
 | 2020-02-02 — 2.1 — Add vectorized array method to Satrec object; add ``.no`` attribute to new Satrec object to support old code that has not migrated to the new name ``.no_kozai``; gave Python wrapper classes ``__slots__`` to avoid the expense of a per-object attribute dictionary.
 | 2020-01-30 — 2.0 — Rewrite API to use genuine Vallado C++ code on those systems where it can be compiled; add accelerated vectorized array interface; make ``gstime()`` a public function; clarify format error message.
 | 2015-01-15 — 1.4 — Display detailed help when TLE input does not match format.
