@@ -58,7 +58,9 @@ June 2000:
 Here is how to intrepret the results:
 
 * ``e`` will be a non-zero error code if the satellite position could
-  not be computed for the given date.
+  not be computed for the given date.  You can ``from sgp4.api import
+  SGP4_ERRORS`` to access a dictionary mapping error codes to error
+  messages explaining what each code means.
 
 * ``r`` measures the satellite position in **kilometers** from the
   center of the earth in the idiosyncratic True Equator Mean Equinox
