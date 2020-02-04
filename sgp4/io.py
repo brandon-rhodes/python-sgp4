@@ -131,7 +131,7 @@ def twoline2rv(longstr1, longstr2, whichconst, opsmode='i', satrec=None):
     satrec.whichconst = whichconst  # Python extension: remembers its consts
 
     line = longstr1.rstrip()
-    # try/except is not well supported by Numba
+
     if (len(line) >= 64 and
         line.startswith('1 ') and
         line[8] == ' ' and
@@ -159,6 +159,7 @@ def twoline2rv(longstr1, longstr2, whichconst, opsmode='i', satrec=None):
         raise ValueError(error_message.format(1, LINE1, line))
 
     line = longstr2.rstrip()
+
     if (len(line) >= 69 and
         line.startswith('2 ') and
         line[7] == ' ' and
