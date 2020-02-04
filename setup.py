@@ -11,7 +11,7 @@ ext_modules = []
 
 # It is hard to write C extensions that support both Python 2 and 3, so
 # we opt here to support the acceleration only for Python 3.
-if sys.version_info[0] == 3:
+if sys.version_info[0] >= 3:
     ext_modules.append(Extension(
         'sgp4.vallado_cpp',
         sources = [
