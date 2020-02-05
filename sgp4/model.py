@@ -3,7 +3,7 @@
 from sgp4.earth_gravity import wgs72
 from sgp4.ext import jday
 from sgp4.io import twoline2rv
-from sgp4.propagation import sgp4
+from sgp4.propagation import sgp4, sgp4init
 
 minutes_per_day = 1440.
 
@@ -47,6 +47,15 @@ class Satrec(object):
         twoline2rv(line1, line2, wgs72, 'i', self)
         self.epochyr %= 100  # undo my non-standard 4-digit year
         return self
+
+    @classmethod
+    def Satellite(cls):
+        return cls()
+
+    def sgp4init(self, satnum, jdsatepoch, bstar, ndot, nddot, 
+                 ecco, argpo, inclo, mo, no_kozai, nodeo):
+        return sgp4init(wgs72, 'i', satnum, jdsatepoch, bstar, ndot, nddot,
+                        ecco, argpo, inclo, mo, no_kozai, nodeo, self)
 
     def sgp4(self, jd, fr):
         tsince = (jd - self.jdsatepoch + fr) * minutes_per_day
