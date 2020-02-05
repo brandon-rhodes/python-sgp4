@@ -100,20 +100,9 @@ class SatelliteObjectTests(object):
         no_kozai = 0.04722944544077857
         nodeo = 6.08638547138321
 
-        # Make sure the Satrec ininitalized via sgp4init() has the same attributes.
-        sat = self.build_satrec_sgp4init(satnum, jdsatepoch, bstar, ndot, nddot,
-                          ecco, argpo, inclo, mo, no_kozai, nodeo)
+        sat = self.build_satrec_from_sgp4init(satnum, jdsatepoch, bstar, ndot, nddot,
+                                              ecco, argpo, inclo, mo, no_kozai, nodeo)
         self.assertEqual(sat.satnum, 5)
-        # sgp4init does not back-calculate epochdays - does it need to?
-        #self.assertEqual(sat.epochdays, 179.78495062)
-
-        ## sgp4init does not set jdsatepoch internally  
-        # if sat.jdsatepoch % 1.0 == 0.5:
-        #     self.assertEqual(sat.jdsatepoch, 2451722.5)
-        #     self.assertAlmostEqual(sat.jdsatepochF, 0.78495062, 8)
-        # else:
-        #     self.assertEqual(sat.jdsatepoch, 2451723.28495062)
-
         self.assertEqual(sat.ndot, 6.96919666594958e-13)
         self.assertEqual(sat.nddot, 0.0)
         self.assertEqual(sat.bstar, 2.8098e-05)
@@ -204,10 +193,10 @@ class NewSatelliteObjectTests(TestCase, SatelliteObjectTests):
     def build_satrec(self, line1, line2):
         return Satrec.twoline2rv(line1, line2)
 
-    def build_satrec_sgp4init(self, satnum, jdsatepoch, bstar, ndot, nddot,
-                          ecco, argpo, inclo, mo, no_kozai, nodeo):
+    def build_satrec_from_sgp4init(self, satnum, jdsatepoch, bstar, ndot, nddot,
+                                   ecco, argpo, inclo, mo, no_kozai, nodeo):
         return Satrec.sgp4init(satnum, jdsatepoch, bstar, ndot, nddot,
-                          ecco, argpo, inclo, mo, no_kozai, nodeo)
+                               ecco, argpo, inclo, mo, no_kozai, nodeo)
 
     def invoke_satrec(self, satrec, tsince):
         whole, fraction = divmod(tsince / 1440.0, 1.0)
@@ -244,14 +233,14 @@ class LegacySatelliteObjectTests(TestCase, SatelliteObjectTests):
         return io.twoline2rv(line1, line2, wgs72)
 
     def build_satrec_sgp4init(self, satnum, jdsatepoch, bstar, ndot, nddot,
-                          ecco, argpo, inclo, mo, no_kozai, nodeo):
+                              ecco, argpo, inclo, mo, no_kozai, nodeo):
 
         satrec = Satellite()
         satrec.error = 0
         satrec.whichconst = wgs72
 
         sgp4init(wgs72, 'i', satnum, jdsatepoch-2433281.5, bstar, ndot, nddot,
-                          ecco, argpo, inclo, mo, no_kozai, nodeo, satrec)
+                 ecco, argpo, inclo, mo, no_kozai, nodeo, satrec)
         return satrec
 
     def invoke_satrec(self, satrec, tsince):
