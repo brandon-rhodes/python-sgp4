@@ -195,8 +195,10 @@ class NewSatelliteObjectTests(TestCase, SatelliteObjectTests):
 
     def build_satrec_from_sgp4init(self, satnum, jdsatepoch, bstar, ndot, nddot,
                                    ecco, argpo, inclo, mo, no_kozai, nodeo):
-        return Satrec.sgp4init(satnum, jdsatepoch, bstar, ndot, nddot,
+        satrec = Satrec.Satellite()
+        satrec.sgp4init(satnum, jdsatepoch, bstar, ndot, nddot,
                                ecco, argpo, inclo, mo, no_kozai, nodeo)
+        return satrec
 
     def invoke_satrec(self, satrec, tsince):
         whole, fraction = divmod(tsince / 1440.0, 1.0)
@@ -232,7 +234,7 @@ class LegacySatelliteObjectTests(TestCase, SatelliteObjectTests):
     def build_satrec(self, line1, line2):
         return io.twoline2rv(line1, line2, wgs72)
 
-    def build_satrec_sgp4init(self, satnum, jdsatepoch, bstar, ndot, nddot,
+    def build_satrec_from_sgp4init(self, satnum, jdsatepoch, bstar, ndot, nddot,
                               ecco, argpo, inclo, mo, no_kozai, nodeo):
 
         satrec = Satellite()
