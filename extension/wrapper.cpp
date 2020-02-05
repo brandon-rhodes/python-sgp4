@@ -117,6 +117,30 @@ Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
 }
 
 static PyObject *
+Satrec_sgp4init(PyTypeObject *cls, PyObject *args)
+{
+    // char *string1, opsmode[1];
+    int satnum;
+    double jdSGP4epoch, bstar, ndot, nddot;
+    double ecco, argpo, inclo, mo, no_kozai, nodeo;
+
+    if (!PyArg_ParseTuple(args, "Idddddddddd:sgp4init", &satnum, &jdSGP4epoch, &bstar, &ndot, &nddot,
+            &ecco, &argpo, &inclo, &mo, &no_kozai, &nodeo))
+        return NULL;
+
+    // strncpy(opsmode, string1, 1);
+
+    SatrecObject *self = (SatrecObject*) cls->tp_alloc(cls, 0);
+    if (!self)
+        return NULL;
+
+    SGP4Funcs::sgp4init(wgs72, 'i', satnum, jdSGP4epoch, bstar, ndot, nddot,
+                          ecco, argpo, inclo, mo, no_kozai, nodeo, self->satrec);
+
+    return (PyObject*) self;
+}
+
+static PyObject *
 Satrec_sgp4(PyObject *self, PyObject *args)
 {
     double jd, fr, r[3], v[3];
@@ -144,6 +168,8 @@ Satrec__sgp4(PyObject *self, PyObject *args)
 static PyMethodDef Satrec_methods[] = {
     {"twoline2rv", (PyCFunction)Satrec_twoline2rv, METH_VARARGS | METH_CLASS,
      PyDoc_STR("Initialize the record from two lines of TLE text.")},
+    {"sgp4init", (PyCFunction)Satrec_sgp4init, METH_VARARGS | METH_CLASS,
+     PyDoc_STR("Initialize the record directly from provided variables.")},
     {"sgp4", (PyCFunction)Satrec_sgp4, METH_VARARGS,
      PyDoc_STR("Given minutes since epoch, return position and velocity.")},
     {"_sgp4", (PyCFunction)Satrec__sgp4, METH_VARARGS,
