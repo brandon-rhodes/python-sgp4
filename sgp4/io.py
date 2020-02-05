@@ -6,7 +6,7 @@ This is a minimally-edited copy of "sgp4io.cpp".
 import re
 from datetime import datetime
 from math import pi, pow
-from sgp4.ext import days2mdhms, jday
+from sgp4.ext import days2mdhms, invjday, jday
 from sgp4.propagation import sgp4init
 
 INT_RE = re.compile(r'[+-]?\d*')
@@ -224,8 +224,15 @@ def twoline2rv(longstr1, longstr2, whichconst, opsmode='i', satrec=None):
 
     satrec.epochyr = year
     satrec.jdsatepoch = jday(year,mon,day,hr,minute,sec);
-    satrec.epoch = datetime(year, mon, day, hr, minute, int(sec_whole),
-                            int(sec_fraction * 1000000.0 // 1.0))
+    try:
+        satrec.epoch = datetime(year, mon, day, hr, minute, int(sec_whole),
+                                int(sec_fraction * 1000000.0 // 1.0))
+    except ValueError:
+        # Sometimes a TLE says something like "2019 + 366.82137887 days"
+        # which would be December 32nd which causes a ValueError.
+        year, mon, day, hr, minute, sec = invjday(satrec.jdsatepoch)
+        satrec.epoch = datetime(year, mon, day, hr, minute, int(sec_whole),
+                                int(sec_fraction * 1000000.0 // 1.0))
 
     #  ---------------- initialize the orbit at sgp4epoch -------------------
     sgp4init(whichconst, opsmode, satrec.satnum, satrec.jdsatepoch-2433281.5, satrec.bstar, 

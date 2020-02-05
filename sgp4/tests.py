@@ -5,15 +5,14 @@ try:
 except:
     from unittest import TestCase, main
 
+import datetime as dt
 import os
 import re
 import sys
 from doctest import DocTestSuite, ELLIPSIS
 from math import pi, isnan
 
-import numpy as np
-
-from sgp4.api import Satrec, SatrecArray, SGP4_ERRORS, jday
+from sgp4.api import SGP4_ERRORS, Satrec, jday
 from sgp4.earth_gravity import wgs72
 from sgp4.ext import invjday, newtonnu, rv2coe
 from sgp4.propagation import sgp4
@@ -214,6 +213,17 @@ class LegacySatelliteObjectTests(TestCase, SatelliteObjectTests):
     def test_support_for_old_no_attribute(self):
         s = self.build_satrec(good1, good2)
         assert s.no == s.no_kozai
+
+    def test_december_32(self):
+        # ISS [Orbit 606], whose date is 2019 plus 366.82137887 days.
+        sat = self.build_satrec(
+        '1 25544U 98067A   19366.82137887  .00016717  00000-0  10270-3 0  9129',
+        '2 25544  51.6392  96.6358 0005156  88.7140 271.4601 15.49497216  6061',
+        )
+        self.assertEqual(
+            dt.datetime(2020, 1, 1, 19, 42, 47, 134367),
+            sat.epoch,
+        )
 
     def test_bad_first_line(self):
         with self.assertRaisesRegex(ValueError, re.escape("""TLE format error
