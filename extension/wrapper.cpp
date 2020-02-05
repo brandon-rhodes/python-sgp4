@@ -92,6 +92,16 @@ _vectorized_sgp4(PyObject *args, elsetrec *raw_satrec_array, int imax)
 /* Details of the "Satrec" satellite object. */
 
 static PyObject *
+Satrec_Satellite(PyTypeObject *cls)
+{
+    SatrecObject *self = (SatrecObject*) cls->tp_alloc(cls, 0);
+    if (!self)
+        return NULL;
+
+    return (PyObject*) self;
+}
+
+static PyObject *
 Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
 {
     char *string1, *string2, line1[130], line2[130];
@@ -116,6 +126,31 @@ Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
     return (PyObject*) self;
 }
 
+static bool
+Satrec_sgp4init(PyObject *self, PyObject *args)
+{
+    int satnum;
+    double jdSGP4epoch, bstar, ndot, nddot;
+    double ecco, argpo, inclo, mo, no_kozai, nodeo;
+
+    if (!PyArg_ParseTuple(args, "ldddddddddd:sgp4init", &satnum, &jdSGP4epoch, &bstar, &ndot, &nddot,
+                          &ecco, &argpo, &inclo, &mo, &no_kozai, &nodeo))
+        return false;
+
+    elsetrec &satrec = ((SatrecObject*) self)->satrec;
+
+    SGP4Funcs::sgp4init(wgs72, 'i', satnum, jdSGP4epoch, bstar, ndot, nddot,
+                        ecco, argpo, inclo, mo, no_kozai, nodeo, satrec);
+
+    /* Return true as sgp4init does, satrec.error contains any error codes */
+
+    /* Present state: sgp4init runs fine, but function segmentation faults
+    at the return statement */
+
+    return true;
+}
+
+/*
 static PyObject *
 Satrec_sgp4init(PyTypeObject *cls, PyObject *args)
 {
@@ -136,6 +171,7 @@ Satrec_sgp4init(PyTypeObject *cls, PyObject *args)
 
     return (PyObject*) self;
 }
+*/
 
 static PyObject *
 Satrec_sgp4(PyObject *self, PyObject *args)
@@ -163,9 +199,11 @@ Satrec__sgp4(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef Satrec_methods[] = {
+    {"Satellite", (PyCFunction)Satrec_Satellite, METH_NOARGS | METH_CLASS,
+     PyDoc_STR("Initialize an empty satellite record.")},
     {"twoline2rv", (PyCFunction)Satrec_twoline2rv, METH_VARARGS | METH_CLASS,
      PyDoc_STR("Initialize the record from two lines of TLE text.")},
-    {"sgp4init", (PyCFunction)Satrec_sgp4init, METH_VARARGS | METH_CLASS,
+    {"sgp4init", (PyCFunction)Satrec_sgp4init, METH_VARARGS,
      PyDoc_STR("Initialize the record from orbital elements.")},
     {"sgp4", (PyCFunction)Satrec_sgp4, METH_VARARGS,
      PyDoc_STR("Given minutes since epoch, return position and velocity.")},
@@ -177,56 +215,59 @@ static PyMethodDef Satrec_methods[] = {
 #define O(member) offsetof(SatrecObject, satrec.member)
 
 static PyMemberDef Satrec_members[] = {
-    /* Listed in the order they appear in a TLE record. */
+    /* Listed in the order they appear in a TLE record. 
+    Expect that direct sgp4init() calls may update most variables below except satnum    */
 
     {"satnum", T_LONG, O(satnum), READONLY,
      PyDoc_STR("Satellite number, from characters 3-7 of each TLE line.")},
-    {"jdsatepoch", T_DOUBLE, O(jdsatepoch), READONLY,
+    {"jdsatepoch", T_DOUBLE, O(jdsatepoch), 0,
      PyDoc_STR("Julian date of epoch, day number (see jdsatepochF).")},
-    {"jdsatepochF", T_DOUBLE, O(jdsatepochF), READONLY,
+    {"jdsatepochF", T_DOUBLE, O(jdsatepochF), 0,
      PyDoc_STR("Julian date of epoch, fraction of day (see jdsatepoch).")},
-    {"classification", T_CHAR, O(classification), READONLY,
+    {"classification", T_CHAR, O(classification), 0,
      "Usually U=Unclassified, C=Classified, or S=Secret."},
     /* intldesg: inline character array; see Satrec_getset. */
-    {"epochyr", T_INT, O(epochyr), READONLY,
+    {"epochyr", T_INT, O(epochyr), 0,
      PyDoc_STR("Year of this element set's epoch (see epochdays).")},
-    {"epochdays", T_DOUBLE, O(epochdays), READONLY,
+    {"epochdays", T_DOUBLE, O(epochdays), 0,
      PyDoc_STR("Day of the year of this element set's epoch (see epochyr).")},
-    {"ndot", T_DOUBLE, O(ndot), READONLY,
+    {"ndot", T_DOUBLE, O(ndot), 0,
      PyDoc_STR("Ballistic Coefficient in revs/day.")},
-    {"nddot", T_DOUBLE, O(nddot), READONLY,
+    {"nddot", T_DOUBLE, O(nddot), 0,
      PyDoc_STR("Second Derivative of Mean Motion in revs/day^3.")},
-    {"bstar", T_DOUBLE, O(bstar), READONLY,
+    {"bstar", T_DOUBLE, O(bstar), 0,
      PyDoc_STR("Drag Term in inverse Earth radii.")},
-    {"ephtype", T_INT, O(ephtype), READONLY,
+    {"ephtype", T_INT, O(ephtype), 0,
      PyDoc_STR("Ephemeris type (should be 0 in published TLEs).")},
-    {"elnum", T_INT, O(elnum), READONLY,
+    {"elnum", T_INT, O(elnum), 0,
      PyDoc_STR("Element set number.")},
-    {"inclo", T_DOUBLE, O(inclo), READONLY,
+    {"inclo", T_DOUBLE, O(inclo), 0,
      PyDoc_STR("Inclination in radians.")},
-    {"nodeo", T_DOUBLE, O(nodeo), READONLY,
+    {"nodeo", T_DOUBLE, O(nodeo), 0,
      PyDoc_STR("Right ascension of ascending node in radians.")},
-    {"ecco", T_DOUBLE, O(ecco), READONLY,
+    {"ecco", T_DOUBLE, O(ecco), 0,
      PyDoc_STR("Eccentricity.")},
-    {"argpo", T_DOUBLE, O(argpo), READONLY,
+    {"argpo", T_DOUBLE, O(argpo), 0,
      PyDoc_STR("Argument of perigee in radians.")},
-    {"mo", T_DOUBLE, O(mo), READONLY,
+    {"mo", T_DOUBLE, O(mo), 0,
      PyDoc_STR("Mean anomaly in radians.")},
-    {"no_kozai", T_DOUBLE, O(no_kozai), READONLY,
+    {"no_kozai", T_DOUBLE, O(no_kozai), 0,
      PyDoc_STR("Mean motion in radians per minute.")},
-    {"revnum", T_LONG, O(revnum), READONLY,
+    {"revnum", T_LONG, O(revnum), 0,
      PyDoc_STR("Integer revolution number at the epoch.")},
 
     /* For compatibility with the old struct members, also accept the
        plain name "no". */
 
-    {"no", T_DOUBLE, O(no_kozai), READONLY,
+    {"no", T_DOUBLE, O(no_kozai), 0,
      PyDoc_STR("Alias for the more carefully named ``no_kozai``.")},
 
     /* Derived values that do not appear explicitly in the TLE. */
 
     {"method", T_CHAR, O(method), READONLY,
      PyDoc_STR("Method, either 'n' near earth or 'd' deep space.")},
+    {"error", T_INT, O(method), READONLY,
+     PyDoc_STR("Error code (1-6) documented in sgp4()")},
     {NULL}
 };
 
@@ -260,7 +301,7 @@ Satrec_len(PyObject *self) {
 }
 
 static PySequenceMethods SatrecArray_as_sequence = {
-    sq_length : Satrec_len,
+    .sq_length = Satrec_len,
 };
 
 static PyObject *
@@ -334,9 +375,9 @@ PyAPI_DATA(PyTypeObject) SatrecArrayType = {
 
 static PyModuleDef module = {
     PyModuleDef_HEAD_INIT,
-    m_name : "sgp4.vallado_cpp",
-    m_doc : "Official C++ SGP4 implementation.",
-    m_size : -1,
+    .m_name = "sgp4.vallado_cpp",
+    .m_doc = "Official C++ SGP4 implementation.",
+    .m_size = -1,
 };
 
 PyMODINIT_FUNC
