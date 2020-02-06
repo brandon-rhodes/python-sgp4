@@ -195,7 +195,7 @@ class NewSatelliteObjectTests(TestCase, SatelliteObjectTests):
 
     def build_satrec_from_sgp4init(self, satnum, jdsatepoch, bstar, ndot, nddot,
                                    ecco, argpo, inclo, mo, no_kozai, nodeo):
-        satrec = Satrec.Satellite()
+        satrec = Satrec()
         satrec.sgp4init(satnum, jdsatepoch, bstar, ndot, nddot,
                                ecco, argpo, inclo, mo, no_kozai, nodeo)
         return satrec

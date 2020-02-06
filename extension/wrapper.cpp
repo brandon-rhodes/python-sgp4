@@ -92,16 +92,6 @@ _vectorized_sgp4(PyObject *args, elsetrec *raw_satrec_array, int imax)
 /* Details of the "Satrec" satellite object. */
 
 static PyObject *
-Satrec_Satellite(PyTypeObject *cls)
-{
-    SatrecObject *self = (SatrecObject*) cls->tp_alloc(cls, 0);
-    if (!self)
-        return NULL;
-
-    return (PyObject*) self;
-}
-
-static PyObject *
 Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
 {
     char *string1, *string2, line1[130], line2[130];
@@ -126,7 +116,7 @@ Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
     return (PyObject*) self;
 }
 
-static bool
+static PyObject *
 Satrec_sgp4init(PyObject *self, PyObject *args)
 {
     int satnum;
@@ -135,7 +125,7 @@ Satrec_sgp4init(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "ldddddddddd:sgp4init", &satnum, &jdSGP4epoch, &bstar, &ndot, &nddot,
                           &ecco, &argpo, &inclo, &mo, &no_kozai, &nodeo))
-        return false;
+        return NULL;
 
     elsetrec &satrec = ((SatrecObject*) self)->satrec;
 
@@ -146,32 +136,9 @@ Satrec_sgp4init(PyObject *self, PyObject *args)
 
     /* Present state: sgp4init runs fine, but function segmentation faults
     at the return statement */
-
-    return true;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
-
-/*
-static PyObject *
-Satrec_sgp4init(PyTypeObject *cls, PyObject *args)
-{
-    int satnum;
-    double jdSGP4epoch, bstar, ndot, nddot;
-    double ecco, argpo, inclo, mo, no_kozai, nodeo;
-
-    if (!PyArg_ParseTuple(args, "Idddddddddd:sgp4init", &satnum, &jdSGP4epoch, &bstar, &ndot, &nddot,
-            &ecco, &argpo, &inclo, &mo, &no_kozai, &nodeo))
-        return NULL;
-
-    SatrecObject *self = (SatrecObject*) cls->tp_alloc(cls, 0);
-    if (!self)
-        return NULL;
-
-    SGP4Funcs::sgp4init(wgs72, 'i', satnum, jdSGP4epoch, bstar, ndot, nddot,
-                          ecco, argpo, inclo, mo, no_kozai, nodeo, self->satrec);
-
-    return (PyObject*) self;
-}
-*/
 
 static PyObject *
 Satrec_sgp4(PyObject *self, PyObject *args)
@@ -199,8 +166,6 @@ Satrec__sgp4(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef Satrec_methods[] = {
-    {"Satellite", (PyCFunction)Satrec_Satellite, METH_NOARGS | METH_CLASS,
-     PyDoc_STR("Initialize an empty satellite record.")},
     {"twoline2rv", (PyCFunction)Satrec_twoline2rv, METH_VARARGS | METH_CLASS,
      PyDoc_STR("Initialize the record from two lines of TLE text.")},
     {"sgp4init", (PyCFunction)Satrec_sgp4init, METH_VARARGS,
