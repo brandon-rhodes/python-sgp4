@@ -1701,7 +1701,7 @@ def sgp4(satrec, tsince, whichconst=None):
 
      mrt = 0.0
      if whichconst is None:
-          whichconst = satrec.whichconst
+          whichconst = getgravconst('wgs72')
 
      """
      /* ------------------ set mathematical constants --------------- */

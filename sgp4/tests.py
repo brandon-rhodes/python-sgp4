@@ -238,8 +238,6 @@ class LegacySatelliteObjectTests(TestCase, SatelliteObjectTests):
                               ecco, argpo, inclo, mo, no_kozai, nodeo):
 
         satrec = Satellite()
-        satrec.error = 0
-        satrec.whichconst = wgs72
 
         sgp4init(wgs72, 'i', satnum, jdsatepoch-2433281.5, bstar, ndot, nddot,
                  ecco, argpo, inclo, mo, no_kozai, nodeo, satrec)
