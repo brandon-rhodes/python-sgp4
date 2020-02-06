@@ -37,7 +37,7 @@ Then invoke the tests using the Python Standard Library::
 
 The C++ function names have been retained, since users may already be
 familiar with this library in other languages.  Here is how to compute
-the x,y,z position and velocity for Vanguard 1 at 12:50:19 on 29
+the x,y,z position and velocity for the International Space Station at 12:50:19 on 29
 June 2000:
 
 >>> from sgp4.api import Satrec
