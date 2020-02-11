@@ -8,9 +8,9 @@ routines instead.
 def jday(year, mon, day, hr, minute, sec):
      """Return two floats that, when added, produce the specified Julian date.
 
-     The first float specifies the day, while the second float specifies
-     an additional offset for the hour, minute, and second.  Because the
-     second float is much smaller in magnitude it can, unlike the first
+     The first float (jd) specifies the day, while the second float (fr) 
+     specifies an additional offset for the hour, minute, and second.  Because 
+     the second float is much smaller in magnitude it can, unlike the first
      float, be accurate down to very small fractions of a second.
 
      """
