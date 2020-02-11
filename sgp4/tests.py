@@ -200,6 +200,10 @@ class NewSatelliteObjectTests(TestCase, SatelliteObjectTests):
                                ecco, argpo, inclo, mo, no_kozai, nodeo)
         return satrec
 
+    def invoke_satrec_tsince(self, satrec, tsince):
+        e, r, v = satrec.sgp4_tsince(tsince)
+        return e, SGP4_ERRORS[e] if e else '', r, v
+
     def invoke_satrec(self, satrec, tsince):
         whole, fraction = divmod(tsince / 1440.0, 1.0)
         jd = satrec.jdsatepoch + whole
