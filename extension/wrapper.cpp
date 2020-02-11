@@ -141,6 +141,21 @@ Satrec_sgp4init(PyObject *self, PyObject *args)
 }
 
 static PyObject *
+Satrec_sgp4_tsince(PyObject *self, PyObject *args)
+{
+    double tsince, r[3], v[3];
+
+    if (!PyArg_ParseTuple(args, "d:sgp4_tsince", &tsince))
+        return NULL;
+    elsetrec &satrec = ((SatrecObject*) self)->satrec;
+    SGP4Funcs::sgp4(satrec, tsince, r, v);
+    if (satrec.error && satrec.error < 6)
+        r[0] = r[1] = r[2] = v[0] = v[1] = v[2] = NAN;
+    return Py_BuildValue("i(f,f,f)(f,f,f)", satrec.error,
+                         r[0], r[1], r[2], v[0], v[1], v[2]);
+}
+
+static PyObject *
 Satrec_sgp4(PyObject *self, PyObject *args)
 {
     double jd, fr, r[3], v[3];
@@ -171,9 +186,11 @@ static PyMethodDef Satrec_methods[] = {
     {"sgp4init", (PyCFunction)Satrec_sgp4init, METH_VARARGS,
      PyDoc_STR("Initialize the record from orbital elements.")},
     {"sgp4", (PyCFunction)Satrec_sgp4, METH_VARARGS,
-     PyDoc_STR("Given minutes since epoch, return position and velocity.")},
+     PyDoc_STR("Given a modified julian date, return position and velocity.")},
     {"_sgp4", (PyCFunction)Satrec__sgp4, METH_VARARGS,
-     PyDoc_STR("Given an array of minutes since epoch, return position and velocity arrays.")},
+     PyDoc_STR("Given an array of modified julian dates, return position and velocity arrays.")},
+    {"sgp4_tince", (PyCFunction)Satrec_sgp4, METH_VARARGS,
+     PyDoc_STR("Given minutes since epoch, return position and velocity.")},
     {NULL, NULL}
 };
 
@@ -181,9 +198,9 @@ static PyMethodDef Satrec_methods[] = {
 
 static PyMemberDef Satrec_members[] = {
     /* Listed in the order they appear in a TLE record. 
-    Expect that direct sgp4init() calls may update most variables below except satnum    */
+    Writeable so that sgp4init() may initialize from an empty Satrec() call */
 
-    {"satnum", T_LONG, O(satnum), READONLY,
+    {"satnum", T_LONG, O(satnum), 0,
      PyDoc_STR("Satellite number, from characters 3-7 of each TLE line.")},
     {"jdsatepoch", T_DOUBLE, O(jdsatepoch), 0,
      PyDoc_STR("Julian date of epoch, day number (see jdsatepochF).")},
@@ -231,8 +248,65 @@ static PyMemberDef Satrec_members[] = {
 
     {"method", T_CHAR, O(method), READONLY,
      PyDoc_STR("Method, either 'n' near earth or 'd' deep space.")},
-    {"error", T_INT, O(method), READONLY,
+    {"error", T_INT, O(method), 0,
      PyDoc_STR("Error code (1-6) documented in sgp4()")},
+    {"a", T_DOUBLE, O(a), 0,
+     PyDoc_STR("semi-major axis")},
+    {"altp", T_DOUBLE, O(altp), 0,
+     PyDoc_STR("altitude of perigee")},
+    {"alta", T_DOUBLE, O(alta), 0,
+     PyDoc_STR("altitude of perigee")},
+
+    /* Single averaged mean elements */
+
+    {"am", T_DOUBLE, O(am), 0,
+     PyDoc_STR("am: Average semi-major axis")},
+    {"em", T_DOUBLE, O(em), 0,
+     PyDoc_STR("em: Average eccentricity")},
+    {"im", T_DOUBLE, O(im), 0,
+     PyDoc_STR("im: Average inclination")},
+    {"Om", T_DOUBLE, O(Om), 0,
+     PyDoc_STR("Om: Average right ascension of ascending node")},
+    {"om", T_DOUBLE, O(om), 0,
+     PyDoc_STR("om: Average argument of perigee")},
+    {"mm", T_DOUBLE, O(mm), 0,
+     PyDoc_STR("mm: Average mean anomaly")},
+    {"nm", T_DOUBLE, O(nm), 0,
+     PyDoc_STR("nm: Average mean motion")},
+
+    /* Gravity-constant dependent values (initialized by sgp4init() */
+
+    {"tumin", T_DOUBLE, O(tumin), 0,
+     PyDoc_STR("minutes in one time unit")},
+    {"mu", T_DOUBLE, O(mu), 0,
+     PyDoc_STR("Earth gravitational parameter")},
+    {"radiusearthkm", T_DOUBLE, O(radiusearthkm), 0,
+     PyDoc_STR("radius of the earth in km")},
+    {"xke", T_DOUBLE, O(xke), 0,
+     PyDoc_STR("reciprocal of tumin")},
+    {"j2", T_DOUBLE, O(j2), 0,
+     PyDoc_STR("un-normalized zonal harmonic j2 value")},
+    {"j3", T_DOUBLE, O(j3), 0,
+     PyDoc_STR("un-normalized zonal harmonic j3 value")},
+    {"j4", T_DOUBLE, O(j4), 0,
+     PyDoc_STR("un-normalized zonal harmonic j4 value")},
+    {"j3oj2", T_DOUBLE, O(j3oj2), 0,
+     PyDoc_STR("j3 divided by j2")},
+
+    /* Other convenience variables (required by propagation.py) */
+    {"t", T_DOUBLE, O(t), 0,
+     PyDoc_STR("Last tsince input to sgp4()")},
+    {"mdot", T_DOUBLE, O(mdot), 0,
+     PyDoc_STR("mean anomaly dot (rate)")},
+    {"mdot", T_DOUBLE, O(mdot), 0,
+     PyDoc_STR("mean anomaly dot (rate)")},
+    {"argpdot", T_DOUBLE, O(argpdot), 0,
+     PyDoc_STR("argument of perigee dot (rate)")},
+    {"nodedot", T_DOUBLE, O(nodedot), 0,
+     PyDoc_STR("right ascension of ascending node dot (rate)")},
+    {"nodecf", T_DOUBLE, O(nodecf), 0,
+     PyDoc_STR("nodecf")},
+
     {NULL}
 };
 
