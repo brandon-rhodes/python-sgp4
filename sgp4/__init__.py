@@ -37,7 +37,7 @@ Then invoke the tests using the Python Standard Library::
 
 The C++ function names have been retained, since users may already be
 familiar with this library in other languages.  Here is how to compute
-the x,y,z position and velocity for Vanguard 1 at 12:50:19 on 29
+the x,y,z position and velocity for the International Space Station at 12:50:19 on 29
 June 2000:
 
 >>> from sgp4.api import Satrec
@@ -54,6 +54,32 @@ June 2000:
 (-6102.44..., -986.33..., -2820.31...)
 >>> print(v)
 (-1.45..., -5.52..., 5.10...)
+
+As input, you can provide either:
+
+* A simple floating-point Julian Date for ``jd`` and the value 0.0 for
+  ``fr``, if you are happy with the precision of a 64-bit floating point
+  number.  Note that modern Julian Dates are greater than 2,450,000
+  which means that nearly half of the precision of a 64-bit float will
+  be consumed by the whole part that specifies the day.  The remaining
+  digits will provide a precision for the fraction of around 20.1 µs.
+  This should be no problem for the accuracy of your result — satellite
+  positions usually off by a few kilometers anyway, far less than a
+  satellite moves in 20.1 µs — but if you run a solver that dives down
+  into the microseconds while searching for a rising or setting time,
+  the solver might be bothered by the 20.1 µs plateau between each jump
+  in the satellite’s position.
+
+* Or, you can provide a coarse date ``jd`` that is within a few weeks or
+  months of the satellite’s epoch, and a very precise fraction ``fr``
+  that supplies the rest of the value.  The Julian Date for which the
+  satellite position is computed is the sum of the two values.  One
+  common practice is to provide the whole number as ``jd`` and the
+  fraction as ``fr``; another is to have ``jd`` carry the fraction 0.5
+  since UTC midnight occurs halfway through each Julian Date.  Either
+  way, splitting the value allows a solver to run all the way down into
+  the nanoseconds and still see SGP4 respond smoothly to tiny date
+  adjustments with tiny changes in the resulting satellite position.
 
 Here is how to intrepret the results:
 
@@ -170,6 +196,7 @@ https://pypi.org/project/sgp4/1.4/
 Changelog
 ---------
 
+| 2020-02-04 — 2.3 — Removed experimental code that caused performance problems for users with Numba installed.
 | 2020-02-02 — 2.2 — A second release on Palindrome Day: fix the Satrec ``.epochyr`` attribute so it behaves the same way in Python as it does in the official C library, where it is only the last 2 digits of the year; and make ``.no`` available in the Python fallback case as well.
 | 2020-02-02 — 2.1 — Add vectorized array method to Satrec object; add ``.no`` attribute to new Satrec object to support old code that has not migrated to the new name ``.no_kozai``; gave Python wrapper classes ``__slots__`` to avoid the expense of a per-object attribute dictionary.
 | 2020-01-30 — 2.0 — Rewrite API to use genuine Vallado C++ code on those systems where it can be compiled; add accelerated vectorized array interface; make ``gstime()`` a public function; clarify format error message.

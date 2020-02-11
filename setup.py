@@ -30,7 +30,7 @@ if sys.version_info[0] == 3:
     ))
 
 setup(name = 'sgp4',
-      version = '2.2',
+      version = '2.3',
       description = description,
       long_description = long_description,
       license = 'MIT',
@@ -51,6 +51,7 @@ setup(name = 'sgp4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Topic :: Scientific/Engineering :: Astronomy',
         ],
       packages = ['sgp4'],

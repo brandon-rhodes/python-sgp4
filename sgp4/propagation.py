@@ -15,21 +15,8 @@ code for the first time here in its Python form.
 | - Brandon Rhodes
 |   Common Grounds Coffee House, Bluffton, Ohio
 |   On a very hot August day in 2012
+
 """
-
-try:
-     from numba import jit
-except ImportError:
-     def jit(jit_this=None, **jit_options):
-          if jit_this is not None:
-               def fake_jit(*args, **kwargs):
-                    return jit_this(*args, **kwargs)
-               return fake_jit
-          else:
-               def partial_fake_jit(jit_this, **jit_options):
-                    return jit(jit_this, **jit_options)
-               return partial_fake_jit
-
 from math import atan2, cos, fabs, pi, sin, sqrt
 
 deg2rad = pi / 180.0;
@@ -948,8 +935,6 @@ def _dsinit(
   ----------------------------------------------------------------------------*/
 """
 
-@jit(cache=True)
-#@jit
 def _dspace(
        irez,
        d2201,  d2211,  d3210,   d3222,  d4410,
@@ -1144,8 +1129,8 @@ def _dspace(
 """
 
 def _initl(
-       # not needeed. included in satrec if needed later 
-       # satn,      
+       # not needeed. included in satrec if needed later
+       # satn,
        # sgp4fix assin xke and j2
        # whichconst,
        xke, j2,
@@ -1350,7 +1335,7 @@ def sgp4init(
      #  ------------------------ earth constants -----------------------
      #  sgp4fix identify constants and allow alternate values
      #  this is now the only call for the constants
-     (satrec.tumin, satrec.mu, satrec.radiusearthkm, satrec.xke, 
+     (satrec.tumin, satrec.mu, satrec.radiusearthkm, satrec.xke,
        satrec.j2, satrec.j3, satrec.j4, satrec.j3oj2) = whichconst;
 
  	 # -------------------------------------------------------------------------
@@ -1382,7 +1367,7 @@ def sgp4init(
      satrec.em = 0.0
      satrec.im = 0.0
      satrec.Om = 0.0
-     satrec.mm = 0.0 
+     satrec.mm = 0.0
      satrec.nm = 0.0
 
     # ------------------------ earth constants ----------------------- */
@@ -1695,8 +1680,6 @@ def sgp4init(
   ----------------------------------------------------------------------------*/
 """
 
-@jit(cache=True)
-#@jit
 def sgp4(satrec, tsince, whichconst=None):
 
      mrt = 0.0
@@ -1811,7 +1794,7 @@ def sgp4(satrec, tsince, whichconst=None):
      argpm  = argpm % twopi
      xlm    = xlm % twopi
      mm     = (xlm - argpm - nodem) % twopi
-     
+
      # sgp4fix recover singly averaged mean elements
      satrec.am = am;
      satrec.em = em;
