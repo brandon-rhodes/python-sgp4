@@ -355,6 +355,7 @@ def load_tests(loader, tests, ignore):
     # breaks the doctest.
     if sys.version_info >= (2, 7):
         tests.addTests(DocTestSuite('sgp4', optionflags=ELLIPSIS))
+        tests.addTests(DocTestSuite('sgp4.functions', optionflags=ELLIPSIS))
 
     return tests
 
