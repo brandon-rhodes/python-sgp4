@@ -237,7 +237,7 @@ Satrec_len(PyObject *self) {
 }
 
 static PySequenceMethods SatrecArray_as_sequence = {
-    sq_length : Satrec_len,
+    Satrec_len
 };
 
 static PyObject *
@@ -254,10 +254,6 @@ SatrecArray_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     return type->tp_alloc(type, length);
 }
 
-/* This, and the definition for which it is a forward reference,
-   originally said "static PyTypeObject SatrecArrayType;" but that gave
-   "error: redefinition" during compilation, thus the switch to API. */
-PyAPI_DATA(PyTypeObject) SatrecArrayType;
 
 static int
 SatrecArray_init(SatrecArrayObject *self, PyObject *args, PyObject *kwds)
@@ -302,18 +298,17 @@ static PyMethodDef SatrecArray_methods[] = {
     {NULL, NULL}
 };
 
-PyAPI_DATA(PyTypeObject) SatrecArrayType = {
+static PyTypeObject SatrecArrayType = {
     PyVarObject_HEAD_INIT(NULL, sizeof(elsetrec))
     /* See the module initialization function at the bottom of this file. */
 };
 
 /* The module that ties it all together. */
-
 static PyModuleDef module = {
     PyModuleDef_HEAD_INIT,
-    m_name : "sgp4.vallado_cpp",
-    m_doc : "Official C++ SGP4 implementation.",
-    m_size : -1,
+    "sgp4.vallado_cpp",
+    "Official C++ SGP4 implementation.",
+    -1
 };
 
 PyMODINIT_FUNC
