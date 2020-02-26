@@ -1129,8 +1129,8 @@ def _dspace(
 """
 
 def _initl(
-       # not needeed. included in satrec if needed later
-       # satn,
+       # not needeed. included in satrec if needed later 
+       # satn,      
        # sgp4fix assin xke and j2
        # whichconst,
        xke, j2,
@@ -1335,8 +1335,8 @@ def sgp4init(
      #  ------------------------ earth constants -----------------------
      #  sgp4fix identify constants and allow alternate values
      #  this is now the only call for the constants
-     (satrec.tumin, satrec.mu, satrec.radiusearthkm, satrec.xke,
-       satrec.j2, satrec.j3, satrec.j4, satrec.j3oj2) = whichconst;
+     (satrec.tumin, satrec.mu, satrec.radiusearthkm, satrec.xke, 
+       satrec.j2, satrec.j3, satrec.j4, satrec.j3oj2) = getgravconst('wgs72');
 
  	 # -------------------------------------------------------------------------
 
@@ -1367,7 +1367,7 @@ def sgp4init(
      satrec.em = 0.0
      satrec.im = 0.0
      satrec.Om = 0.0
-     satrec.mm = 0.0
+     satrec.mm = 0.0 
      satrec.nm = 0.0
 
     # ------------------------ earth constants ----------------------- */
@@ -1680,11 +1680,9 @@ def sgp4init(
   ----------------------------------------------------------------------------*/
 """
 
-def sgp4(satrec, tsince, whichconst=None):
+def sgp4(satrec, tsince):
 
      mrt = 0.0
-     if whichconst is None:
-          whichconst = getgravconst('wgs72')
 
      """
      /* ------------------ set mathematical constants --------------- */
@@ -1794,7 +1792,7 @@ def sgp4(satrec, tsince, whichconst=None):
      argpm  = argpm % twopi
      xlm    = xlm % twopi
      mm     = (xlm - argpm - nodem) % twopi
-
+     
      # sgp4fix recover singly averaged mean elements
      satrec.am = am;
      satrec.em = em;

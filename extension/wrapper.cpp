@@ -293,7 +293,7 @@ static PyMemberDef Satrec_members[] = {
     {"j3oj2", T_DOUBLE, O(j3oj2), 0,
      PyDoc_STR("j3 divided by j2")},
 
-    /* Other convenience variables (required by propagation.py) */
+    /* Other convenience variables (some required by propagation.py) */
     {"t", T_DOUBLE, O(t), 0,
      PyDoc_STR("Last tsince input to sgp4()")},
     {"mdot", T_DOUBLE, O(mdot), 0,
@@ -304,8 +304,8 @@ static PyMemberDef Satrec_members[] = {
      PyDoc_STR("argument of perigee dot (rate)")},
     {"nodedot", T_DOUBLE, O(nodedot), 0,
      PyDoc_STR("right ascension of ascending node dot (rate)")},
-    {"nodecf", T_DOUBLE, O(nodecf), 0,
-     PyDoc_STR("nodecf")},
+    {"gsto", T_DOUBLE, O(gsto), 0,
+     PyDoc_STR("gsto: greenwich sidereal time")},
 
     {NULL}
 };
