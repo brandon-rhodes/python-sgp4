@@ -119,7 +119,7 @@ Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
 static PyObject *
 Satrec_sgp4init(PyObject *self, PyObject *args)
 {
-    int satnum;
+    long int satnum;
     double jdSGP4epoch, bstar, ndot, nddot;
     double ecco, argpo, inclo, mo, no_kozai, nodeo;
 
