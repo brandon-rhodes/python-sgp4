@@ -1005,7 +1005,7 @@ def _dspace(
                delt = stepn;
 
          iretn = 381; # added for do loop
-         iret  =   0; # added for loop
+         # iret  =   0; # added for loop
          while iretn == 381:
 
              #  ------------------- dot terms calculated -------------
@@ -1043,7 +1043,7 @@ def _dspace(
              #  ----------------------- integrator -------------------
              #  sgp4fix move end checks to end of routine
              if fabs(t - atime) >= stepp:
-                 iret  = 0;
+                 # iret  = 0;
                  iretn = 381;
 
              else:

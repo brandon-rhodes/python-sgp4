@@ -118,8 +118,6 @@ def twoline2rv(longstr1, longstr2, whichconst, opsmode='i', satrec=None):
     deg2rad  =   pi / 180.0;         #    0.0174532925199433
     xpdotp   =  1440.0 / (2.0 *pi);  #  229.1831180523293
 
-    tumin = whichconst.tumin
-
     # For compatibility with our 1.x API, build an old Satellite object
     # if the caller fails to supply a satrec.  In that case we perform
     # the necessary import here to avoid an import loop.
