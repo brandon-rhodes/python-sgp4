@@ -1,11 +1,6 @@
 from . import vallado_cpp
 
 
-from .vallado_cpp import WGS72OLD 
-from .vallado_cpp import WGS72 
-from .vallado_cpp import WGS84 
-
-
 class Satrec(vallado_cpp.Satrec):
     """High-speed computation of satellite positions and velocities."""
 

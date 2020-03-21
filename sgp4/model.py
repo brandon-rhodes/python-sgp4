@@ -8,15 +8,15 @@ from sgp4.propagation import sgp4
 minutes_per_day = 1440.
 
 
-#Defining enums for different gravity constants
+#Defining enums for different gravity models
 WGS72OLD = 0
 WGS72 = 1
 WGS84 = 2
 
-def _get_constant(whichconst_enum):
-    if whichconst_enum == WGS72OLD:
+def _get_gravity(whichconst):
+    if whichconst == WGS72OLD:
         return wgs72old
-    if whichconst_enum == WGS72:
+    if whichconst == WGS72:
         return wgs72
     if whichconst == WGS84:
         return wgs84
@@ -61,7 +61,7 @@ class Satrec(object):
     def twoline2rv(cls, line1, line2, whichconst = WGS72):
         self = cls()
 
-        whichconst = _get_constant(whichconst)
+        whichconst = _get_gravity(whichconst)
 
         twoline2rv(line1, line2, whichconst, 'i', self)
         self.epochyr %= 100  # undo my non-standard 4-digit year
