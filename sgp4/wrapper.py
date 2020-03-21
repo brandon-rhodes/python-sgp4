@@ -1,42 +1,15 @@
 from . import vallado_cpp
 
-from . import earth_gravity
 
-
+from .vallado_cpp import WGS72OLD 
+from .vallado_cpp import WGS72 
+from .vallado_cpp import WGS84 
 
 
 class Satrec(vallado_cpp.Satrec):
     """High-speed computation of satellite positions and velocities."""
 
     __slots__ = ()
-
-
-    _grav_const_mapping = {
-        'wgs72old': vallado_cpp.WGS72OLD,
-        'wgs72': vallado_cpp.WGS72,
-        'wgs84': vallado_cpp.WGS84,
-
-        earth_gravity.wgs72old: vallado_cpp.WGS72OLD,
-        earth_gravity.wgs72: vallado_cpp.WGS72,
-        earth_gravity.wgs84: vallado_cpp.WGS84,
-
-        vallado_cpp.WGS72OLD: vallado_cpp.WGS72OLD,
-        vallado_cpp.WGS72: vallado_cpp.WGS72,
-        vallado_cpp.WGS84: vallado_cpp.WGS84,
-    }
-
-    @classmethod
-    def twoline2rv(cls, line1, line2, whichconst = 'wgs72'):
-        '''
-        Initialize the record from two lines of TLE text and gravity constant.
-        gravity constant can be one of [wgs72old, wgs72, wgs84] (as string, earth_gravity object, or sgp4 enum)  
-        '''
-        try:
-            whichconst = cls._grav_const_mapping[whichconst]
-        except:
-            raise ValueError('whichconst must be one of [wgs72old, wgs72, wgs84] (as string, earth_gravity object, or sgp4 enum) ')
-        
-        return cls._twoline2rv(line1, line2, whichconst)
 
     def sgp4_array(self, jd, fr):
         """Compute positions and velocities for the times in a NumPy array.

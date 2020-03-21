@@ -92,15 +92,15 @@ _vectorized_sgp4(PyObject *args, elsetrec *raw_satrec_array, int imax)
 /* Details of the "Satrec" satellite object. */
 
 static PyObject *
-Satrec__twoline2rv(PyTypeObject *cls, PyObject *args)
+Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
 {
     char *string1, *string2, line1[130], line2[130];
-    int whichconst_int = (int)(wgs72);
+    gravconsttype whichconst = wgs72;
     double dummy;    
 
     if (!PyArg_ParseTuple(args, 
-            "ssi:_twoline2rv", 
-            &string1, &string2, &whichconst_int))
+            "ss|b:twoline2rv", 
+            &string1, &string2, &whichconst))
         return NULL;
 
     // Copy both lines, since twoline2rv() might write to both buffers.
@@ -113,8 +113,7 @@ Satrec__twoline2rv(PyTypeObject *cls, PyObject *args)
     if (!self)
         return NULL;
 
-    SGP4Funcs::twoline2rv(line1, line2, ' ', ' ', 'i', 
-                          (gravconsttype) whichconst_int,
+    SGP4Funcs::twoline2rv(line1, line2, ' ', ' ', 'i', whichconst,
                           dummy, dummy, dummy, self->satrec);
 
     return (PyObject*) self;
@@ -146,7 +145,7 @@ Satrec__sgp4(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef Satrec_methods[] = {
-    {"_twoline2rv", (PyCFunction)Satrec__twoline2rv, METH_VARARGS | METH_CLASS,
+    {"twoline2rv", (PyCFunction)Satrec_twoline2rv, METH_VARARGS | METH_CLASS,
      PyDoc_STR("Initialize the record from two lines of TLE text and gravity constant.")},
     {"sgp4", (PyCFunction)Satrec_sgp4, METH_VARARGS,
      PyDoc_STR("Given minutes since epoch, return position and velocity.")},
