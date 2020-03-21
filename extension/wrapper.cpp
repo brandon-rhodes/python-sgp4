@@ -96,10 +96,10 @@ Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
 {
     char *string1, *string2, line1[130], line2[130];
     gravconsttype whichconst = wgs72;
-    double dummy;    
+    double dummy;
 
-    if (!PyArg_ParseTuple(args, 
-            "ss|b:twoline2rv", 
+    if (!PyArg_ParseTuple(args,
+            "ss|i:twoline2rv",
             &string1, &string2, &whichconst))
         return NULL;
 
@@ -146,7 +146,7 @@ Satrec__sgp4(PyObject *self, PyObject *args)
 
 static PyMethodDef Satrec_methods[] = {
     {"twoline2rv", (PyCFunction)Satrec_twoline2rv, METH_VARARGS | METH_CLASS,
-     PyDoc_STR("Initialize the record from two lines of TLE text and gravity constant.")},
+     PyDoc_STR("Initialize the record from two lines of TLE text and an optional gravity constant.")},
     {"sgp4", (PyCFunction)Satrec_sgp4, METH_VARARGS,
      PyDoc_STR("Given minutes since epoch, return position and velocity.")},
     {"_sgp4", (PyCFunction)Satrec__sgp4, METH_VARARGS,

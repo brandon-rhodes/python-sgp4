@@ -297,11 +297,11 @@ class GravTests(TestCase):
 
         self.assertAlmostEqual(np.linalg.norm(rv1[0:3]-rv2[0:3]), 0, places)
         self.assertAlmostEqual(np.linalg.norm(rv1[3: ]-rv2[3: ]), 0, places)
-        
+
 
     def test_default_is_wgs72(self):
         self.assert_sats_equal(self.api_default , self.api_72)
-        self.assertRaises(AssertionError, 
+        self.assertRaises(AssertionError,
             self.assert_sats_equal, self.api_default , self.api_84)
 
     def test_matches_legacy(self):
@@ -312,8 +312,6 @@ class GravTests(TestCase):
         places = 4 if accelerated else 16
         self.assert_sats_equal(self.api_72, self.io_72, places)
         self.assert_sats_equal(self.api_84, self.io_84, places)
-
-
 
 
 
