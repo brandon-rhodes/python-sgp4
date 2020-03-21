@@ -30,8 +30,8 @@ with an N where each digit should go, followed by the line you provided:
 *
 *                               sgp4io.cpp
 *
-*    this file contains a function to read two line element sets. while 
-*    not formerly part of the sgp4 mathematical theory, it is 
+*    this file contains a function to read two line element sets. while
+*    not formerly part of the sgp4 mathematical theory, it is
 *    required for practical implemenation.
 *
 *                            companion code for
@@ -77,7 +77,7 @@ with an N where each digit should go, followed by the line you provided:
 *  inputs        :
 *    longstr1    - first line of the tle
 *    longstr2    - second line of the tle
-*    typerun     - type of run                    verification 'v', catalog 'c', 
+*    typerun     - type of run                    verification 'v', catalog 'c',
 *                                                 manual 'm'
 *    typeinput   - type of manual input           mfe 'm', epoch 'e', dayofyr 'd'
 *    opsmode     - mode of operation afspc or improved 'a', 'i'
@@ -233,8 +233,8 @@ def twoline2rv(longstr1, longstr2, whichconst, opsmode='i', satrec=None):
                                 int(sec_fraction * 1000000.0 // 1.0))
 
     #  ---------------- initialize the orbit at sgp4epoch -------------------
-    sgp4init(whichconst, opsmode, satrec.satnum, satrec.jdsatepoch-2433281.5, satrec.bstar, 
-             satrec.ndot, satrec.nddot, satrec.ecco, satrec.argpo, satrec.inclo, satrec.mo, 
+    sgp4init(whichconst, opsmode, satrec.satnum, satrec.jdsatepoch-2433281.5, satrec.bstar,
+             satrec.ndot, satrec.nddot, satrec.ecco, satrec.argpo, satrec.inclo, satrec.mo,
              satrec.no_kozai, satrec.nodeo, satrec)
 
     return satrec

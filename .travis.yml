@@ -21,3 +21,4 @@ script:
   # causing failure when NumPy tries to import.
   - python -m sgp4.tests
   - pyflakes $(find sgp4/ -name '*.py')
+  - if grep ' $' $(find extension/ sgp4/ -type f) ;then echo ERROR: TRAILING WHITESPACE; exit 0 ;fi
