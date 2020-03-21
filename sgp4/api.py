@@ -1,6 +1,6 @@
 """Public API that tries to import C++ module, but falls back to Python."""
 
-__all__ = 'Satrec', 'SatrecArray', 'jday'
+__all__ = 'Satrec', 'SatrecArray', 'jday', 'WGS72OLD', 'WGS72', 'WGS84'
 
 from .functions import jday
 
@@ -15,7 +15,12 @@ SGP4_ERRORS = {
 
 try:
     from .wrapper import Satrec, SatrecArray
+    from .vallado_cpp import WGS72OLD, WGS72, WGS84
+
     accelerated = True
+
 except ImportError:
     from .model import Satrec, SatrecArray
+    from .model import WGS72OLD, WGS72, WGS84
+
     accelerated = False

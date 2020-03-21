@@ -95,9 +95,12 @@ static PyObject *
 Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
 {
     char *string1, *string2, line1[130], line2[130];
+    gravconsttype whichconst = wgs72;
     double dummy;
 
-    if (!PyArg_ParseTuple(args, "ss:twoline2rv", &string1, &string2))
+    if (!PyArg_ParseTuple(args,
+            "ss|i:twoline2rv",
+            &string1, &string2, &whichconst))
         return NULL;
 
     // Copy both lines, since twoline2rv() might write to both buffers.
@@ -110,7 +113,7 @@ Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
     if (!self)
         return NULL;
 
-    SGP4Funcs::twoline2rv(line1, line2, ' ', ' ', 'i', wgs72,
+    SGP4Funcs::twoline2rv(line1, line2, ' ', ' ', 'i', whichconst,
                           dummy, dummy, dummy, self->satrec);
 
     return (PyObject*) self;
@@ -143,7 +146,7 @@ Satrec__sgp4(PyObject *self, PyObject *args)
 
 static PyMethodDef Satrec_methods[] = {
     {"twoline2rv", (PyCFunction)Satrec_twoline2rv, METH_VARARGS | METH_CLASS,
-     PyDoc_STR("Initialize the record from two lines of TLE text.")},
+     PyDoc_STR("Initialize the record from two lines of TLE text and an optional gravity constant.")},
     {"sgp4", (PyCFunction)Satrec_sgp4, METH_VARARGS,
      PyDoc_STR("Given minutes since epoch, return position and velocity.")},
     {"_sgp4", (PyCFunction)Satrec__sgp4, METH_VARARGS,
@@ -344,6 +347,16 @@ PyInit_vallado_cpp(void)
     if (m == NULL)
         return NULL;
 
+    //Export enum values to be used
+    const char *WGS_NAMES[] = {"WGS72", "WGS72OLD", "WGS84"};
+    const int  WGS_ENUM_VALS[] = {(int)wgs72, (int)wgs72old, (int)wgs84};
+
+    for (int i=0; i < 3; i++) {
+        if (PyModule_AddIntConstant(m, WGS_NAMES[i], WGS_ENUM_VALS[i])) {
+            return NULL;
+        }
+    }
+
     Py_INCREF(&SatrecType);
     if (PyModule_AddObject(m, "Satrec", (PyObject *) &SatrecType) < 0) {
         Py_DECREF(&SatrecType);
@@ -358,6 +371,5 @@ PyInit_vallado_cpp(void)
         Py_DECREF(m);
         return NULL;
     }
-
     return m;
 }

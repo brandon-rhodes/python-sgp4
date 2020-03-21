@@ -1,11 +1,27 @@
 """The Satellite class."""
 
-from sgp4.earth_gravity import wgs72
+from sgp4.earth_gravity import wgs72old, wgs72, wgs84
 from sgp4.ext import jday
 from sgp4.io import twoline2rv
 from sgp4.propagation import sgp4
 
 minutes_per_day = 1440.
+
+
+#Defining enums for different gravity models
+WGS72OLD = 0
+WGS72 = 1
+WGS84 = 2
+
+def _get_gravity(whichconst):
+    if whichconst == WGS72OLD:
+        return wgs72old
+    if whichconst == WGS72:
+        return wgs72
+    if whichconst == WGS84:
+        return wgs84
+    raise ValueError('whichconst must be one of WGS72OLD, WGS72, WGS84')
+
 
 class Satrec(object):
     """Slow Python-only version of the satellite object."""
@@ -42,9 +58,12 @@ class Satrec(object):
         return self.no_kozai
 
     @classmethod
-    def twoline2rv(cls, line1, line2):
+    def twoline2rv(cls, line1, line2, whichconst = WGS72):
         self = cls()
-        twoline2rv(line1, line2, wgs72, 'i', self)
+
+        whichconst = _get_gravity(whichconst)
+
+        twoline2rv(line1, line2, whichconst, 'i', self)
         self.epochyr %= 100  # undo my non-standard 4-digit year
         return self
 
