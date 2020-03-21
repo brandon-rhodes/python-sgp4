@@ -19,7 +19,7 @@ files.
 * Otherwise, a slower but reliable Python implementation of SGP4 is used
   instead.
 
-Note that this package produces raw Earth-centered Earth-fixed
+Note that this package produces raw Earth-centered cartesian
 coordinates.  It does not implement all the steps necessary to convert
 satellite positions into geographic coordinates.  For that, look for a
 comprehensive astronomy library that is built atop this one, like the
