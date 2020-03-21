@@ -13,7 +13,7 @@ from doctest import DocTestSuite, ELLIPSIS
 from math import pi, isnan
 import numpy as np
 
-from sgp4.api import SGP4_ERRORS, Satrec, jday, WGS72, WGS84
+from sgp4.api import SGP4_ERRORS, Satrec, jday, WGS72, WGS84, accelerated
 from sgp4.earth_gravity import wgs72, wgs84
 from sgp4.ext import invjday, newtonnu, rv2coe
 from sgp4.propagation import sgp4
@@ -291,21 +291,27 @@ class GravTests(TestCase):
         else:
             return np.array(sat.propagate(*GravTests.date_args)).flatten()
 
-    def assert_are_equal(self, sat1, sat2):
+    def assert_sats_equal(self, sat1, sat2, places = 16):
         rv1 = GravTests.propagate(sat1)
         rv2 = GravTests.propagate(sat2)
 
-        self.assertAlmostEqual(np.linalg.norm(rv1-rv2), 0)
+        self.assertAlmostEqual(np.linalg.norm(rv1[0:3]-rv2[0:3]), 0, places)
+        self.assertAlmostEqual(np.linalg.norm(rv1[3: ]-rv2[3: ]), 0, places)
         
 
     def test_default_is_wgs72(self):
-        self.assert_are_equal(self.api_default , self.api_72)
+        self.assert_sats_equal(self.api_default , self.api_72)
         self.assertRaises(AssertionError, 
-            self.assert_are_equal, self.api_default , self.api_84)
+            self.assert_sats_equal, self.api_default , self.api_84)
 
     def test_matches_legacy(self):
-        self.assert_are_equal(self.api_72, self.io_72)
-        self.assert_are_equal(self.api_84, self.io_84)
+        #when new API is using python module (i.e. not accelerated)
+        #it matches very closely to old io implementeation (expect places=16)
+        #when it is using the  C++ implementation, the results are
+        #close but not exact match (only within e-4)
+        places = 4 if accelerated else 16
+        self.assert_sats_equal(self.api_72, self.io_72, places)
+        self.assert_sats_equal(self.api_84, self.io_84, places)
 
 
 
