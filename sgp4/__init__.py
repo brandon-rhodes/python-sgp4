@@ -171,6 +171,24 @@ one.  Here is a sample computation for 2 satellites and 4 dates:
 The attributes of a ``Satrec`` object carry the data loaded from the TLE
 entry.  Look at the class's documentation for details.
 
+The SGP4 algorithm operates atop a set of constants specifying how
+strong the Earth’s gravity is.  The most recent official paper on SGP4
+(see below) specifies that “We use WGS-72 as the default value”, so this
+Python module uses the same default.  But in case you want to use either
+the old legacy version of the WGS-72 constants, or else the non-standard
+but more modern WGS-84 constants, the ``twoline2rv()`` constructor takes
+an optional argument:
+
+>>> from sgp4.api import WGS72OLD, WGS72, WGS84
+>>> satellite3 = Satrec.twoline2rv(s, t, WGS84)
+
+You will in general get less accurate results if you choose WGS-84.
+Even though it reflects more recent and accurate measures of the Earth,
+satellite TLEs across the industry are most likely generated with WGS-72
+as their basis.  The positions you generate will better agree with the
+real positions of each satellite if you use the same underlying gravity
+constants as were used to generate the TLE.
+
 This implementation passes all of the automated tests in the August 2010
 release of the reference implementation of SGP4 by Vallado et al., who
 originally published their revision of SGP4 in 2006:
@@ -199,6 +217,7 @@ https://pypi.org/project/sgp4/1.4/
 Changelog
 ---------
 
+| 2020-03-22 — 2.5 — Gave the new accelerated ``twoline2rv()`` an optional argument that lets the user choose a non-standard set of gravity constants.
 | 2020-02-25 — 2.4 — Improved the ``jday()`` docstring; made the old legacy Python resilient if the day of the month is out-of-range (past the end of the month) in a TLE; and Mark Rutten fixed the C++ so it compiles on Windows!
 | 2020-02-04 — 2.3 — Removed experimental code that caused performance problems for users with Numba installed.
 | 2020-02-02 — 2.2 — A second release on Palindrome Day: fix the Satrec ``.epochyr`` attribute so it behaves the same way in Python as it does in the official C library, where it is only the last 2 digits of the year; and make ``.no`` available in the Python fallback case as well.
