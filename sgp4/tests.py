@@ -11,10 +11,12 @@ import re
 import sys
 from doctest import DocTestSuite, ELLIPSIS
 from math import pi, isnan
-import numpy as np
 
-from sgp4.api import SGP4_ERRORS, Satrec, jday, WGS72, WGS84, accelerated
-from sgp4.earth_gravity import wgs72, wgs84
+from sgp4.api import (
+    SGP4_ERRORS, WGS72OLD, WGS72, WGS84,
+    Satrec, jday, accelerated,
+)
+from sgp4.earth_gravity import wgs72
 from sgp4.ext import invjday, newtonnu, rv2coe
 from sgp4.propagation import sgp4
 from sgp4 import io
@@ -179,7 +181,35 @@ class NewSatelliteObjectTests(TestCase, SatelliteObjectTests):
         sat = self.build_satrec(good1, good2)
         self.assertEqual(sat.epochyr, 0)
 
+    def test_three_gravity_models(self):
+        # The numbers below are those produced by Vallado's C++ code.
+        # (Why does the Python version not produce the same values to
+        # high accuracy, instead of agreeing to only 4 places?)
 
+        digits = 12 if accelerated else 4
+        jd, fr = 2451723.5, 0.0
+
+        # Not specifying a gravity model should select WGS72.
+
+        for sat in (Satrec.twoline2rv(good1, good2),
+                    Satrec.twoline2rv(good1, good2, WGS72)):
+            e, r, v = sat.sgp4(jd, fr)
+            self.assertAlmostEqual(r[0], -3754.2514743216166, digits)
+            self.assertAlmostEqual(r[1], 7876.346817439062, digits)
+            self.assertAlmostEqual(r[2], 4719.220856478582, digits)
+
+        # Other gravity models should give different numbers both from
+        # the default and also from each other.
+
+        e, r, v = Satrec.twoline2rv(good1, good2, WGS72OLD).sgp4(jd, fr)
+        self.assertAlmostEqual(r[0], -3754.251473242793, digits)
+        self.assertAlmostEqual(r[1], 7876.346815095482, digits)
+        self.assertAlmostEqual(r[2], 4719.220855042922, digits)
+
+        e, r, v = Satrec.twoline2rv(good1, good2, WGS84).sgp4(jd, fr)
+        self.assertAlmostEqual(r[0], -3754.2437675772426, digits)
+        self.assertAlmostEqual(r[1], 7876.3549956188945, digits)
+        self.assertAlmostEqual(r[2], 4719.227897029576, digits)
 
 class LegacySatelliteObjectTests(TestCase, SatelliteObjectTests):
 
@@ -255,65 +285,6 @@ with an N where each digit should go, followed by the line you provided:
         msg = "Object numbers in lines 1 and 2 do not match"
         with self.assertRaisesRegex(ValueError, re.escape(msg)):
             self.build_satrec(good1, bad2)
-
-
-
-
-class GravTests(TestCase):
-    '''
-    Tests the ability to (optionally) specify gravity constant to the new API
-    Verifies that the default gravity constant is WGS72
-    Verfiies that new and legacy api agree when same gravity constant is used
-    '''
-    @classmethod
-    def setUpClass(cls):
-        cls.api_default  = Satrec.twoline2rv(good1, good2)
-        cls.api_72   = Satrec.twoline2rv(good1, good2, WGS72)
-        cls.api_84   = Satrec.twoline2rv(good1, good2, WGS84)
-
-        cls.io_72   = io.twoline2rv(good1, good2, wgs72)
-        cls.io_84   = io.twoline2rv(good1, good2, wgs84)
-
-        REF_DATE = dt.datetime(2019, 1, 1)
-        cls.date_args = (REF_DATE.year,
-                REF_DATE.month,
-                REF_DATE.day,
-                REF_DATE.hour,
-                REF_DATE.minute,
-                REF_DATE.second + REF_DATE.microsecond * 1e-6)
-
-        cls.date_jday = jday(*cls.date_args)
-
-    @staticmethod
-    def propagate(sat):
-        if isinstance(sat, Satrec):
-            return np.array(sat.sgp4(*GravTests.date_jday)[1:]).flatten()
-        else:
-            return np.array(sat.propagate(*GravTests.date_args)).flatten()
-
-    def assert_sats_equal(self, sat1, sat2, places = 16):
-        rv1 = GravTests.propagate(sat1)
-        rv2 = GravTests.propagate(sat2)
-
-        self.assertAlmostEqual(np.linalg.norm(rv1[0:3]-rv2[0:3]), 0, places)
-        self.assertAlmostEqual(np.linalg.norm(rv1[3: ]-rv2[3: ]), 0, places)
-
-
-    def test_default_is_wgs72(self):
-        self.assert_sats_equal(self.api_default , self.api_72)
-        self.assertRaises(AssertionError,
-            self.assert_sats_equal, self.api_default , self.api_84)
-
-    def test_matches_legacy(self):
-        #when new API is using python module (i.e. not accelerated)
-        #it matches very closely to old io implementeation (expect places=16)
-        #when it is using the  C++ implementation, the results are
-        #close but not exact match (only within e-4)
-        places = 4 if accelerated else 16
-        self.assert_sats_equal(self.api_72, self.io_72, places)
-        self.assert_sats_equal(self.api_84, self.io_84, places)
-
-
 
 
 good1 = '1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753'
