@@ -37,8 +37,8 @@ Then invoke the tests using the Python Standard Library::
 
 The C++ function names have been retained, since users may already be
 familiar with this library in other languages.  Here is how to compute
-the x,y,z position and velocity for the International Space Station at 12:50:19 on 29
-June 2000:
+the x,y,z position and velocity for the International Space Station at
+12:50:19 on 29 June 2000:
 
 >>> from sgp4.api import Satrec
 >>>
@@ -175,7 +175,10 @@ This implementation passes all of the automated tests in the August 2010
 release of the reference implementation of SGP4 by Vallado et al., who
 originally published their revision of SGP4 in 2006:
 
-    Vallado, David A., Paul Crawford, Richard Hujsak, and T.S. Kelso, “Revisiting Spacetrack Report #3,” presented at the AIAA/AAS Astrodynamics Specialist Conference, Keystone, CO, 2006 August 21–24.
+    Vallado, David A., Paul Crawford, Richard Hujsak, and T.S. Kelso,
+    “Revisiting Spacetrack Report #3,” presented at the AIAA/AAS
+    Astrodynamics Specialist Conference, Keystone, CO, 2006 August
+    21–24.
 
 If you would like to review the paper, it is `available online
 <http://www.celestrak.com/publications/AIAA/2006-6753/>`_.  You can
