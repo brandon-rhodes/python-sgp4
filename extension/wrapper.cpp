@@ -347,16 +347,6 @@ PyInit_vallado_cpp(void)
     if (m == NULL)
         return NULL;
 
-    //Export enum values to be used
-    const char *WGS_NAMES[] = {"WGS72", "WGS72OLD", "WGS84"};
-    const int  WGS_ENUM_VALS[] = {(int)wgs72, (int)wgs72old, (int)wgs84};
-
-    for (int i=0; i < 3; i++) {
-        if (PyModule_AddIntConstant(m, WGS_NAMES[i], WGS_ENUM_VALS[i])) {
-            return NULL;
-        }
-    }
-
     Py_INCREF(&SatrecType);
     if (PyModule_AddObject(m, "Satrec", (PyObject *) &SatrecType) < 0) {
         Py_DECREF(&SatrecType);
@@ -371,5 +361,11 @@ PyInit_vallado_cpp(void)
         Py_DECREF(m);
         return NULL;
     }
+
+    if (PyModule_AddIntConstant(m, "WGS72", (int)wgs72) ||
+        PyModule_AddIntConstant(m, "WGS72OLD", (int)wgs72old) ||
+        PyModule_AddIntConstant(m, "WGS84", (int)wgs84))
+        return NULL;
+
     return m;
 }
