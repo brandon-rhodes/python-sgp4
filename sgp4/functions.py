@@ -5,6 +5,11 @@ modules to offer simple date handling, so this small module holds the
 routines instead.
 
 """
+from datetime import datetime
+
+import pytz
+
+
 def jday(year, mon, day, hr, minute, sec):
      """Return two floats that, when added, produce the specified Julian date.
 
@@ -37,3 +42,44 @@ def jday(year, mon, day, hr, minute, sec):
            + 1721013.5)
      fr = (sec + minute * 60.0 + hr * 3600.0) / 86400.0;
      return jd, fr
+
+def jday_datetime(dtime : datetime):
+    """Return two floats that, when added, produce the specified Julian date.
+
+     The first float returned gives the date, while the second float
+     provides an additional offset for the particular hour, minute, and
+     second of that date.  Because the second float is much smaller in
+     magnitude it can, unlike the first float, be accurate down to very
+     small fractions of a second.
+
+     >>> jd, fr = jday(2020, 2, 11, 13, 57, 0)
+     >>> jd
+     2458890.5
+     >>> fr
+     0.58125
+
+     Note that the first float, which gives the moment of midnight that
+     commences the given calendar date, always carries the fraction
+     ``.5`` because Julian dates begin and end at noon.  This made
+     Julian dates more convenient for astronomers in Europe, by making
+     the whole night belong to a single Julian date.
+
+    The input is a native `datetime` object. Timezone  of the input is converted internally to UTC.
+
+     This function is a simple translation to Python of the C++ routine
+     ``jday()`` in Vallado's ``SGP4.cpp``.
+
+    """
+    # Convert to UTC time
+    dtime_utc = dtime.astimezone(pytz.UTC)
+    year = dtime_utc.year
+    mon = dtime_utc.month
+    day = dtime_utc.day
+
+    hr = dtime_utc.hour
+    minute = dtime_utc.minute
+    sec = dtime_utc.second + dtime_utc.microsecond / 1e6
+
+    return jday(year, mon, day, hr, minute, sec)
+
+
