@@ -1,4 +1,5 @@
 """Test suite for SGP4."""
+
 try:
     from unittest2 import TestCase, main
 except:
@@ -14,6 +15,7 @@ from pkgutil import get_data
 from sgp4.api import WGS72OLD, WGS72, WGS84, Satrec, jday, accelerated
 from sgp4.earth_gravity import wgs72
 from sgp4.ext import invjday, newtonnu, rv2coe
+from sgp4.functions import jday_datetime
 from sgp4.propagation import sgp4, sgp4init
 from sgp4 import io
 from sgp4.exporter import export_tle
@@ -108,6 +110,27 @@ def test_jday2():
     jd, fr = jday(2019, 10, 9, 16, 57, 15)
     assertEqual(jd, 2458765.5)
     assertAlmostEqual(fr, 0.7064236111111111)
+
+def test_jday_datetime():
+    # define local time
+    # UTC equivalent: 2011-11-03 20:05:23+00:00
+
+    class UTC_plus_4(dt.tzinfo):
+        'UTC'
+        offset = dt.timedelta(hours=4)
+        def utcoffset(self, datetime):
+            return self.offset
+        def tzname(self, datetime):
+            return 'UTC plus 4'
+        def dst(self, datetime):
+            return self.offset
+
+    datetime_local = dt.datetime(2011, 11, 4, 0, 5, 23, 0, UTC_plus_4())
+    jd, fr = jday_datetime(datetime_local)
+
+    # jd of this date is 2455868.5 + 0.8370717592592593
+    assertEqual(jd, 2455868.5)
+    assertAlmostEqual(fr, 0.8370717592592593)
 
 def test_good_tle_checksum():
     for line in LINE1, LINE2:
