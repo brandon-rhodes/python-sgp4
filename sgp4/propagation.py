@@ -1335,7 +1335,7 @@ def sgp4init(
      #  ------------------------ earth constants -----------------------
      #  sgp4fix identify constants and allow alternate values
      #  this is now the only call for the constants
-     (satrec.tumin, satrec.mu, satrec.radiusearthkm, satrec.xke, 
+     (satrec.tumin, satrec.mu, satrec.radiusearthkm, satrec.xke,
        satrec.j2, satrec.j3, satrec.j4, satrec.j3oj2) = getgravconst('wgs72');
 
  	 # -------------------------------------------------------------------------
@@ -1367,7 +1367,7 @@ def sgp4init(
      satrec.em = 0.0
      satrec.im = 0.0
      satrec.Om = 0.0
-     satrec.mm = 0.0 
+     satrec.mm = 0.0
      satrec.nm = 0.0
 
     # ------------------------ earth constants ----------------------- */
