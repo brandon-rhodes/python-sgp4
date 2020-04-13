@@ -1129,8 +1129,8 @@ def _dspace(
 """
 
 def _initl(
-       # not needeed. included in satrec if needed later 
-       # satn,      
+       # not needeed. included in satrec if needed later
+       # satn,
        # sgp4fix assin xke and j2
        # whichconst,
        xke, j2,
