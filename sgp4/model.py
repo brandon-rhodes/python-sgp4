@@ -2,7 +2,7 @@
 
 from sgp4.earth_gravity import wgs72old, wgs72, wgs84
 from sgp4.ext import jday
-from sgp4.io import twoline2rv, compute_checksum
+from sgp4.io import twoline2rv
 from sgp4.propagation import sgp4
 
 WGS72OLD = 0
@@ -88,90 +88,6 @@ class Satrec(object):
 
         r.shape = v.shape = len(jd), 3
         return e, r, v
-
-    def export_tle(self):
-        """Generate the TLE for the data in the `Satrec` object.
-
-        Forms the two string lines of the TLE and returns them as a tuple.
-
-         * ``line1``: line1 of the two-line-element set
-         * ``line2``: line2 of the two-line-element set
-        """
-
-        # Define constants
-        from math import pi
-        deg2rad = pi / 180.0  # 0.0174532925199433
-        xpdotp = 1440.0 / (2.0 * pi)  # 229.1831180523293
-
-        # --------------------- Start generating line 1 ---------------------
-
-        # Strings are immutable, so rather than replacing chars, we will build it
-        line1 = "1 "
-
-        # Pad the `satnum` entry with zeros
-        if len(str(self.satnum)) <= 5:
-            line1 += str(self.satnum).zfill(5)
-
-        # Add classification code (use "U" if empty)
-        line1 += (self.classification.strip() or "U") + " "
-
-        # Add int'l designator and pad to 8 chars
-        line1 += self.intldesg.ljust(8, " ") + " "
-
-        # Add epoch year and days in YYDDD.DDDDDDDD format
-        line1 += str(self.epochyr).zfill(2) + f"{self.epochdays:12.8f}" + " "
-
-        # Add First Time Derivative of the Mean Motion (don't use "+")
-        line1 += f"{(self.ndot * (xpdotp * 1440.0)): 8.8f}".replace("0", "", 1) + " "
-
-        # Add Second Time Derivative of Mean Motion (don't use "+")
-        # Multiplication with 10 is a hack to get the exponent right
-        line1 += f"{(self.nddot * (xpdotp * 1440.0 * 1440)) * 10: 4.4e}".replace(".", "") \
-                     .replace("e+00", "-0").replace("e-0", "-") + " "
-
-        # Add BSTAR
-        # Multiplication with 10 is a hack to get the exponent right
-        line1 += f"{self.bstar * 10: 4.4e}".replace(".", "").replace("e+00", "-0").replace("e-0", "-") + " "
-
-        # Add Ephemeris Type and Element Number
-        line1 += f"{self.ephtype} " + str(self.elnum).rjust(4, " ")
-
-        # Add the Checksum
-        line1 += str(compute_checksum(line1))
-
-        # --------------------- Start generating line 2 ---------------------
-
-        line2 = "2 "
-
-        # Pad the `satnum` entry with zeros
-        if len(str(self.satnum)) <= 5:
-            line2 += str(self.satnum).zfill(5) + " "
-
-        # Add the inclination (deg)
-        line2 += f"{self.inclo / deg2rad:8.4f}".rjust(8, " ") + " "
-
-        # Add the RAAN (deg)
-        line2 += f"{self.nodeo / deg2rad:8.4f}".rjust(8, " ") + " "
-
-        # Add the eccentricity (delete the leading zero an decimal point)
-        line2 += f"{self.ecco :8.7f}".replace("0.", "") + " "
-
-        # Add the Argument of Perigee (deg)
-        line2 += f"{self.argpo / deg2rad:8.4f}".rjust(8, " ") + " "
-
-        # Add the Mean Anomaly (deg)
-        line2 += f"{self.mo / deg2rad:8.4f}".rjust(8, " ") + " "
-
-        # Add the Mean Motion (revs/day)
-        line2 += f"{self.no_kozai * xpdotp:11.8f}".rjust(8, " ")
-
-        # Add the rev number at epoch
-        line2 += str(self.revnum).zfill(4)
-
-        # Add the Checksum
-        line2 += str(compute_checksum(line2))
-
-        return line1, line2
 
 class SatrecArray(object):
     """Slow Python-only version of the satellite array."""
