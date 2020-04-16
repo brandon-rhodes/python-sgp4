@@ -1,5 +1,4 @@
 """Test suite for SGP4."""
-
 try:
     from unittest2 import TestCase, main
 except:
@@ -20,6 +19,7 @@ from sgp4.earth_gravity import wgs72
 from sgp4.ext import invjday, newtonnu, rv2coe
 from sgp4.propagation import sgp4
 from sgp4 import io
+from sgp4.export import export_tle
 
 thisdir = os.path.dirname(__file__)
 error = 2e-7
@@ -30,6 +30,53 @@ if sys.version_info[:2] == (2, 7) or sys.version_info[:2] == (2, 6):
     TestCase.assertRaisesRegex = TestCase.assertRaisesRegexp
 
 class FunctionTests(TestCase):
+
+    def test_tle_export(self):
+        """Check `export_tle()` round-trip using all the TLEs in the test file.
+
+        This iterates through the satellites in "SGP4-VER.TLE", generates `Satrec` objects and exports the TLEs.
+        These exported TLEs are then compared to the original TLE, closing the loop (or the round-trip).
+
+        """
+        tlepath = os.path.join(thisdir, 'SGP4-VER.TLE')
+        with open(tlepath) as tlefile:
+            tlelines = iter(tlefile.readlines())
+
+        for line1 in tlelines:
+
+            if not line1.startswith('1'):
+                continue
+
+            line2 = next(tlelines)
+
+            # trim lines to normal TLE string size
+            line1 = line1[:69]
+            line2 = line2[:69]
+            satrec = Satrec.twoline2rv(line1, line2)
+
+            # Generate TLE from satrec
+            out_line1, out_line2 = export_tle(satrec)
+
+            # print("file :  " + line1)
+            # print("satrec: " + out_line1)
+            #
+            # print("file :  " + line2)
+            # print("satrec: " + out_line2)
+
+            # Skip these lines, known errors
+            # Resulting TLEs are equivalent (same Satrec object) but they are not the same
+            # 25954: BSTAR = 0 results in a negative exp, not positive
+            # 29141: BSTAR = 0.13519 results in a negative exp, not positive
+            # 33333: Checksum error as expected on both lines
+            # 33334: Checksum error as expected on line 1
+            # 33335: Checksum error as expected on line 1
+            expected_errs_line1 = [25954, 29141, 33333, 33334, 33335]
+            expected_errs_line2 = [33333, 33335]
+
+            if satrec.satnum not in expected_errs_line1:
+                self.assertEqual(out_line1, line1)
+            if satrec.satnum not in expected_errs_line2:
+                self.assertEqual(out_line2, line2)
 
     def test_hyperbolic_orbit(self):
         # Exercise the newtonnu() code path with asinh() to see whether
