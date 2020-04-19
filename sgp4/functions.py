@@ -5,9 +5,7 @@ modules to offer simple date handling, so this small module holds the
 routines instead.
 
 """
-from datetime import datetime
-
-import pytz
+from datetime import datetime, timezone
 
 
 def jday(year, mon, day, hr, minute, sec):
@@ -64,21 +62,19 @@ def jday_datetime(dtime : datetime):
      Julian dates more convenient for astronomers in Europe, by making
      the whole night belong to a single Julian date.
 
-    The input is a native `datetime` object. Timezone  of the input is converted internally to UTC.
-
-     This function is a simple translation to Python of the C++ routine
-     ``jday()`` in Vallado's ``SGP4.cpp``.
+    The input is a native `datetime` object. Timezone of the input is
+    converted internally to UTC.
 
     """
     # Convert to UTC time
-    dtime_utc = dtime.astimezone(pytz.UTC)
+    dtime_utc = dtime.astimezone(timezone.utc)
     year = dtime_utc.year
     mon = dtime_utc.month
     day = dtime_utc.day
 
     hr = dtime_utc.hour
     minute = dtime_utc.minute
-    sec = dtime_utc.second + dtime_utc.microsecond / 1e6
+    sec = dtime_utc.second + dtime_utc.microsecond * 1e-6
 
     return jday(year, mon, day, hr, minute, sec)
 

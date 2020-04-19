@@ -1,4 +1,5 @@
 """Test suite for SGP4."""
+from sgp4.functions import jday_datetime
 
 try:
     from unittest2 import TestCase, main
@@ -58,6 +59,19 @@ class FunctionTests(TestCase):
         jd, fr = jday(2019, 10, 9, 16, 57, 15)
         self.assertEqual(jd, 2458765.5)
         self.assertAlmostEqual(fr, 0.7064236111111111)
+
+    def test_jday_datetime(self):
+
+        # define local time
+        # UTC equivalent: 2011-11-03 20:05:23+00:00
+        datetime_local = dt.datetime.fromisoformat("2011-11-04T00:05:23+04:00")
+        datetime_utc = datetime_local.astimezone(dt.timezone.utc)
+
+        jd, fr = jday_datetime(datetime_local)
+
+        # jd of this date is 2455868.5 + 0.8370717592592593
+        self.assertEqual(jd, 2455868.5)
+        self.assertAlmostEqual(fr, 0.8370717592592593)
 
 
 class SatelliteObjectTests(object):
