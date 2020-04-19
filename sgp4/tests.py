@@ -42,6 +42,16 @@ class FunctionTests(TestCase):
         with open(tlepath) as tlefile:
             tlelines = iter(tlefile.readlines())
 
+        # Skip these lines, known errors
+        # Resulting TLEs are equivalent (same values in the Satrec object), but they are not the same
+        # 25954: BSTAR = 0 results in a negative exp, not positive
+        # 29141: BSTAR = 0.13519 results in a negative exp, not positive
+        # 33333: Checksum error as expected on both lines
+        # 33334: Checksum error as expected on line 1
+        # 33335: Checksum error as expected on line 1
+        expected_errs_line1 = set([25954, 29141, 33333, 33334, 33335])
+        expected_errs_line2 = set([33333, 33335])
+
         for line1 in tlelines:
 
             if not line1.startswith('1'):
@@ -57,21 +67,11 @@ class FunctionTests(TestCase):
             # Generate TLE from satrec
             out_line1, out_line2 = export_tle(satrec)
 
-            # print("file :  " + line1)
-            # print("satrec: " + out_line1)
-            #
-            # print("file :  " + line2)
-            # print("satrec: " + out_line2)
+            print("file :  " + line1)
+            print("satrec: " + out_line1)
 
-            # Skip these lines, known errors
-            # Resulting TLEs are equivalent (same Satrec object) but they are not the same
-            # 25954: BSTAR = 0 results in a negative exp, not positive
-            # 29141: BSTAR = 0.13519 results in a negative exp, not positive
-            # 33333: Checksum error as expected on both lines
-            # 33334: Checksum error as expected on line 1
-            # 33335: Checksum error as expected on line 1
-            expected_errs_line1 = [25954, 29141, 33333, 33334, 33335]
-            expected_errs_line2 = [33333, 33335]
+            print("file :  " + line2)
+            print("satrec: " + out_line2)
 
             if satrec.satnum not in expected_errs_line1:
                 self.assertEqual(out_line1, line1)
