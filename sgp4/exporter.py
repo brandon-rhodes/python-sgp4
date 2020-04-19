@@ -1,30 +1,14 @@
-"""
-Export orbit data to a Two-Line-Element representation.
-"""
-from math import pi
+"""Export orbit data to a Two-Line-Element representation."""
 
+from math import pi
 from sgp4.io import compute_checksum
-from sgp4.model import Satrec
 
 # Define constants
 _deg2rad = pi / 180.0  # 0.0174532925199433
 _xpdotp = 1440.0 / (2.0 * pi)  # 229.1831180523293
 
 def export_tle(satrec):
-    """
-     Generate the TLE for the data in the `Satrec` object.
-
-    Forms the two string lines of the TLE and returns them as a Tuple.
-
-    Parameters
-    ----------
-    satrec : Satrec
-        Object that holds the orbit information
-
-    Returns
-    -------
-    (line1, line2) : (str, str)
-    """
+    """Generate the TLE for a given `Satrec` object; returns two strings."""
 
     # --------------------- Start generating line 1 ---------------------
 

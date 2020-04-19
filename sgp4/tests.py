@@ -19,7 +19,7 @@ from sgp4.earth_gravity import wgs72
 from sgp4.ext import invjday, newtonnu, rv2coe
 from sgp4.propagation import sgp4
 from sgp4 import io
-from sgp4.export import export_tle
+from sgp4.exporter import export_tle
 
 thisdir = os.path.dirname(__file__)
 error = 2e-7
@@ -67,11 +67,11 @@ class FunctionTests(TestCase):
             # Generate TLE from satrec
             out_line1, out_line2 = export_tle(satrec)
 
-            print("file :  " + line1)
-            print("satrec: " + out_line1)
+            # print("file :  " + line1)
+            # print("satrec: " + out_line1)
 
-            print("file :  " + line2)
-            print("satrec: " + out_line2)
+            # print("file :  " + line2)
+            # print("satrec: " + out_line2)
 
             if satrec.satnum not in expected_errs_line1:
                 self.assertEqual(out_line1, line1)

@@ -171,6 +171,16 @@ one.  Here is a sample computation for 2 satellites and 4 dates:
 The attributes of a ``Satrec`` object carry the data loaded from the TLE
 entry.  Look at the class's documentation for details.
 
+If you have a ``Satrec`` you want to share with friends or persist to a
+file, there’s an export routine that will turn it back into a TLE:
+
+>>> from sgp4.exporter import export_tle
+>>> line1, line2 = export_tle(satellite)
+>>> line1
+'1 25544U 98067A   19343.69339541  .00001764  00000-0  38792-4 0  9991'
+>>> line2
+'2 25544  51.6439 211.2001 0007417  17.6667  85.6398 15.50103472202482'
+
 The SGP4 algorithm operates atop a set of constants specifying how
 strong the Earth’s gravity is.  The most recent official paper on SGP4
 (see below) specifies that “We use WGS-72 as the default value”, so this
