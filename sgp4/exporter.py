@@ -1,5 +1,8 @@
-"""Export orbit data to a Two-Line-Element representation."""
+"""Export orbit data to a Two-Line-Element representation.
 
+Contributed by Egemen Imre https://github.com/egemenimre
+
+"""
 from math import pi
 from sgp4.io import compute_checksum
 
