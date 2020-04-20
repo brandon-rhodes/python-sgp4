@@ -143,7 +143,7 @@ def twoline2rv(longstr1, longstr2, whichconst, opsmode='i', satrec=None):
 
         _saved_satnum = satrec.satnum = int(line[2:7])
         satrec.classification = line[7] or 'U'
-        satrec.intldesg = line[9:17]
+        satrec.intldesg = line[9:17].rstrip()
         two_digit_year = int(line[18:20])
         satrec.epochdays = float(line[20:32])
         satrec.ndot = float(line[33:43])
