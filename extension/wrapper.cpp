@@ -180,7 +180,7 @@ static PyMemberDef Satrec_members[] = {
      PyDoc_STR("Drag Term in inverse Earth radii.")},
     {"ephtype", T_INT, O(ephtype), READONLY,
      PyDoc_STR("Ephemeris type (should be 0 in published TLEs).")},
-    {"elnum", T_INT, O(elnum), READONLY,
+    {"elnum", T_LONG, O(elnum), READONLY,
      PyDoc_STR("Element set number.")},
     {"inclo", T_DOUBLE, O(inclo), READONLY,
      PyDoc_STR("Inclination in radians.")},
