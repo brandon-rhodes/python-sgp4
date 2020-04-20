@@ -124,15 +124,15 @@ class SatelliteObjectTests(object):
             self.assertAlmostEqual(sat.jdsatepochF, 0.78495062, places=8)
         else:
             self.assertEqual(sat.jdsatepoch, 2451723.28495062)
-        self.assertAlmostEqual(sat.ndot, 6.96919666594958e-13, places=12)
-        self.assertAlmostEqual(sat.nddot, 0.0, places=12)
-        self.assertAlmostEqual(sat.bstar, 2.8098e-05, places=12)
-        self.assertAlmostEqual(sat.inclo, 0.5980929187319208, places=12)
-        self.assertAlmostEqual(sat.nodeo, 6.08638547138321, places=12)
-        self.assertAlmostEqual(sat.ecco, 0.1859667, places=12)
-        self.assertAlmostEqual(sat.argpo, 5.790416027488515, places=12)
-        self.assertAlmostEqual(sat.mo, 0.3373093125574321, places=12)
-        self.assertAlmostEqual(sat.no_kozai, 0.04722944544077857, places=12)
+        self.assertEqual(sat.ndot, 6.96919666594958e-13)
+        self.assertEqual(sat.nddot, 0.0)
+        self.assertEqual(sat.bstar, 2.8098e-05)
+        self.assertEqual(sat.inclo, 0.5980929187319208)
+        self.assertEqual(sat.nodeo, 6.08638547138321)
+        self.assertEqual(sat.ecco, 0.1859667)
+        self.assertEqual(sat.argpo, 5.790416027488515)
+        self.assertEqual(sat.mo, 0.3373093125574321)
+        self.assertEqual(sat.no_kozai, 0.04722944544077857)
 
     def test_satrec_sgp4init_attributes(self):
         # Make sure the Satrec has the same attributes if initialized via sgp4init() directly
@@ -156,15 +156,15 @@ class SatelliteObjectTests(object):
             self.assertAlmostEqual(sat.jdsatepochF, 0.78495062, places=8)
         else:
             self.assertEqual(sat.jdsatepoch, 2451723.28495062)
-        self.assertAlmostEqual(sat.bstar, bstar, places=12)
-        self.assertAlmostEqual(sat.ndot, ndot, places=12)
-        self.assertAlmostEqual(sat.nddot, nddot, places=12)
-        self.assertAlmostEqual(sat.ecco, ecco, places=12)
-        self.assertAlmostEqual(sat.argpo, argpo, places=12)
-        self.assertAlmostEqual(sat.inclo, inclo, places=12)
-        self.assertAlmostEqual(sat.mo, mo, places=12)
-        self.assertAlmostEqual(sat.no_kozai, no_kozai, places=12)
-        self.assertAlmostEqual(sat.nodeo, nodeo, places=12)
+        self.assertEqual(sat.bstar, bstar)
+        self.assertEqual(sat.ndot, ndot)
+        self.assertEqual(sat.nddot, nddot)
+        self.assertEqual(sat.ecco, ecco)
+        self.assertEqual(sat.argpo, argpo)
+        self.assertEqual(sat.inclo, inclo)
+        self.assertEqual(sat.mo, mo)
+        self.assertEqual(sat.no_kozai, no_kozai)
+        self.assertEqual(sat.nodeo, nodeo)
 
     def test_tle_verify(self):
         # Check whether a test run produces the output in tcppver.out
