@@ -34,8 +34,10 @@ class FunctionTests(TestCase):
     def test_tle_export(self):
         """Check `export_tle()` round-trip using all the TLEs in the test file.
 
-        This iterates through the satellites in "SGP4-VER.TLE", generates `Satrec` objects and exports the TLEs.
-        These exported TLEs are then compared to the original TLE, closing the loop (or the round-trip).
+        This iterates through the satellites in "SGP4-VER.TLE",
+        generates `Satrec` objects and exports the TLEs.  These exported
+        TLEs are then compared to the original TLE, closing the loop (or
+        the round-trip).
 
         """
         tlepath = os.path.join(thisdir, 'SGP4-VER.TLE')
