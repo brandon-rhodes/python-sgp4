@@ -303,8 +303,6 @@ static PyMemberDef Satrec_members[] = {
      PyDoc_STR("Last tsince input to sgp4()")},
     {"mdot", T_DOUBLE, O(mdot), READONLY,
      PyDoc_STR("mean anomaly dot (rate)")},
-    {"mdot", T_DOUBLE, O(mdot), READONLY,
-     PyDoc_STR("mean anomaly dot (rate)")},
     {"argpdot", T_DOUBLE, O(argpdot), READONLY,
      PyDoc_STR("argument of perigee dot (rate)")},
     {"nodedot", T_DOUBLE, O(nodedot), READONLY,
