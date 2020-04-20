@@ -116,6 +116,14 @@ Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
     SGP4Funcs::twoline2rv(line1, line2, ' ', ' ', 'i', whichconst,
                           dummy, dummy, dummy, self->satrec);
 
+    /* To avoid having scanf() interpret the "intldesg" as several
+       fields, the C++ library changes spaces to underscores first.
+       Let's convert them back to avoid surprising users and to match
+       our Python implementation. */
+    for (int i=0; i<11; i++)
+         if (self->satrec.intldesg[i] == '_')
+              self->satrec.intldesg[i] = ' ';
+
     return (PyObject*) self;
 }
 
@@ -215,16 +223,7 @@ static PyMemberDef Satrec_members[] = {
 static PyObject *
 get_intldesg(SatrecObject *self, void *closure)
 {
-    /* The C++ library changes spaces to underscores in the "intldesg"
-       field before submitting the line to scanf, leaving trailing
-       underscores in the value. To match our pure Python implementation,
-       let's hide them again when returning the string to users. */
-
-    char *underscore = strchr(self->satrec.intldesg, '_');
-    int length = underscore ?
-        underscore - self->satrec.intldesg :
-        strlen(self->satrec.intldesg);
-    return PyUnicode_FromStringAndSize(self->satrec.intldesg, length);
+    return PyUnicode_FromString(self->satrec.intldesg);
 }
 
 static PyGetSetDef Satrec_getset[] = {
