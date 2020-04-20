@@ -53,11 +53,7 @@ class Satrec(object):
         self.epochyr %= 100  # undo my non-standard 4-digit year
         return self
 
-    @classmethod
-    def Satellite(cls):
-        return cls()
-
-    def sgp4init(self, satnum, jdSGP4epoch, bstar, ndot, nddot, 
+    def sgp4init(self, satnum, jdSGP4epoch, bstar, ndot, nddot,
                  ecco, argpo, inclo, mo, no_kozai, nodeo):
         self.jdsatepoch, self.jdsatepochF = divmod(jdSGP4epoch,1)
         self.jdsatepoch += 2433281.5
