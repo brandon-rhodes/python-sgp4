@@ -215,7 +215,16 @@ static PyMemberDef Satrec_members[] = {
 static PyObject *
 get_intldesg(SatrecObject *self, void *closure)
 {
-  return PyUnicode_FromString(self->satrec.intldesg);
+    /* The C++ library changes spaces to underscores in the "intldesg"
+       field before submitting the line to scanf, leaving trailing
+       underscores in the value. To match our pure Python implementation,
+       let's hide them again when returning the string to users. */
+
+    char *underscore = strchr(self->satrec.intldesg, '_');
+    int length = underscore ?
+        underscore - self->satrec.intldesg :
+        strlen(self->satrec.intldesg);
+    return PyUnicode_FromStringAndSize(self->satrec.intldesg, length);
 }
 
 static PyGetSetDef Satrec_getset[] = {
