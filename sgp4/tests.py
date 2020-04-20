@@ -63,6 +63,10 @@ class FunctionTests(TestCase):
         expected_errs_line1 = set([25954, 29141, 33333, 33334, 33335])
         expected_errs_line2 = set([33333, 33335])
 
+        if accelerated:
+            # Non-standard: omits the ephemeris type integer.
+            expected_errs_line1.add(11801)
+
         for line1 in tlelines:
 
             if not line1.startswith('1'):

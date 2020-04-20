@@ -120,11 +120,13 @@ Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
     SGP4Funcs::twoline2rv(line1, line2, ' ', ' ', 'i', whichconst,
                           dummy, dummy, dummy, self->satrec);
 
-    /* To avoid having scanf() interpret the "intldesg" as several
-       fields, the C++ library changes spaces to underscores first.
-       Let's convert them back to avoid surprising users and to match
-       our Python implementation. */
-    for (int i=0; i<11; i++)
+    /* To avoid having scanf() interpret the "intldesg" as zero or as
+       several fields, the C++ library changes spaces to periods and
+       underscores.  Let's convert them back to avoid surprising users
+       and to match our Python implementation. */
+    if (self->satrec.intldesg[0] == '.')
+         self->satrec.intldesg[0] = ' ';
+    for (int i=1; i<11; i++)
          if (self->satrec.intldesg[i] == '_')
               self->satrec.intldesg[i] = ' ';
 
