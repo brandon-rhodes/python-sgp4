@@ -12,7 +12,7 @@ python:
 
 install:
   - "pip install -e ."
-  - if [ "$TRAVIS_PYTHON_VERSION" = "2.6" ] ;then pip install unittest2 ;fi
+  - "pip install pyflakes"
 
 script:
   # We invoke the tests directly instead of using "-m discover" because
@@ -20,3 +20,6 @@ script:
   # itself, allowing "io.py" to shadow the real io module and thereby
   # causing failure when NumPy tries to import.
   - python -m sgp4.tests
+  - pyflakes $(find sgp4/ -name '*.py')
+  - |-
+    if grep ' $' $(find extension/ sgp4/ -type f) ;then echo ERROR: TRAILING WHITESPACE; exit 0 ;fi

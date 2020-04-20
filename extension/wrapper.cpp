@@ -95,9 +95,12 @@ static PyObject *
 Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
 {
     char *string1, *string2, line1[130], line2[130];
+    gravconsttype whichconst = wgs72;
     double dummy;
 
-    if (!PyArg_ParseTuple(args, "ss:twoline2rv", &string1, &string2))
+    if (!PyArg_ParseTuple(args,
+            "ss|i:twoline2rv",
+            &string1, &string2, &whichconst))
         return NULL;
 
     // Copy both lines, since twoline2rv() might write to both buffers.
@@ -110,7 +113,7 @@ Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
     if (!self)
         return NULL;
 
-    SGP4Funcs::twoline2rv(line1, line2, ' ', ' ', 'i', wgs72,
+    SGP4Funcs::twoline2rv(line1, line2, ' ', ' ', 'i', whichconst,
                           dummy, dummy, dummy, self->satrec);
 
     return (PyObject*) self;
@@ -184,7 +187,7 @@ Satrec__sgp4(PyObject *self, PyObject *args)
 
 static PyMethodDef Satrec_methods[] = {
     {"twoline2rv", (PyCFunction)Satrec_twoline2rv, METH_VARARGS | METH_CLASS,
-     PyDoc_STR("Initialize the record from two lines of TLE text.")},
+     PyDoc_STR("Initialize the record from two lines of TLE text and an optional gravity constant.")},
     {"sgp4init", (PyCFunction)Satrec_sgp4init, METH_VARARGS,
      PyDoc_STR("Initialize the record from orbital elements.")},
     {"sgp4", (PyCFunction)Satrec_sgp4, METH_VARARGS,
@@ -342,7 +345,7 @@ Satrec_len(PyObject *self) {
 }
 
 static PySequenceMethods SatrecArray_as_sequence = {
-    .sq_length = Satrec_len,
+    Satrec_len
 };
 
 static PyObject *
@@ -359,10 +362,6 @@ SatrecArray_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     return type->tp_alloc(type, length);
 }
 
-/* This, and the definition for which it is a forward reference,
-   originally said "static PyTypeObject SatrecArrayType;" but that gave
-   "error: redefinition" during compilation, thus the switch to API. */
-PyAPI_DATA(PyTypeObject) SatrecArrayType;
 
 static int
 SatrecArray_init(SatrecArrayObject *self, PyObject *args, PyObject *kwds)
@@ -407,18 +406,17 @@ static PyMethodDef SatrecArray_methods[] = {
     {NULL, NULL}
 };
 
-PyAPI_DATA(PyTypeObject) SatrecArrayType = {
+static PyTypeObject SatrecArrayType = {
     PyVarObject_HEAD_INIT(NULL, sizeof(elsetrec))
     /* See the module initialization function at the bottom of this file. */
 };
 
 /* The module that ties it all together. */
-
 static PyModuleDef module = {
     PyModuleDef_HEAD_INIT,
-    .m_name = "sgp4.vallado_cpp",
-    .m_doc = "Official C++ SGP4 implementation.",
-    .m_size = -1,
+    "sgp4.vallado_cpp",
+    "Official C++ SGP4 implementation.",
+    -1
 };
 
 PyMODINIT_FUNC
@@ -468,6 +466,11 @@ PyInit_vallado_cpp(void)
         Py_DECREF(m);
         return NULL;
     }
+
+    if (PyModule_AddIntConstant(m, "WGS72", (int)wgs72) ||
+        PyModule_AddIntConstant(m, "WGS72OLD", (int)wgs72old) ||
+        PyModule_AddIntConstant(m, "WGS84", (int)wgs84))
+        return NULL;
 
     return m;
 }

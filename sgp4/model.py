@@ -1,10 +1,14 @@
 """The Satellite class."""
 
-from sgp4.earth_gravity import wgs72
+from sgp4.earth_gravity import wgs72old, wgs72, wgs84
 from sgp4.ext import jday
 from sgp4.io import twoline2rv
 from sgp4.propagation import sgp4, sgp4init
 
+WGS72OLD = 0
+WGS72 = 1
+WGS84 = 2
+gravity_constants = wgs72old, wgs72, wgs84  # indexed using enum values above
 minutes_per_day = 1440.
 
 class Satrec(object):
@@ -42,9 +46,10 @@ class Satrec(object):
         return self.no_kozai
 
     @classmethod
-    def twoline2rv(cls, line1, line2):
+    def twoline2rv(cls, line1, line2, whichconst=WGS72):
+        whichconst = gravity_constants[whichconst]
         self = cls()
-        twoline2rv(line1, line2, wgs72, 'i', self)
+        twoline2rv(line1, line2, whichconst, 'i', self)
         self.epochyr %= 100  # undo my non-standard 4-digit year
         return self
 

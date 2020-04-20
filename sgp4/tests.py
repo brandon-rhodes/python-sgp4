@@ -1,5 +1,4 @@
 """Test suite for SGP4."""
-
 try:
     from unittest2 import TestCase, main
 except:
@@ -12,12 +11,15 @@ import sys
 from doctest import DocTestSuite, ELLIPSIS
 from math import pi, isnan
 
-from sgp4.api import SGP4_ERRORS, Satrec, jday
+from sgp4.api import (
+    SGP4_ERRORS, WGS72OLD, WGS72, WGS84,
+    Satrec, jday, accelerated,
+)
 from sgp4.earth_gravity import wgs72
 from sgp4.ext import invjday, newtonnu, rv2coe
 from sgp4.propagation import sgp4, sgp4init
 from sgp4 import io
-from sgp4.model import Satellite
+from sgp4.exporter import export_tle
 
 thisdir = os.path.dirname(__file__)
 error = 2e-7
@@ -28,6 +30,53 @@ if sys.version_info[:2] == (2, 7) or sys.version_info[:2] == (2, 6):
     TestCase.assertRaisesRegex = TestCase.assertRaisesRegexp
 
 class FunctionTests(TestCase):
+
+    def test_tle_export(self):
+        """Check `export_tle()` round-trip using all the TLEs in the test file.
+
+        This iterates through the satellites in "SGP4-VER.TLE", generates `Satrec` objects and exports the TLEs.
+        These exported TLEs are then compared to the original TLE, closing the loop (or the round-trip).
+
+        """
+        tlepath = os.path.join(thisdir, 'SGP4-VER.TLE')
+        with open(tlepath) as tlefile:
+            tlelines = iter(tlefile.readlines())
+
+        # Skip these lines, known errors
+        # Resulting TLEs are equivalent (same values in the Satrec object), but they are not the same
+        # 25954: BSTAR = 0 results in a negative exp, not positive
+        # 29141: BSTAR = 0.13519 results in a negative exp, not positive
+        # 33333: Checksum error as expected on both lines
+        # 33334: Checksum error as expected on line 1
+        # 33335: Checksum error as expected on line 1
+        expected_errs_line1 = set([25954, 29141, 33333, 33334, 33335])
+        expected_errs_line2 = set([33333, 33335])
+
+        for line1 in tlelines:
+
+            if not line1.startswith('1'):
+                continue
+
+            line2 = next(tlelines)
+
+            # trim lines to normal TLE string size
+            line1 = line1[:69]
+            line2 = line2[:69]
+            satrec = Satrec.twoline2rv(line1, line2)
+
+            # Generate TLE from satrec
+            out_line1, out_line2 = export_tle(satrec)
+
+            # print("file :  " + line1)
+            # print("satrec: " + out_line1)
+
+            # print("file :  " + line2)
+            # print("satrec: " + out_line2)
+
+            if satrec.satnum not in expected_errs_line1:
+                self.assertEqual(out_line1, line1)
+            if satrec.satnum not in expected_errs_line2:
+                self.assertEqual(out_line2, line2)
 
     def test_hyperbolic_orbit(self):
         # Exercise the newtonnu() code path with asinh() to see whether
@@ -172,6 +221,36 @@ class NewSatelliteObjectTests(TestCase, SatelliteObjectTests):
         error_list = generate_tle_output(actual, error_list)
 
         self.assertEqual(error_list, self.expected_errors)
+
+    def test_three_gravity_models(self):
+        # The numbers below are those produced by Vallado's C++ code.
+        # (Why does the Python version not produce the same values to
+        # high accuracy, instead of agreeing to only 4 places?)
+
+        digits = 12 if accelerated else 4
+        jd, fr = 2451723.5, 0.0
+
+        # Not specifying a gravity model should select WGS72.
+
+        for sat in (Satrec.twoline2rv(good1, good2),
+                    Satrec.twoline2rv(good1, good2, WGS72)):
+            e, r, v = sat.sgp4(jd, fr)
+            self.assertAlmostEqual(r[0], -3754.2514743216166, digits)
+            self.assertAlmostEqual(r[1], 7876.346817439062, digits)
+            self.assertAlmostEqual(r[2], 4719.220856478582, digits)
+
+        # Other gravity models should give different numbers both from
+        # the default and also from each other.
+
+        e, r, v = Satrec.twoline2rv(good1, good2, WGS72OLD).sgp4(jd, fr)
+        self.assertAlmostEqual(r[0], -3754.251473242793, digits)
+        self.assertAlmostEqual(r[1], 7876.346815095482, digits)
+        self.assertAlmostEqual(r[2], 4719.220855042922, digits)
+
+        e, r, v = Satrec.twoline2rv(good1, good2, WGS84).sgp4(jd, fr)
+        self.assertAlmostEqual(r[0], -3754.2437675772426, digits)
+        self.assertAlmostEqual(r[1], 7876.3549956188945, digits)
+        self.assertAlmostEqual(r[2], 4719.227897029576, digits)
 
 class LegacySatelliteObjectTests(TestCase, SatelliteObjectTests):
 
