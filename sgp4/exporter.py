@@ -80,7 +80,7 @@ def export_tle(satrec):
     append("{0:11.8f}".format(satrec.no_kozai * _xpdotp).rjust(8, " "))
 
     # Add the rev number at epoch
-    append(str(satrec.revnum).zfill(4))
+    append(str(satrec.revnum).rjust(5))
 
     # Join all the parts and add the Checksum
     line2 = ''.join(pieces)

@@ -106,8 +106,12 @@ Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
     // Copy both lines, since twoline2rv() might write to both buffers.
     strncpy(line1, string1, 130);
     strncpy(line2, string2, 130);
-    line1[129] = '\0';
-    line2[129] = '\0';
+
+    // Truncate the line before any checksum characters, if present;
+    // otherwise the C++ scanf() interprets each checksum character as
+    // part of the preceding value.
+    line1[68] = '\0';
+    line2[68] = '\0';
 
     SatrecObject *self = (SatrecObject*) cls->tp_alloc(cls, 0);
     if (!self)
