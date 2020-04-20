@@ -52,9 +52,11 @@ class Satrec(object):
     def Satellite(cls):
         return cls()
 
-    def sgp4init(self, satnum, jdsatepoch, bstar, ndot, nddot, 
+    def sgp4init(self, satnum, jdSGP4epoch, bstar, ndot, nddot, 
                  ecco, argpo, inclo, mo, no_kozai, nodeo):
-        return sgp4init(wgs72, 'i', satnum, jdsatepoch, bstar, ndot, nddot,
+        self.jdsatepoch, self.jdsatepochF = divmod(jdSGP4epoch,1)
+        self.jdsatepoch += 2433281.5
+        return sgp4init(wgs72, 'i', satnum, jdSGP4epoch, bstar, ndot, nddot,
                         ecco, argpo, inclo, mo, no_kozai, nodeo, self)
 
     def sgp4(self, jd, fr):
