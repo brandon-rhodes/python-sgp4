@@ -1,3 +1,4 @@
+import os
 import sys
 from distutils.core import setup, Extension
 from textwrap import dedent
@@ -7,14 +8,20 @@ import sgp4, sgp4.model
 description, long_description = sgp4.__doc__.split('\n', 1)
 satdoc = dedent(sgp4.model.Satellite.__doc__.split('\n', 1)[1])
 long_description = long_description.replace('entry.', 'entry.' + satdoc)
-ext_modules = []
+
+# Force compilation on Travis CI + Python 3 to make sure it keeps working.
+optional = True
+if sys.version_info[0] != 2 and os.environ.get('TRAVIS') == 'true':
+    optional = False
 
 # It is hard to write C extensions that support both Python 2 and 3, so
 # we opt here to support the acceleration only for Python 3.
+ext_modules = []
 if sys.version_info[0] == 3:
     ext_modules.append(Extension(
         'sgp4.vallado_cpp',
-        sources = [
+        optional=optional,
+        sources=[
             'extension/SGP4.cpp',
             'extension/wrapper.cpp',
         ],
@@ -24,9 +31,6 @@ if sys.version_info[0] == 3:
         # multiple processors when available?
         # extra_compile_args=['-fopenmp'],
         # extra_link_args=['-fopenmp'],
-
-        # Fall back to pure Python for folks without compilers.
-        optional=True,
     ))
 
 setup(name = 'sgp4',
