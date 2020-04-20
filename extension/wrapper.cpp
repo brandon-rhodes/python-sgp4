@@ -215,7 +215,7 @@ static PyMemberDef Satrec_members[] = {
 static PyObject *
 get_intldesg(SatrecObject *self, void *closure)
 {
-  return PyUnicode_FromStringAndSize(self->satrec.intldesg, 6);
+  return PyUnicode_FromString(self->satrec.intldesg);
 }
 
 static PyGetSetDef Satrec_getset[] = {

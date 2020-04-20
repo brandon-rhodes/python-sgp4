@@ -31,6 +31,15 @@ if sys.version_info[:2] == (2, 7) or sys.version_info[:2] == (2, 6):
 
 class FunctionTests(TestCase):
 
+    def test_intldesg(self):
+        sat = Satrec.twoline2rv(
+            '1 39444U 13066AE  20110.89708219  .00000236  00000-0'
+            '  35029-4 0  9992',
+            '2 39444  97.5597 114.3769 0059573 102.0933 258.6965 '
+            '14.82098949344697',
+        )
+        self.assertEqual(sat.intldesg, '13066AE')
+
     def test_tle_export(self):
         """Check `export_tle()` round-trip using all the TLEs in the test file.
 
