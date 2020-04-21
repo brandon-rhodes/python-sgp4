@@ -27,6 +27,18 @@ rad = 180.0 / pi
 LINE1 = '1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753'
 LINE2 = '2 00005  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413667'
 BAD2  = '2 00007  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413669'
+VANGUARD_ATTRS = {
+    'satnum': 5,
+    'bstar': 2.8098e-05,
+    'ndot': 6.96919666594958e-13,
+    'nddot': 0.0,
+    'ecco': 0.1859667,
+    'argpo': 5.790416027488515,
+    'inclo': 0.5980929187319208,
+    'mo': 0.3373093125574321,
+    'no_kozai': 0.04722944544077857,
+    'nodeo': 6.08638547138321,
+}
 
 # Handle deprecated assertRaisesRegexp, but allow its use Python 2.6 and 2.7
 if sys.version_info[:2] == (2, 7) or sys.version_info[:2] == (2, 6):
@@ -395,18 +407,9 @@ mo = 0.3373093125574321
 no_kozai = 0.04722944544077857
 nodeo = 6.08638547138321
 
-
 def verify_vanguard_1(assertEqual, sat):
-    assertEqual(sat.satnum, satnum)
-    assertEqual(sat.bstar, bstar)
-    assertEqual(sat.ndot, ndot)
-    assertEqual(sat.nddot, nddot)
-    assertEqual(sat.ecco, ecco)
-    assertEqual(sat.argpo, argpo)
-    assertEqual(sat.inclo, inclo)
-    assertEqual(sat.mo, mo)
-    assertEqual(sat.no_kozai, no_kozai)
-    assertEqual(sat.nodeo, nodeo)
+    for name, value in VANGUARD_ATTRS.items():
+        assertEqual(getattr(sat, name), value, name + ' attribute')
 
 
 def generate_test_output(build_satrec, invoke, error_list):
