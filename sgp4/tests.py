@@ -102,15 +102,18 @@ class Tests(TestCase):
         self.assertAlmostEqual(m, 34.76134082028372, places=12)
 
     def test_good_tle_checksum(self):
-        for line, expected in (LINE1, 3), (LINE2, 7):
-            self.assertEqual(io.compute_checksum(line), expected)
+        for line in LINE1, LINE2:
+            checksum = int(line[-1])
+            self.assertEqual(io.compute_checksum(line), checksum)
             self.assertEqual(io.fix_checksum(line[:68]), line)
             io.verify_checksum(line)
 
     def test_bad_tle_checksum(self):
-        self.assertEqual(io.compute_checksum(LINE1), 3)
+        checksum = LINE1[-1]
+        self.assertEqual(checksum, '3')
         bad = LINE1[:68] + '7'
         self.assertRaises(ValueError, io.verify_checksum, bad)
+        self.assertEqual(io.fix_checksum(bad), LINE1)
 
     def test_jday2(self):
         jd, fr = jday(2019, 10, 9, 16, 57, 15)
