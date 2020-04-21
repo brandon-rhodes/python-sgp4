@@ -25,6 +25,9 @@ import sgp4.model as model
 thisdir = os.path.dirname(__file__)
 error = 2e-7
 rad = 180.0 / pi
+LINE1 = '1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753'
+LINE2 = '2 00005  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413667'
+BAD2  = '2 00007  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413669'
 
 # Handle deprecated assertRaisesRegexp, but allow its use Python 2.6 and 2.7
 if sys.version_info[:2] == (2, 7) or sys.version_info[:2] == (2, 6):
@@ -107,14 +110,14 @@ class FunctionTests(TestCase):
         self.assertAlmostEqual(m, 34.76134082028372, places=12)
 
     def test_good_tle_checksum(self):
-        for line, expected in (good1, 3), (good2, 7):
+        for line, expected in (LINE1, 3), (LINE2, 7):
             self.assertEqual(io.compute_checksum(line), expected)
             self.assertEqual(io.fix_checksum(line[:68]), line)
             io.verify_checksum(line)
 
     def test_bad_tle_checksum(self):
-        self.assertEqual(io.compute_checksum(good1), 3)
-        bad = good1[:68] + '7'
+        self.assertEqual(io.compute_checksum(LINE1), 3)
+        bad = LINE1[:68] + '7'
         self.assertRaises(ValueError, io.verify_checksum, bad)
 
     def test_jday2(self):
@@ -133,7 +136,7 @@ class SatelliteObjectTests(object):
     def test_satrec_attributes(self):
         # Make sure the Satrec has the same attributes.
         # epochyr tested separately
-        sat = self.build_satrec(good1, good2)
+        sat = self.build_satrec(LINE1, LINE2)
         self.assertEqual(sat.satnum, satnum)
         self.assertEqual(sat.epochdays, epochdays)
         if sat.jdsatepoch % 1.0 == 0.5:
@@ -266,7 +269,7 @@ class NewSatelliteObjectTests(TestCase, SatelliteObjectTests):
         # Make sure that the non-standard four-digit epochyr I switched
         # to in the Python version of SGP4 is reverted back to the
         # official behavior when that code is used behind Satrec.
-        sat = self.build_satrec(good1, good2)
+        sat = self.build_satrec(LINE1, LINE2)
         self.assertEqual(sat.epochyr, 0)
 
     def test_three_gravity_models(self):
@@ -279,8 +282,8 @@ class NewSatelliteObjectTests(TestCase, SatelliteObjectTests):
 
         # Not specifying a gravity model should select WGS72.
 
-        for sat in (Satrec.twoline2rv(good1, good2),
-                    Satrec.twoline2rv(good1, good2, WGS72)):
+        for sat in (Satrec.twoline2rv(LINE1, LINE2),
+                    Satrec.twoline2rv(LINE1, LINE2, WGS72)):
             e, r, v = sat.sgp4(jd, fr)
             self.assertAlmostEqual(r[0], -3754.2514743216166, digits)
             self.assertAlmostEqual(r[1], 7876.346817439062, digits)
@@ -289,12 +292,12 @@ class NewSatelliteObjectTests(TestCase, SatelliteObjectTests):
         # Other gravity models should give different numbers both from
         # the default and also from each other.
 
-        e, r, v = Satrec.twoline2rv(good1, good2, WGS72OLD).sgp4(jd, fr)
+        e, r, v = Satrec.twoline2rv(LINE1, LINE2, WGS72OLD).sgp4(jd, fr)
         self.assertAlmostEqual(r[0], -3754.251473242793, digits)
         self.assertAlmostEqual(r[1], 7876.346815095482, digits)
         self.assertAlmostEqual(r[2], 4719.220855042922, digits)
 
-        e, r, v = Satrec.twoline2rv(good1, good2, WGS84).sgp4(jd, fr)
+        e, r, v = Satrec.twoline2rv(LINE1, LINE2, WGS84).sgp4(jd, fr)
         self.assertAlmostEqual(r[0], -3754.2437675772426, digits)
         self.assertAlmostEqual(r[1], 7876.3549956188945, digits)
         self.assertAlmostEqual(r[2], 4719.227897029576, digits)
@@ -361,11 +364,11 @@ class LegacySatelliteObjectTests(TestCase, SatelliteObjectTests):
     def test_legacy_epochyr(self):
         # Apparently I saw fit to change the meaning of this attribute
         # in the Python version of SGP4.
-        sat = self.build_satrec(good1, good2)
+        sat = self.build_satrec(LINE1, LINE2)
         self.assertEqual(sat.epochyr, 2000)
 
     def test_support_for_old_no_attribute(self):
-        s = self.build_satrec(good1, good2)
+        s = self.build_satrec(LINE1, LINE2)
         assert s.no == s.no_kozai
 
     def test_december_32(self):
@@ -389,7 +392,7 @@ with an N where each digit should go, followed by the line you provided:
 
 1 NNNNNC NNNNNAAA NNNNN.NNNNNNNN +.NNNNNNNN +NNNNN-N +NNNNN-N N NNNNN
 1 00005U 58002B   00179.78495062  .000000234 00000-0  28098-4 0  4753""")):
-            self.build_satrec(good1.replace('23 ', '234'), good2)
+            self.build_satrec(LINE1.replace('23 ', '234'), LINE2)
 
     def test_bad_second_line(self):
         with self.assertRaisesRegex(ValueError, re.escape("""TLE format error
@@ -401,19 +404,15 @@ with an N where each digit should go, followed by the line you provided:
 
 2 NNNNN NNN.NNNN NNN.NNNN NNNNNNN NNN.NNNN NNN.NNNN NN.NNNNNNNNNNNNNN
 2 00005 34 .268234 8.7242 1859667 331.7664  19.3264 10.82419157413667""")):
-            self.build_satrec(good1, good2.replace(' 34', '34 '))
+            self.build_satrec(LINE1, LINE2.replace(' 34', '34 '))
 
     def test_mismatched_lines(self):
         msg = "Object numbers in lines 1 and 2 do not match"
         with self.assertRaisesRegex(ValueError, re.escape(msg)):
-            self.build_satrec(good1, bad2)
+            self.build_satrec(LINE1, BAD2)
 
 
-good1 = '1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753'
-good2 = '2 00005  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413667'
-bad2  = '2 00007  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413669'
-
-# Values for sgp4init tests, consistent with good1, good2 TLE lines
+# Values for sgp4init tests, consistent with LINE1, LINE2 TLE lines
 satnum = 5
 jdsatepoch = 2451722.5
 jdsatepochF = 0.78495062
