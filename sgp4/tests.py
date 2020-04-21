@@ -50,7 +50,7 @@ if sys.version_info[:2] == (2, 7) or sys.version_info[:2] == (2, 6):
 
 class Tests(TestCase):
 
-    def test_intldesg(self):
+    def test_intldesg_with_7_characters(self):
         sat = Satrec.twoline2rv(
             '1 39444U 13066AE  20110.89708219  .00000236  00000-0'
             '  35029-4 0  9992',
@@ -353,6 +353,9 @@ class LegacySatelliteObjectTests(TestCase, SatelliteObjectTests):
 
     def test_december_32(self):
         # ISS [Orbit 606], whose date is 2019 plus 366.82137887 days.
+        # The core SGP4 routines handled this fine, but my hamfisted
+        # attempt to provide a Python datetime for "convenience" ran
+        # into an overflow.
         sat = io.twoline2rv(
         '1 25544U 98067A   19366.82137887  .00016717  00000-0  10270-3 0  9129',
         '2 25544  51.6392  96.6358 0005156  88.7140 271.4601 15.49497216  6061',
