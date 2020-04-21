@@ -44,7 +44,7 @@ class Satrec(object):
     def __init__(self):
         self.jdsatepochF = 0.0  # for compatibility with accelerated version
         self.whichconst = None
-    
+
     @property
     def no(self):
         return self.no_kozai
@@ -54,7 +54,15 @@ class Satrec(object):
         whichconst = gravity_constants[whichconst]
         self = cls()
         twoline2rv(line1, line2, whichconst, 'i', self)
-        self.epochyr %= 100  # undo my non-standard 4-digit year
+
+        # Upgrade the lone float, native to our old Python code, to a
+        # fancier split float of the kind the C++ natively supports.
+        jd, fr = divmod(self.jdsatepoch - 0.5, 1.0)
+        self.jdsatepoch = jd + 0.5
+        self.jdsatepochF = fr
+
+        # Undo my non-standard 4-digit year
+        self.epochyr %= 100
         return self
 
     def sgp4init(self, satnum, jdSGP4epoch, bstar, ndot, nddot,
@@ -67,7 +75,8 @@ class Satrec(object):
         return self
 
     def sgp4(self, jd, fr):
-        tsince = (jd - self.jdsatepoch + fr) * minutes_per_day
+        tsince = ((jd - self.jdsatepoch) * minutes_per_day +
+                  (fr - self.jdsatepochF) * minutes_per_day)
         r, v = sgp4(self, tsince)
         return self.error, r, v
 

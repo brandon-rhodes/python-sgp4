@@ -28,7 +28,11 @@ LINE1 = '1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753'
 LINE2 = '2 00005  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413667'
 BAD2  = '2 00007  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413669'
 VANGUARD_ATTRS = {
+    # Identity
     'satnum': 5,
+    # Time
+    'jdsatepoch': 2451722.5,
+    # Orbit
     'bstar': 2.8098e-05,
     'ndot': 6.96919666594958e-13,
     'nddot': 0.0,
@@ -146,11 +150,7 @@ class SatelliteObjectTests(object):
         sat = self.build_satrec(LINE1, LINE2)
         verify_vanguard_1(self.assertEqual, sat)
         self.assertEqual(sat.epochdays, epochdays)
-        if sat.jdsatepoch % 1.0 == 0.5:
-            self.assertEqual(sat.jdsatepoch, jdsatepoch)
-            self.assertAlmostEqual(sat.jdsatepochF, jdsatepochF, places=8)
-        else:
-            self.assertEqual(sat.jdsatepoch, jdsatepoch_combined)
+        self.assertAlmostEqual(sat.jdsatepochF, jdsatepochF, places=8)
 
     def test_satrec_sgp4init_attributes(self):
         # Make sure the Satrec has the same attributes if initialized via sgp4init() directly
@@ -294,11 +294,7 @@ class NewSatelliteObjectTests(TestCase, SatelliteObjectTests):
     def test_satrec_sgp4init_jdsatepoch(self):
         sat = self.build_satrec_from_sgp4init(satnum, jdsatepoch_combined-2433281.5, bstar, ndot, nddot,
                                               ecco, argpo, inclo, mo, no_kozai, nodeo)
-        if sat.jdsatepoch % 1.0 == 0.5:
-            self.assertEqual(sat.jdsatepoch, 2451722.5)
-            self.assertAlmostEqual(sat.jdsatepochF, 0.78495062, places=8)
-        else:
-            self.assertEqual(sat.jdsatepoch, 2451723.28495062)
+        self.assertAlmostEqual(sat.jdsatepochF, 0.78495062, places=8)
 
 class NewSatelliteObjectTsinceTests(NewSatelliteObjectTests):
     def invoke_satrec(self, satrec, tsince):
@@ -322,7 +318,9 @@ class LegacySatelliteObjectTests(TestCase, SatelliteObjectTests):
     ]
 
     def build_satrec(self, line1, line2):
-        return io.twoline2rv(line1, line2, wgs72)
+        sat = io.twoline2rv(line1, line2, wgs72)
+        self.fix_jd(sat, sat.jdsatepoch, 0.5)
+        return sat
 
     def build_satrec_from_sgp4init(self, satnum, jdSGP4epoch, bstar, ndot, nddot,
                               ecco, argpo, inclo, mo, no_kozai, nodeo):
@@ -330,7 +328,16 @@ class LegacySatelliteObjectTests(TestCase, SatelliteObjectTests):
         satrec.whichconst = wgs72
         sgp4init(satrec.whichconst, 'i', satnum, jdSGP4epoch, bstar, ndot, nddot,
                  ecco, argpo, inclo, mo, no_kozai, nodeo, satrec)
+        self.fix_jd(satrec, jdSGP4epoch, 2433281.5)
         return satrec
+
+    def fix_jd(self, sat, jdsatepoch, offset):
+        # To make it possible to test these old legacy objects using
+        # modern test code, let's give them the missing attributes
+        # `jdsatepoch` and `jdsatepochF`.
+        jd, fr = divmod(jdsatepoch - 0.5, 1.0)
+        sat.jdsatepoch = jd + offset
+        sat.jdsatepochF = fr
 
     def invoke_satrec(self, satrec, tsince):
         r, v = sgp4(satrec, tsince)
