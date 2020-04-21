@@ -242,7 +242,7 @@ class NewSatelliteObjectTests(TestCase, SatelliteObjectTests):
         satrec.sgp4init(
             VANGUARD_ATTRS['satnum'],
             jdsatepoch_combined-2433281.5,
-            *sgp4init_args(VANGUARD_ATTRS),
+            *sgp4init_args(VANGUARD_ATTRS)
         )
         return satrec
 
@@ -322,7 +322,7 @@ class LegacySatelliteObjectTests(TestCase, SatelliteObjectTests):
         jdSGP4epoch = jdsatepoch_combined - 2433281.5
         sgp4init(
             satrec.whichconst, 'i', VANGUARD_ATTRS['satnum'], jdSGP4epoch,
-            *sgp4init_args(VANGUARD_ATTRS) + (satrec,),
+            *sgp4init_args(VANGUARD_ATTRS) + (satrec,)
         )
         self.fix_jd(satrec, jdSGP4epoch, 0.0, 2433281.5)
         return satrec
@@ -500,7 +500,7 @@ def format_long_line(satrec, tsince, mu, r, v):
 
 
 def load_tests(loader, tests, ignore):
-    """Run our main documentation as a test and test functions in this file."""
+    """Run our main documentation as a test, plus all test functions."""
 
     from sgp4.wulfgar import add_test_functions
     add_test_functions(loader, tests, __name__)
