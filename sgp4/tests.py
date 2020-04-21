@@ -154,9 +154,7 @@ class SatelliteObjectTests(object):
     def test_satrec_sgp4init_attributes(self):
         # Make sure the Satrec has the same attributes if initialized via sgp4init() directly
         # epochyr and epochdays are not set by sgp4init
-        # jdsatepoch, jdsatepochF are only set in V2 sgp4init
-        sat = self.build_satrec_from_sgp4init(satnum, jdsatepoch_combined-2433281.5, bstar, ndot, nddot,
-                                              ecco, argpo, inclo, mo, no_kozai, nodeo)
+        sat = self.build_vanguard_from_sgp4init()
         verify_vanguard_1(self, sat)
 
     def test_tle_verify(self):
@@ -239,11 +237,13 @@ class NewSatelliteObjectTests(TestCase, SatelliteObjectTests):
     def build_satrec(self, line1, line2):
         return Satrec.twoline2rv(line1, line2)
 
-    def build_satrec_from_sgp4init(self, satnum, jdSGP4epoch, bstar, ndot, nddot,
-                                   ecco, argpo, inclo, mo, no_kozai, nodeo):
+    def build_vanguard_from_sgp4init(self):
         satrec = Satrec()
-        satrec.sgp4init(satnum, jdSGP4epoch, bstar, ndot, nddot,
-                               ecco, argpo, inclo, mo, no_kozai, nodeo)
+        satrec.sgp4init(
+            VANGUARD_ATTRS['satnum'],
+            jdsatepoch_combined-2433281.5,
+            *sgp4init_args(VANGUARD_ATTRS),
+        )
         return satrec
 
     def invoke_satrec(self, satrec, tsince):
@@ -316,12 +316,14 @@ class LegacySatelliteObjectTests(TestCase, SatelliteObjectTests):
         self.fix_jd(sat, sat.jdsatepoch, 0.5, 0.5)
         return sat
 
-    def build_satrec_from_sgp4init(self, satnum, jdSGP4epoch, bstar, ndot, nddot,
-                              ecco, argpo, inclo, mo, no_kozai, nodeo):
+    def build_vanguard_from_sgp4init(self):
         satrec = model.Satellite()
         satrec.whichconst = wgs72
-        sgp4init(satrec.whichconst, 'i', satnum, jdSGP4epoch, bstar, ndot, nddot,
-                 ecco, argpo, inclo, mo, no_kozai, nodeo, satrec)
+        jdSGP4epoch = jdsatepoch_combined - 2433281.5
+        sgp4init(
+            satrec.whichconst, 'i', VANGUARD_ATTRS['satnum'], jdSGP4epoch,
+            *sgp4init_args(VANGUARD_ATTRS) + (satrec,),
+        )
         self.fix_jd(satrec, jdSGP4epoch, 0.0, 2433281.5)
         return satrec
 
@@ -392,24 +394,18 @@ with an N where each digit should go, followed by the line you provided:
 
 
 # Values for sgp4init tests, consistent with LINE1, LINE2 TLE lines
-satnum = 5
 jdsatepoch_combined = 2451723.28495062
-# epochyrs handled separately
 epochdays = 179.78495062
-bstar = 2.8098e-05
-ndot = 6.96919666594958e-13
-nddot = 0.0
-ecco = 0.1859667
-argpo = 5.790416027488515
-inclo = 0.5980929187319208
-mo = 0.3373093125574321
-no_kozai = 0.04722944544077857
-nodeo = 6.08638547138321
 
 def verify_vanguard_1(test, sat):
     for name, value in VANGUARD_ATTRS.items():
         test.assertEqual(getattr(sat, name), value, name + ' attribute')
     test.assertAlmostEqual(sat.jdsatepochF, 0.78495062, places=8)
+
+def sgp4init_args(d):
+    """Given a dict of orbital parameters, return them in sgp4init order."""
+    return (d['bstar'], d['ndot'], d['nddot'], d['ecco'], d['argpo'],
+            d['inclo'], d['mo'], d['no_kozai'], d['nodeo'])
 
 
 def generate_test_output(build_satrec, invoke, error_list):
