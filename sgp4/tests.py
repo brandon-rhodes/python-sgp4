@@ -132,22 +132,13 @@ class SatelliteObjectTests(object):
         # Make sure the Satrec has the same attributes.
         # epochyr tested separately
         sat = self.build_satrec(LINE1, LINE2)
-        self.assertEqual(sat.satnum, satnum)
+        verify_vanguard_1(self.assertEqual, sat)
         self.assertEqual(sat.epochdays, epochdays)
         if sat.jdsatepoch % 1.0 == 0.5:
             self.assertEqual(sat.jdsatepoch, jdsatepoch)
             self.assertAlmostEqual(sat.jdsatepochF, jdsatepochF, places=8)
         else:
             self.assertEqual(sat.jdsatepoch, jdsatepoch_combined)
-        self.assertEqual(sat.ndot, ndot)
-        self.assertEqual(sat.nddot, nddot)
-        self.assertEqual(sat.bstar, bstar)
-        self.assertEqual(sat.inclo, inclo)
-        self.assertEqual(sat.nodeo, nodeo)
-        self.assertEqual(sat.ecco, ecco)
-        self.assertEqual(sat.argpo, argpo)
-        self.assertEqual(sat.mo, mo)
-        self.assertEqual(sat.no_kozai, no_kozai)
 
     def test_satrec_sgp4init_attributes(self):
         # Make sure the Satrec has the same attributes if initialized via sgp4init() directly
@@ -155,16 +146,7 @@ class SatelliteObjectTests(object):
         # jdsatepoch, jdsatepochF are only set in V2 sgp4init
         sat = self.build_satrec_from_sgp4init(satnum, jdsatepoch_combined-2433281.5, bstar, ndot, nddot,
                                               ecco, argpo, inclo, mo, no_kozai, nodeo)
-        self.assertEqual(sat.satnum, satnum)
-        self.assertEqual(sat.bstar, bstar)
-        self.assertEqual(sat.ndot, ndot)
-        self.assertEqual(sat.nddot, nddot)
-        self.assertEqual(sat.ecco, ecco)
-        self.assertEqual(sat.argpo, argpo)
-        self.assertEqual(sat.inclo, inclo)
-        self.assertEqual(sat.mo, mo)
-        self.assertEqual(sat.no_kozai, no_kozai)
-        self.assertEqual(sat.nodeo, nodeo)
+        verify_vanguard_1(self.assertEqual, sat)
 
     def test_tle_verify(self):
         # Check whether a test run produces the output in tcppver.out
@@ -412,6 +394,19 @@ inclo = 0.5980929187319208
 mo = 0.3373093125574321
 no_kozai = 0.04722944544077857
 nodeo = 6.08638547138321
+
+
+def verify_vanguard_1(assertEqual, sat):
+    assertEqual(sat.satnum, satnum)
+    assertEqual(sat.bstar, bstar)
+    assertEqual(sat.ndot, ndot)
+    assertEqual(sat.nddot, nddot)
+    assertEqual(sat.ecco, ecco)
+    assertEqual(sat.argpo, argpo)
+    assertEqual(sat.inclo, inclo)
+    assertEqual(sat.mo, mo)
+    assertEqual(sat.no_kozai, no_kozai)
+    assertEqual(sat.nodeo, nodeo)
 
 
 def generate_test_output(build_satrec, invoke, error_list):
