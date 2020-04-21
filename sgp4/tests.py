@@ -492,6 +492,7 @@ def format_long_line(satrec, tsince, mu, r, v):
     (p, a, ecc, incl, node, argp, nu, m, arglat, truelon, lonper
      ) = rv2coe(r, v, mu)
 
+    #asdf
     return short + (' %14.6f %8.6f %10.5f %10.5f %10.5f %10.5f %10.5f'
                     ' %5i%3i%3i %2i:%2i:%9.6f\n') % (
         a, ecc, incl*rad, node*rad, argp*rad, nu*rad,
@@ -499,10 +500,13 @@ def format_long_line(satrec, tsince, mu, r, v):
 
 
 def load_tests(loader, tests, ignore):
-    """Run our main documentation as a test."""
+    """Run our main documentation as a test and test functions in this file."""
+
+    from sgp4.wulfgar import add_test_functions
+    add_test_functions(loader, tests, __name__)
 
     # Python 2.6 formats floating-point numbers a bit differently and
-    # breaks the doctest.
+    # breaks the doctest, so we only run the doctest on later versions.
     if sys.version_info >= (2, 7):
         tests.addTests(DocTestSuite('sgp4', optionflags=ELLIPSIS))
         tests.addTests(DocTestSuite('sgp4.functions', optionflags=ELLIPSIS))
