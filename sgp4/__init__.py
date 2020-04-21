@@ -27,18 +27,13 @@ comprehensive astronomy library that is built atop this one, like the
 
 http://rhodesmill.org/skyfield/earth-satellites.html
 
-To run the test suite for this module, clone its repository from GitHub:
+Usage
+-----
 
-https://github.com/brandon-rhodes/python-sgp4
-
-Then invoke the tests using the Python Standard Library::
-
-    python -m unittest discover sgp4
-
-The C++ function names have been retained, since users may already be
-familiar with this library in other languages.  Here is how to compute
-the x,y,z position and velocity for the International Space Station at
-12:50:19 on 29 June 2000:
+This library uses the same function names as the official C++ code, to
+help users who may already be familiar with SGP4 in other languages.
+Here is how to compute the x,y,z position and velocity for the
+International Space Station at 12:50:19 on 29 June 2000:
 
 >>> from sgp4.api import Satrec
 >>>
@@ -213,6 +208,21 @@ If you would like to review the paper, it is `available online
 always download the latest version of their code for comparison against
 this Python module (or other implementations) at `AIAA-2006-6753.zip
 <http://www.celestrak.com/publications/AIAA/2006-6753/AIAA-2006-6753.zip>`_.
+
+Development
+-----------
+
+Developers can check out this full project from GitHub:
+
+https://github.com/brandon-rhodes/python-sgp4
+
+To run its unit tests, install Python 2, Python 3, and the ``tox``
+testing tool.  The tests runing in Python 2 will exercise the backup
+pure Python version of the routines, while Python 3 exercises the fast
+new C++ accelerated code::
+
+    cd python-sgp4
+    tox
 
 Legacy API
 ----------
