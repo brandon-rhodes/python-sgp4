@@ -359,18 +359,19 @@ class LegacySatelliteObjectTests(TestCase, SatelliteObjectTests):
     def test_legacy_epochyr(self):
         # Apparently I saw fit to change the meaning of this attribute
         # in the Python version of SGP4.
-        sat = self.build_satrec(LINE1, LINE2)
+        sat = io.twoline2rv(LINE1, LINE2, wgs72)
         self.assertEqual(sat.epochyr, 2000)
 
     def test_support_for_old_no_attribute(self):
-        s = self.build_satrec(LINE1, LINE2)
+        s = io.twoline2rv(LINE1, LINE2, wgs72)
         assert s.no == s.no_kozai
 
     def test_december_32(self):
         # ISS [Orbit 606], whose date is 2019 plus 366.82137887 days.
-        sat = self.build_satrec(
+        sat = io.twoline2rv(
         '1 25544U 98067A   19366.82137887  .00016717  00000-0  10270-3 0  9129',
         '2 25544  51.6392  96.6358 0005156  88.7140 271.4601 15.49497216  6061',
+        wgs72,
         )
         self.assertEqual(
             dt.datetime(2020, 1, 1, 19, 42, 47, 134367),
@@ -387,7 +388,7 @@ with an N where each digit should go, followed by the line you provided:
 
 1 NNNNNC NNNNNAAA NNNNN.NNNNNNNN +.NNNNNNNN +NNNNN-N +NNNNN-N N NNNNN
 1 00005U 58002B   00179.78495062  .000000234 00000-0  28098-4 0  4753""")):
-            self.build_satrec(LINE1.replace('23 ', '234'), LINE2)
+            io.twoline2rv(LINE1.replace('23 ', '234'), LINE2, wgs72)
 
     def test_bad_second_line(self):
         with self.assertRaisesRegex(ValueError, re.escape("""TLE format error
@@ -399,12 +400,12 @@ with an N where each digit should go, followed by the line you provided:
 
 2 NNNNN NNN.NNNN NNN.NNNN NNNNNNN NNN.NNNN NNN.NNNN NN.NNNNNNNNNNNNNN
 2 00005 34 .268234 8.7242 1859667 331.7664  19.3264 10.82419157413667""")):
-            self.build_satrec(LINE1, LINE2.replace(' 34', '34 '))
+            io.twoline2rv(LINE1, LINE2.replace(' 34', '34 '), wgs72)
 
     def test_mismatched_lines(self):
         msg = "Object numbers in lines 1 and 2 do not match"
         with self.assertRaisesRegex(ValueError, re.escape(msg)):
-            self.build_satrec(LINE1, BAD2)
+            io.twoline2rv(LINE1, BAD2, wgs72)
 
 
 # Values for sgp4init tests, consistent with LINE1, LINE2 TLE lines
