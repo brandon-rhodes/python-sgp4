@@ -116,46 +116,32 @@ class SatelliteObjectTests(object):
     """
     def test_satrec_attributes(self):
         # Make sure the Satrec has the same attributes.
+        # epochyr tested separately
         sat = self.build_satrec(good1, good2)
-        self.assertEqual(sat.satnum, 5)
-        self.assertEqual(sat.epochdays, 179.78495062)
+        self.assertEqual(sat.satnum, satnum)
+        self.assertEqual(sat.epochdays, epochdays)
         if sat.jdsatepoch % 1.0 == 0.5:
-            self.assertEqual(sat.jdsatepoch, 2451722.5)
-            self.assertAlmostEqual(sat.jdsatepochF, 0.78495062, places=8)
+            self.assertEqual(sat.jdsatepoch, jdsatepoch)
+            self.assertAlmostEqual(sat.jdsatepochF, jdsatepochF, places=8)
         else:
-            self.assertEqual(sat.jdsatepoch, 2451723.28495062)
-        self.assertEqual(sat.ndot, 6.96919666594958e-13)
-        self.assertEqual(sat.nddot, 0.0)
-        self.assertEqual(sat.bstar, 2.8098e-05)
-        self.assertEqual(sat.inclo, 0.5980929187319208)
-        self.assertEqual(sat.nodeo, 6.08638547138321)
-        self.assertEqual(sat.ecco, 0.1859667)
-        self.assertEqual(sat.argpo, 5.790416027488515)
-        self.assertEqual(sat.mo, 0.3373093125574321)
-        self.assertEqual(sat.no_kozai, 0.04722944544077857)
+            self.assertEqual(sat.jdsatepoch, jdsatepoch_combined)
+        self.assertEqual(sat.ndot, ndot)
+        self.assertEqual(sat.nddot, nddot)
+        self.assertEqual(sat.bstar, bstar)
+        self.assertEqual(sat.inclo, inclo)
+        self.assertEqual(sat.nodeo, nodeo)
+        self.assertEqual(sat.ecco, ecco)
+        self.assertEqual(sat.argpo, argpo)
+        self.assertEqual(sat.mo, mo)
+        self.assertEqual(sat.no_kozai, no_kozai)
 
     def test_satrec_sgp4init_attributes(self):
         # Make sure the Satrec has the same attributes if initialized via sgp4init() directly
-        satnum = 5
-        jdsatepoch = 2451723.28495062
-        bstar = 2.8098e-05
-        ndot = 6.96919666594958e-13
-        nddot = 0.0
-        ecco = 0.1859667
-        argpo = 5.790416027488515
-        inclo = 0.5980929187319208
-        mo = 0.3373093125574321
-        no_kozai = 0.04722944544077857
-        nodeo = 6.08638547138321
-
-        sat = self.build_satrec_from_sgp4init(satnum, jdsatepoch-2433281.5, bstar, ndot, nddot,
+        # epochyr and epochdays are not set by sgp4init
+        # jdsatepoch, jdsatepochF are only set in V2 sgp4init
+        sat = self.build_satrec_from_sgp4init(satnum, jdsatepoch_combined-2433281.5, bstar, ndot, nddot,
                                               ecco, argpo, inclo, mo, no_kozai, nodeo)
         self.assertEqual(sat.satnum, satnum)
-        if sat.jdsatepoch % 1.0 == 0.5:
-            self.assertEqual(sat.jdsatepoch, 2451722.5)
-            self.assertAlmostEqual(sat.jdsatepochF, 0.78495062, places=8)
-        else:
-            self.assertEqual(sat.jdsatepoch, 2451723.28495062)
         self.assertEqual(sat.bstar, bstar)
         self.assertEqual(sat.ndot, ndot)
         self.assertEqual(sat.nddot, nddot)
@@ -173,8 +159,68 @@ class SatelliteObjectTests(object):
         actual = generate_test_output(self.build_satrec,
                                       self.invoke_satrec,
                                       error_list)
+        previous_data_line = None
 
-        error_list = generate_tle_output(actual,error_list)
+        # Iterate across "tcppver.out", making sure that we ourselves
+        # produce a line that looks very much like the corresponding
+        # line in that file.
+
+        tcppath = os.path.join(thisdir, 'tcppver.out')
+        with open(tcppath) as tcpfile:
+            for i, expected_line in enumerate(tcpfile, start = 1):
+
+                try:
+                    actual_line = next(actual)
+                except StopIteration:
+                    raise ValueError(
+                        'WARNING: our output ended early, on line %d' % (i,))
+
+                if actual_line == '(Use previous data line)':
+                    actual_line = ('       0.00000000' +
+                                   previous_data_line[17:107])
+
+                # Compare the lines.  The first seven fields are printed
+                # to very high precision, so we allow a small error due
+                # to rounding differences; the rest are printed to lower
+                # precision, and so can be compared textually.
+
+                if 'xx' in actual_line:
+                    similar = (actual_line == expected_line)
+                else:
+                    afields = actual_line.split()
+                    efields = expected_line.split()
+                    actual7 = [ float(a) for a in afields[:7] ]
+                    expected7 = [ float(e) for e in efields[:7] ]
+                    similar = (
+                        len(actual7) == len(expected7)
+                        and
+                        all(
+                            -error < (a - e) < error
+                             for a, e in zip(actual7, expected7)
+                             )
+                        and
+                        afields[7:] == efields[7:]  # just compare text
+                        )
+
+                if not similar:
+                    raise ValueError(
+                        'Line %d of output does not match:\n'
+                        '\n'
+                        'Expect: %s'
+                        'Actual: %s'
+                        % (i, expected_line, actual_line))
+
+                if 'xx' not in actual_line:
+                    previous_data_line = actual_line
+
+        # Make sure the test file is not missing lines.
+
+        missing_count = 0
+        for actual_line in actual:
+            missing_count += 1
+
+        if missing_count > 0:
+            raise ValueError('we produced %d extra lines' % (missing_count,))
 
         self.assertEqual(error_list, self.expected_errors)
 
@@ -193,10 +239,6 @@ class NewSatelliteObjectTests(TestCase, SatelliteObjectTests):
                                ecco, argpo, inclo, mo, no_kozai, nodeo)
         return satrec
 
-    def invoke_satrec_tsince(self, satrec, tsince):
-        e, r, v = satrec.sgp4_tsince(tsince)
-        return e, SGP4_ERRORS[e] if e else '', r, v
-
     def invoke_satrec(self, satrec, tsince):
         whole, fraction = divmod(tsince / 1440.0, 1.0)
         jd = satrec.jdsatepoch + whole
@@ -210,17 +252,6 @@ class NewSatelliteObjectTests(TestCase, SatelliteObjectTests):
         # official behavior when that code is used behind Satrec.
         sat = self.build_satrec(good1, good2)
         self.assertEqual(sat.epochyr, 0)
-
-    def test_tle_verify_tsince(self):
-        # Check whether a test run produces the output in tcppver.out
-        error_list = []
-        actual = generate_test_output(self.build_satrec,
-                                      self.invoke_satrec_tsince,
-                                      error_list)
-
-        error_list = generate_tle_output(actual, error_list)
-
-        self.assertEqual(error_list, self.expected_errors)
 
     def test_three_gravity_models(self):
         # The numbers below are those produced by Vallado's C++ code.
@@ -252,6 +283,20 @@ class NewSatelliteObjectTests(TestCase, SatelliteObjectTests):
         self.assertAlmostEqual(r[1], 7876.3549956188945, digits)
         self.assertAlmostEqual(r[2], 4719.227897029576, digits)
 
+    def test_satrec_sgp4init_jdsatepoch(self):
+        sat = self.build_satrec_from_sgp4init(satnum, jdsatepoch_combined-2433281.5, bstar, ndot, nddot,
+                                              ecco, argpo, inclo, mo, no_kozai, nodeo)
+        if sat.jdsatepoch % 1.0 == 0.5:
+            self.assertEqual(sat.jdsatepoch, 2451722.5)
+            self.assertAlmostEqual(sat.jdsatepochF, 0.78495062, places=8)
+        else:
+            self.assertEqual(sat.jdsatepoch, 2451723.28495062)
+
+class NewSatelliteObjectTsinceTests(NewSatelliteObjectTests):
+    def invoke_satrec(self, satrec, tsince):
+        e, r, v = satrec.sgp4_tsince(tsince)
+        return e, SGP4_ERRORS[e] if e else '', r, v
+
 class LegacySatelliteObjectTests(TestCase, SatelliteObjectTests):
 
     expected_errors = [
@@ -273,10 +318,10 @@ class LegacySatelliteObjectTests(TestCase, SatelliteObjectTests):
 
     def build_satrec_from_sgp4init(self, satnum, jdSGP4epoch, bstar, ndot, nddot,
                               ecco, argpo, inclo, mo, no_kozai, nodeo):
-
-        satrec = Satrec()
-        satrec.sgp4init(satnum, jdSGP4epoch, bstar, ndot, nddot,
-                 ecco, argpo, inclo, mo, no_kozai, nodeo)
+        satrec = Satellite()
+        satrec.whichconst = wgs72
+        sgp4init(satrec.whichconst, 'i', satnum, jdSGP4epoch, bstar, ndot, nddot,
+                 ecco, argpo, inclo, mo, no_kozai, nodeo, satrec)
         return satrec
 
     def invoke_satrec(self, satrec, tsince):
@@ -339,6 +384,23 @@ with an N where each digit should go, followed by the line you provided:
 good1 = '1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753'
 good2 = '2 00005  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413667'
 bad2  = '2 00007  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413669'
+
+# Values for sgp4init tests, consistent with good1, good2 TLE lines
+satnum = 5
+jdsatepoch = 2451722.5
+jdsatepochF = 0.78495062
+jdsatepoch_combined = 2451723.28495062
+# epochyrs handled separately
+epochdays = 179.78495062
+bstar = 2.8098e-05
+ndot = 6.96919666594958e-13
+nddot = 0.0
+ecco = 0.1859667
+argpo = 5.790416027488515
+inclo = 0.5980929187319208
+mo = 0.3373093125574321
+no_kozai = 0.04722944544077857
+nodeo = 6.08638547138321
 
 
 def generate_test_output(build_satrec, invoke, error_list):
@@ -404,70 +466,6 @@ def generate_satellite_output(satrec, invoke, line2, error_list):
             return
         yield format_long_line(satrec, tend, mu, r, v)
 
-def generate_tle_output(actual, error_list):
-    # Iterate across "tcppver.out", making sure that we ourselves
-    # produce a line that looks very much like the corresponding
-    # line in that file.
-    previous_data_line = None
-
-    tcppath = os.path.join(thisdir, 'tcppver.out')
-    with open(tcppath) as tcpfile:
-        for i, expected_line in enumerate(tcpfile, start = 1):
-
-            try:
-                actual_line = next(actual)
-            except StopIteration:
-                raise ValueError(
-                    'WARNING: our output ended early, on line %d' % (i,))
-
-            if actual_line == '(Use previous data line)':
-                actual_line = ('       0.00000000' +
-                                previous_data_line[17:107])
-
-            # Compare the lines.  The first seven fields are printed
-            # to very high precision, so we allow a small error due
-            # to rounding differences; the rest are printed to lower
-            # precision, and so can be compared textually.
-
-            if 'xx' in actual_line:
-                similar = (actual_line == expected_line)
-            else:
-                afields = actual_line.split()
-                efields = expected_line.split()
-                actual7 = [ float(a) for a in afields[:7] ]
-                expected7 = [ float(e) for e in efields[:7] ]
-                similar = (
-                    len(actual7) == len(expected7)
-                    and
-                    all(
-                        -error < (a - e) < error
-                            for a, e in zip(actual7, expected7)
-                            )
-                    and
-                    afields[7:] == efields[7:]  # just compare text
-                    )
-
-            if not similar:
-                raise ValueError(
-                    'Line %d of output does not match:\n'
-                    '\n'
-                    'Expect: %s'
-                    'Actual: %s'
-                    % (i, expected_line, actual_line))
-
-            if 'xx' not in actual_line:
-                previous_data_line = actual_line
-
-    # Make sure the test file is not missing lines.
-
-    missing_count = 0
-    for actual_line in actual:
-        missing_count += 1
-
-    if missing_count > 0:
-        raise ValueError('we produced %d extra lines' % (missing_count,))
-
-    return error_list
 
 def format_short_line(tsince, r, v):
     """Short line, using the same format string that testcpp.cpp uses."""
