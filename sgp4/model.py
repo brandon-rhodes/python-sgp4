@@ -36,11 +36,15 @@ class Satrec(object):
         'whichconst', 'x1mth2', 'x7thm1', 'xfact', 'xgh2', 'xgh3', 'xgh4',
         'xh2', 'xh3', 'xi2', 'xi3', 'xke', 'xl2', 'xl3', 'xl4', 'xlamo',
         'xlcof', 'xli', 'xmcof', 'xni', 'zmol', 'zmos',
+        'jdsatepochF'
     )
 
     array = None       # replaced, if needed, with NumPy array()
-    jdsatepochF = 0.0  # for compatibility with accelerated version
 
+    def __init__(self):
+        self.jdsatepochF = 0.0  # for compatibility with accelerated version
+        self.whichconst = None
+    
     @property
     def no(self):
         return self.no_kozai
@@ -54,14 +58,20 @@ class Satrec(object):
         return self
 
     def sgp4init(self, satnum, jdSGP4epoch, bstar, ndot, nddot,
-                 ecco, argpo, inclo, mo, no_kozai, nodeo):
+                 ecco, argpo, inclo, mo, no_kozai, nodeo, whichconst=WGS72, opsmode='i'):
+        whichconst = gravity_constants[whichconst]
         self.jdsatepoch, self.jdsatepochF = divmod(jdSGP4epoch,1)
         self.jdsatepoch += 2433281.5
-        return sgp4init(wgs72, 'i', satnum, jdSGP4epoch, bstar, ndot, nddot,
+        sgp4init(whichconst, opsmode, satnum, jdSGP4epoch, bstar, ndot, nddot,
                         ecco, argpo, inclo, mo, no_kozai, nodeo, self)
+        return self
 
     def sgp4(self, jd, fr):
         tsince = (jd - self.jdsatepoch + fr) * minutes_per_day
+        r, v = sgp4(self, tsince)
+        return self.error, r, v
+
+    def sgp4_tsince(self, tsince):
         r, v = sgp4(self, tsince)
         return self.error, r, v
 

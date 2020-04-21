@@ -20,6 +20,7 @@ from sgp4.ext import invjday, newtonnu, rv2coe
 from sgp4.propagation import sgp4, sgp4init
 from sgp4 import io
 from sgp4.exporter import export_tle
+import sgp4.model as model
 
 thisdir = os.path.dirname(__file__)
 error = 2e-7
@@ -297,6 +298,18 @@ class NewSatelliteObjectTsinceTests(NewSatelliteObjectTests):
         e, r, v = satrec.sgp4_tsince(tsince)
         return e, SGP4_ERRORS[e] if e else '', r, v
 
+class NewSatelliteObjectNonAcceleratedTests(NewSatelliteObjectTests):
+    def build_satrec(self, line1, line2):
+        satrec_slow = model.Satrec.twoline2rv(line1, line2)
+        return satrec_slow
+
+    def build_satrec_from_sgp4init(self, satnum, jdSGP4epoch, bstar, ndot, nddot,
+                                   ecco, argpo, inclo, mo, no_kozai, nodeo):
+        satrec_slow = model.Satrec()
+        satrec_slow.sgp4init(satnum, jdSGP4epoch, bstar, ndot, nddot,
+                               ecco, argpo, inclo, mo, no_kozai, nodeo)
+        return satrec_slow
+
 class LegacySatelliteObjectTests(TestCase, SatelliteObjectTests):
 
     expected_errors = [
@@ -318,7 +331,7 @@ class LegacySatelliteObjectTests(TestCase, SatelliteObjectTests):
 
     def build_satrec_from_sgp4init(self, satnum, jdSGP4epoch, bstar, ndot, nddot,
                               ecco, argpo, inclo, mo, no_kozai, nodeo):
-        satrec = Satellite()
+        satrec = model.Satellite()
         satrec.whichconst = wgs72
         sgp4init(satrec.whichconst, 'i', satnum, jdSGP4epoch, bstar, ndot, nddot,
                  ecco, argpo, inclo, mo, no_kozai, nodeo, satrec)
