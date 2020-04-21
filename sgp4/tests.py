@@ -311,18 +311,6 @@ class NewSatelliteObjectTsinceTests(NewSatelliteObjectTests):
         e, r, v = satrec.sgp4_tsince(tsince)
         return e, SGP4_ERRORS[e] if e else '', r, v
 
-class NewSatelliteObjectNonAcceleratedTests(NewSatelliteObjectTests):
-    def build_satrec(self, line1, line2):
-        satrec_slow = model.Satrec.twoline2rv(line1, line2)
-        return satrec_slow
-
-    def build_satrec_from_sgp4init(self, satnum, jdSGP4epoch, bstar, ndot, nddot,
-                                   ecco, argpo, inclo, mo, no_kozai, nodeo):
-        satrec_slow = model.Satrec()
-        satrec_slow.sgp4init(satnum, jdSGP4epoch, bstar, ndot, nddot,
-                               ecco, argpo, inclo, mo, no_kozai, nodeo)
-        return satrec_slow
-
 class LegacySatelliteObjectTests(TestCase, SatelliteObjectTests):
 
     expected_errors = [
