@@ -5,11 +5,11 @@ except:
     from unittest import TestCase, main
 
 import datetime as dt
-import os
 import re
 import sys
 from doctest import DocTestSuite, ELLIPSIS
 from math import pi, isnan
+from pkgutil import get_data
 
 from sgp4.api import (
     SGP4_ERRORS, WGS72OLD, WGS72, WGS84,
@@ -22,7 +22,6 @@ from sgp4 import io
 from sgp4.exporter import export_tle
 import sgp4.model as model
 
-thisdir = os.path.dirname(__file__)
 error = 2e-7
 rad = 180.0 / pi
 LINE1 = '1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753'
@@ -33,7 +32,7 @@ BAD2  = '2 00007  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413669'
 if sys.version_info[:2] == (2, 7) or sys.version_info[:2] == (2, 6):
     TestCase.assertRaisesRegex = TestCase.assertRaisesRegexp
 
-class FunctionTests(TestCase):
+class Tests(TestCase):
 
     def test_intldesg(self):
         sat = Satrec.twoline2rv(
@@ -53,9 +52,8 @@ class FunctionTests(TestCase):
         the round-trip).
 
         """
-        tlepath = os.path.join(thisdir, 'SGP4-VER.TLE')
-        with open(tlepath) as tlefile:
-            tlelines = iter(tlefile.readlines())
+        data = get_data(__name__, 'SGP4-VER.TLE')
+        tle_lines = iter(data.decode('ascii').splitlines())
 
         # Skip these lines, known errors
         # Resulting TLEs are equivalent (same values in the Satrec object), but they are not the same
@@ -71,12 +69,12 @@ class FunctionTests(TestCase):
             # Non-standard: omits the ephemeris type integer.
             expected_errs_line1.add(11801)
 
-        for line1 in tlelines:
+        for line1 in tle_lines:
 
             if not line1.startswith('1'):
                 continue
 
-            line2 = next(tlelines)
+            line2 = next(tle_lines)
 
             # trim lines to normal TLE string size
             line1 = line1[:69]
@@ -85,12 +83,6 @@ class FunctionTests(TestCase):
 
             # Generate TLE from satrec
             out_line1, out_line2 = export_tle(satrec)
-
-            # print("file :  " + line1)
-            # print("satrec: " + out_line1)
-
-            # print("file :  " + line2)
-            # print("satrec: " + out_line2)
 
             if satrec.satnum not in expected_errs_line1:
                 self.assertEqual(out_line1, line1)
@@ -184,53 +176,53 @@ class SatelliteObjectTests(object):
         # produce a line that looks very much like the corresponding
         # line in that file.
 
-        tcppath = os.path.join(thisdir, 'tcppver.out')
-        with open(tcppath) as tcpfile:
-            for i, expected_line in enumerate(tcpfile, start = 1):
+        data = get_data(__name__, 'tcppver.out')
+        tcppver_lines = data.decode('ascii').splitlines(True)
+        for i, expected_line in enumerate(tcppver_lines, start = 1):
 
-                try:
-                    actual_line = next(actual)
-                except StopIteration:
-                    raise ValueError(
-                        'WARNING: our output ended early, on line %d' % (i,))
+            try:
+                actual_line = next(actual)
+            except StopIteration:
+                raise ValueError(
+                    'WARNING: our output ended early, on line %d' % (i,))
 
-                if actual_line == '(Use previous data line)':
-                    actual_line = ('       0.00000000' +
-                                   previous_data_line[17:107])
+            if actual_line == '(Use previous data line)':
+                actual_line = ('       0.00000000' +
+                               previous_data_line[17:107])
 
-                # Compare the lines.  The first seven fields are printed
-                # to very high precision, so we allow a small error due
-                # to rounding differences; the rest are printed to lower
-                # precision, and so can be compared textually.
+            # Compare the lines.  The first seven fields are printed
+            # to very high precision, so we allow a small error due
+            # to rounding differences; the rest are printed to lower
+            # precision, and so can be compared textually.
 
-                if 'xx' in actual_line:
-                    similar = (actual_line == expected_line)
-                else:
-                    afields = actual_line.split()
-                    efields = expected_line.split()
-                    actual7 = [ float(a) for a in afields[:7] ]
-                    expected7 = [ float(e) for e in efields[:7] ]
-                    similar = (
-                        len(actual7) == len(expected7)
-                        and
-                        all(
-                            -error < (a - e) < error
-                             for a, e in zip(actual7, expected7)
-                             )
-                        and
-                        afields[7:] == efields[7:]  # just compare text
-                        )
+            if 'xx' in actual_line:
+                similar = (actual_line == expected_line)
+            else:
+                afields = actual_line.split()
+                efields = expected_line.split()
+                actual7 = [ float(a) for a in afields[:7] ]
+                expected7 = [ float(e) for e in efields[:7] ]
+                similar = (
+                    len(actual7) == len(expected7)
+                    and
+                    all(
+                        -error < (a - e) < error
+                         for a, e in zip(actual7, expected7)
+                         )
+                    and
+                    afields[7:] == efields[7:]  # just compare text
+                    )
 
-                if not similar:
-                    raise ValueError(
-                        'Line %d of output does not match:\n'
-                        '\n'
-                        'Expect: %s'
-                        'Actual: %s'
-                        % (i, expected_line, actual_line))
+            if not similar:
+                raise ValueError(
+                    'Line %d of output does not match:\n'
+                    '\n'
+                    'Expected: %r\n'
+                    'Got back: %r'
+                    % (i, expected_line, actual_line))
 
-                if 'xx' not in actual_line:
-                    previous_data_line = actual_line
+            if 'xx' not in actual_line:
+                previous_data_line = actual_line
 
         # Make sure the test file is not missing lines.
 
@@ -438,16 +430,15 @@ def generate_test_output(build_satrec, invoke, error_list):
     supposed to print results.
 
     """
-    tlepath = os.path.join(thisdir, 'SGP4-VER.TLE')
-    with open(tlepath) as tlefile:
-        tlelines = iter(tlefile.readlines())
+    data = get_data(__name__, 'SGP4-VER.TLE')
+    tle_lines = iter(data.decode('ascii').splitlines())
 
-    for line1 in tlelines:
+    for line1 in tle_lines:
 
         if not line1.startswith('1'):
             continue
 
-        line2 = next(tlelines)
+        line2 = next(tle_lines)
         satrec = build_satrec(line1, line2)
 
         yield '%ld xx\n' % (satrec.satnum,)
