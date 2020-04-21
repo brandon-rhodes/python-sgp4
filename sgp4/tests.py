@@ -17,9 +17,10 @@ from sgp4.api import (
 )
 from sgp4.earth_gravity import wgs72
 from sgp4.ext import invjday, newtonnu, rv2coe
-from sgp4.propagation import sgp4
+from sgp4.propagation import sgp4, sgp4init
 from sgp4 import io
 from sgp4.exporter import export_tle
+import sgp4.model as model
 
 thisdir = os.path.dirname(__file__)
 error = 2e-7
@@ -131,23 +132,41 @@ class SatelliteObjectTests(object):
     """
     def test_satrec_attributes(self):
         # Make sure the Satrec has the same attributes.
+        # epochyr tested separately
         sat = self.build_satrec(good1, good2)
-        self.assertEqual(sat.satnum, 5)
-        self.assertEqual(sat.epochdays, 179.78495062)
+        self.assertEqual(sat.satnum, satnum)
+        self.assertEqual(sat.epochdays, epochdays)
         if sat.jdsatepoch % 1.0 == 0.5:
-            self.assertEqual(sat.jdsatepoch, 2451722.5)
-            self.assertAlmostEqual(sat.jdsatepochF, 0.78495062, 8)
+            self.assertEqual(sat.jdsatepoch, jdsatepoch)
+            self.assertAlmostEqual(sat.jdsatepochF, jdsatepochF, places=8)
         else:
-            self.assertEqual(sat.jdsatepoch, 2451723.28495062)
-        self.assertEqual(sat.ndot, 6.96919666594958e-13)
-        self.assertEqual(sat.nddot, 0.0)
-        self.assertEqual(sat.bstar, 2.8098e-05)
-        self.assertEqual(sat.inclo, 0.5980929187319208)
-        self.assertEqual(sat.nodeo, 6.08638547138321)
-        self.assertEqual(sat.ecco, 0.1859667)
-        self.assertEqual(sat.argpo, 5.790416027488515)
-        self.assertEqual(sat.mo, 0.3373093125574321)
-        self.assertEqual(sat.no_kozai, 0.04722944544077857)
+            self.assertEqual(sat.jdsatepoch, jdsatepoch_combined)
+        self.assertEqual(sat.ndot, ndot)
+        self.assertEqual(sat.nddot, nddot)
+        self.assertEqual(sat.bstar, bstar)
+        self.assertEqual(sat.inclo, inclo)
+        self.assertEqual(sat.nodeo, nodeo)
+        self.assertEqual(sat.ecco, ecco)
+        self.assertEqual(sat.argpo, argpo)
+        self.assertEqual(sat.mo, mo)
+        self.assertEqual(sat.no_kozai, no_kozai)
+
+    def test_satrec_sgp4init_attributes(self):
+        # Make sure the Satrec has the same attributes if initialized via sgp4init() directly
+        # epochyr and epochdays are not set by sgp4init
+        # jdsatepoch, jdsatepochF are only set in V2 sgp4init
+        sat = self.build_satrec_from_sgp4init(satnum, jdsatepoch_combined-2433281.5, bstar, ndot, nddot,
+                                              ecco, argpo, inclo, mo, no_kozai, nodeo)
+        self.assertEqual(sat.satnum, satnum)
+        self.assertEqual(sat.bstar, bstar)
+        self.assertEqual(sat.ndot, ndot)
+        self.assertEqual(sat.nddot, nddot)
+        self.assertEqual(sat.ecco, ecco)
+        self.assertEqual(sat.argpo, argpo)
+        self.assertEqual(sat.inclo, inclo)
+        self.assertEqual(sat.mo, mo)
+        self.assertEqual(sat.no_kozai, no_kozai)
+        self.assertEqual(sat.nodeo, nodeo)
 
     def test_tle_verify(self):
         # Check whether a test run produces the output in tcppver.out
@@ -229,6 +248,13 @@ class NewSatelliteObjectTests(TestCase, SatelliteObjectTests):
     def build_satrec(self, line1, line2):
         return Satrec.twoline2rv(line1, line2)
 
+    def build_satrec_from_sgp4init(self, satnum, jdSGP4epoch, bstar, ndot, nddot,
+                                   ecco, argpo, inclo, mo, no_kozai, nodeo):
+        satrec = Satrec()
+        satrec.sgp4init(satnum, jdSGP4epoch, bstar, ndot, nddot,
+                               ecco, argpo, inclo, mo, no_kozai, nodeo)
+        return satrec
+
     def invoke_satrec(self, satrec, tsince):
         whole, fraction = divmod(tsince / 1440.0, 1.0)
         jd = satrec.jdsatepoch + whole
@@ -273,6 +299,32 @@ class NewSatelliteObjectTests(TestCase, SatelliteObjectTests):
         self.assertAlmostEqual(r[1], 7876.3549956188945, digits)
         self.assertAlmostEqual(r[2], 4719.227897029576, digits)
 
+    def test_satrec_sgp4init_jdsatepoch(self):
+        sat = self.build_satrec_from_sgp4init(satnum, jdsatepoch_combined-2433281.5, bstar, ndot, nddot,
+                                              ecco, argpo, inclo, mo, no_kozai, nodeo)
+        if sat.jdsatepoch % 1.0 == 0.5:
+            self.assertEqual(sat.jdsatepoch, 2451722.5)
+            self.assertAlmostEqual(sat.jdsatepochF, 0.78495062, places=8)
+        else:
+            self.assertEqual(sat.jdsatepoch, 2451723.28495062)
+
+class NewSatelliteObjectTsinceTests(NewSatelliteObjectTests):
+    def invoke_satrec(self, satrec, tsince):
+        e, r, v = satrec.sgp4_tsince(tsince)
+        return e, SGP4_ERRORS[e] if e else '', r, v
+
+class NewSatelliteObjectNonAcceleratedTests(NewSatelliteObjectTests):
+    def build_satrec(self, line1, line2):
+        satrec_slow = model.Satrec.twoline2rv(line1, line2)
+        return satrec_slow
+
+    def build_satrec_from_sgp4init(self, satnum, jdSGP4epoch, bstar, ndot, nddot,
+                                   ecco, argpo, inclo, mo, no_kozai, nodeo):
+        satrec_slow = model.Satrec()
+        satrec_slow.sgp4init(satnum, jdSGP4epoch, bstar, ndot, nddot,
+                               ecco, argpo, inclo, mo, no_kozai, nodeo)
+        return satrec_slow
+
 class LegacySatelliteObjectTests(TestCase, SatelliteObjectTests):
 
     expected_errors = [
@@ -291,6 +343,14 @@ class LegacySatelliteObjectTests(TestCase, SatelliteObjectTests):
 
     def build_satrec(self, line1, line2):
         return io.twoline2rv(line1, line2, wgs72)
+
+    def build_satrec_from_sgp4init(self, satnum, jdSGP4epoch, bstar, ndot, nddot,
+                              ecco, argpo, inclo, mo, no_kozai, nodeo):
+        satrec = model.Satellite()
+        satrec.whichconst = wgs72
+        sgp4init(satrec.whichconst, 'i', satnum, jdSGP4epoch, bstar, ndot, nddot,
+                 ecco, argpo, inclo, mo, no_kozai, nodeo, satrec)
+        return satrec
 
     def invoke_satrec(self, satrec, tsince):
         r, v = sgp4(satrec, tsince)
@@ -352,6 +412,23 @@ with an N where each digit should go, followed by the line you provided:
 good1 = '1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753'
 good2 = '2 00005  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413667'
 bad2  = '2 00007  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413669'
+
+# Values for sgp4init tests, consistent with good1, good2 TLE lines
+satnum = 5
+jdsatepoch = 2451722.5
+jdsatepochF = 0.78495062
+jdsatepoch_combined = 2451723.28495062
+# epochyrs handled separately
+epochdays = 179.78495062
+bstar = 2.8098e-05
+ndot = 6.96919666594958e-13
+nddot = 0.0
+ecco = 0.1859667
+argpo = 5.790416027488515
+inclo = 0.5980929187319208
+mo = 0.3373093125574321
+no_kozai = 0.04722944544077857
+nodeo = 6.08638547138321
 
 
 def generate_test_output(build_satrec, invoke, error_list):
