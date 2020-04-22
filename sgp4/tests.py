@@ -22,6 +22,10 @@ from sgp4 import io
 from sgp4.exporter import export_tle
 import sgp4.model as model
 
+test_case = TestCase('setUp')
+assertEqual = test_case.assertEqual
+assertAlmostEqual = test_case.assertAlmostEqual
+
 error = 2e-7
 rad = 180.0 / pi
 LINE1 = '1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753'
@@ -47,6 +51,21 @@ VANGUARD_ATTRS = {
 # Handle deprecated assertRaisesRegexp, but allow its use Python 2.6 and 2.7
 if sys.version_info[:2] == (2, 7) or sys.version_info[:2] == (2, 6):
     TestCase.assertRaisesRegex = TestCase.assertRaisesRegexp
+
+# Both the new Satrec and the old should offer the same core set of attributes.
+
+def test_satrec_attributes():
+    sat = Satrec.twoline2rv(LINE1, LINE2)
+    verify_vanguard_1(sat)
+    assertEqual(sat.epochdays, epochdays)
+
+def test_legacy_attributes():
+    sat = io.twoline2rv(LINE1, LINE2, wgs72)
+    fix_jd(sat, sat.jdsatepoch, 0.5, 0.5)
+    verify_vanguard_1(sat)
+    assertEqual(sat.epochdays, epochdays)
+
+#
 
 class Tests(TestCase):
 
@@ -144,13 +163,6 @@ class SatelliteObjectTests(object):
     tests only run in our subclasses.
 
     """
-    def test_satrec_attributes(self):
-        # Make sure the Satrec has the same attributes.
-        # epochyr tested separately
-        sat = self.build_satrec(LINE1, LINE2)
-        verify_vanguard_1(self, sat)
-        self.assertEqual(sat.epochdays, epochdays)
-
     def test_tle_verify(self):
         # Check whether a test run produces the output in tcppver.out
 
@@ -242,7 +254,7 @@ class NewSatelliteObjectTests(TestCase, SatelliteObjectTests):
         # Make sure that the non-standard four-digit epochyr I switched
         # to in the Python version of SGP4 is reverted back to the
         # official behavior when that code is used behind Satrec.
-        sat = self.build_satrec(LINE1, LINE2)
+        sat = Satrec.twoline2rv(LINE1, LINE2)
         self.assertEqual(sat.epochyr, 0)
 
     def test_three_gravity_models(self):
@@ -372,7 +384,7 @@ def test_satrec_sgp4init():
         jdsatepoch_combined-2433281.5,
         *sgp4init_args(VANGUARD_ATTRS)
     )
-    verify_vanguard_1(TestCase('setUp'), sat)
+    verify_vanguard_1(sat)
 
 def test_legacy_sgp4init():
     sat = model.Satellite()
@@ -383,7 +395,7 @@ def test_legacy_sgp4init():
         *sgp4init_args(VANGUARD_ATTRS) + (sat,)
     )
     fix_jd(sat, jdSGP4epoch, 0.0, 2433281.5)
-    verify_vanguard_1(TestCase('setUp'), sat)
+    verify_vanguard_1(sat)
 
 # Helpers --------------------------------------------------------------------
 
@@ -391,10 +403,10 @@ def test_legacy_sgp4init():
 jdsatepoch_combined = 2451723.28495062
 epochdays = 179.78495062
 
-def verify_vanguard_1(test, sat):
+def verify_vanguard_1(sat):
     for name, value in VANGUARD_ATTRS.items():
-        test.assertEqual(getattr(sat, name), value, name + ' attribute')
-    test.assertAlmostEqual(sat.jdsatepochF, 0.78495062, places=8)
+        assertEqual(getattr(sat, name), value, name + ' attribute')
+    assertAlmostEqual(sat.jdsatepochF, 0.78495062, places=8)
 
 def sgp4init_args(d):
     """Given a dict of orbital parameters, return them in sgp4init order."""
