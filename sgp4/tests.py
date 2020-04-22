@@ -11,10 +11,7 @@ from doctest import DocTestSuite, ELLIPSIS
 from math import pi, isnan
 from pkgutil import get_data
 
-from sgp4.api import (
-    SGP4_ERRORS, WGS72OLD, WGS72, WGS84,
-    Satrec, jday, accelerated,
-)
+from sgp4.api import WGS72OLD, WGS72, WGS84, Satrec, jday, accelerated
 from sgp4.earth_gravity import wgs72
 from sgp4.ext import invjday, newtonnu, rv2coe
 from sgp4.propagation import sgp4, sgp4init
@@ -22,9 +19,11 @@ from sgp4 import io
 from sgp4.exporter import export_tle
 import sgp4.model as model
 
-test_case = TestCase('setUp')
-assertEqual = test_case.assertEqual
-assertAlmostEqual = test_case.assertAlmostEqual
+_testcase = TestCase('setUp')
+assertEqual = _testcase.assertEqual
+assertAlmostEqual = _testcase.assertAlmostEqual
+assertRaises = _testcase.assertRaises
+assertRaisesRegex = _testcase.assertRaisesRegex
 
 error = 2e-7
 rad = 180.0 / pi
@@ -52,24 +51,22 @@ VANGUARD_ATTRS = {
 if sys.version_info[:2] == (2, 7) or sys.version_info[:2] == (2, 6):
     TestCase.assertRaisesRegex = TestCase.assertRaisesRegexp
 
-# Both the new Satrec and the old should offer the same core set of
-# orbital element attributes.
+# ------------------------------------------------------------------------
+#                           Core Attributes
+#
 
-def test_satrec_attributes():
+def test_satrec_built_with_twoline2rv():
     sat = Satrec.twoline2rv(LINE1, LINE2)
     verify_vanguard_1(sat)
     assertEqual(sat.epochdays, epochdays)
 
-def test_legacy_attributes():
+def test_legacy_built_with_twoline2rv():
     sat = io.twoline2rv(LINE1, LINE2, wgs72)
     fix_jd(sat, sat.jdsatepoch, 0.5, 0.5)
     verify_vanguard_1(sat)
     assertEqual(sat.epochdays, epochdays)
 
-# And those element attributes should also be correct for old and new
-# satellite objects built using `sgp4init().`
-
-def test_satrec_sgp4init():
+def test_satrec_initialized_with_sgp4init():
     # epochyr and epochdays are not set by sgp4init
     sat = Satrec()
     sat.sgp4init(
@@ -79,7 +76,7 @@ def test_satrec_sgp4init():
     )
     verify_vanguard_1(sat)
 
-def test_legacy_sgp4init():
+def test_legacy_initialized_with_sgp4init():
     sat = model.Satellite()
     sat.whichconst = wgs72
     jdSGP4epoch = jdsatepoch_combined - 2433281.5
@@ -90,160 +87,164 @@ def test_legacy_sgp4init():
     fix_jd(sat, jdSGP4epoch, 0.0, 2433281.5)
     verify_vanguard_1(sat)
 
+# ------------------------------------------------------------------------
+#                 Other Officially Supported Routines
 #
 
-class Tests(TestCase):
+def test_jday2():
+    jd, fr = jday(2019, 10, 9, 16, 57, 15)
+    assertEqual(jd, 2458765.5)
+    assertAlmostEqual(fr, 0.7064236111111111)
 
-    def test_intldesg_with_7_characters(self):
-        sat = Satrec.twoline2rv(
-            '1 39444U 13066AE  20110.89708219  .00000236  00000-0'
-            '  35029-4 0  9992',
-            '2 39444  97.5597 114.3769 0059573 102.0933 258.6965 '
-            '14.82098949344697',
-        )
-        self.assertEqual(sat.intldesg, '13066AE')
+def test_good_tle_checksum():
+    for line in LINE1, LINE2:
+        checksum = int(line[-1])
+        assertEqual(io.compute_checksum(line), checksum)
+        assertEqual(io.fix_checksum(line[:68]), line)
+        io.verify_checksum(line)
 
-    def test_tle_export(self):
-        """Check `export_tle()` round-trip using all the TLEs in the test file.
+def test_bad_tle_checksum():
+    checksum = LINE1[-1]
+    assertEqual(checksum, '3')
+    bad = LINE1[:68] + '7'
+    assertRaises(ValueError, io.verify_checksum, bad)
+    assertEqual(io.fix_checksum(bad), LINE1)
 
-        This iterates through the satellites in "SGP4-VER.TLE",
-        generates `Satrec` objects and exports the TLEs.  These exported
-        TLEs are then compared to the original TLE, closing the loop (or
-        the round-trip).
+def test_tle_export():
+    """Check `export_tle()` round-trip using all the TLEs in the test file.
 
-        """
-        data = get_data(__name__, 'SGP4-VER.TLE')
-        tle_lines = iter(data.decode('ascii').splitlines())
+    This iterates through the satellites in "SGP4-VER.TLE",
+    generates `Satrec` objects and exports the TLEs.  These exported
+    TLEs are then compared to the original TLE, closing the loop (or
+    the round-trip).
 
-        # Skip these lines, known errors
-        # Resulting TLEs are equivalent (same values in the Satrec object), but they are not the same
-        # 25954: BSTAR = 0 results in a negative exp, not positive
-        # 29141: BSTAR = 0.13519 results in a negative exp, not positive
-        # 33333: Checksum error as expected on both lines
-        # 33334: Checksum error as expected on line 1
-        # 33335: Checksum error as expected on line 1
-        expected_errs_line1 = set([25954, 29141, 33333, 33334, 33335])
-        expected_errs_line2 = set([33333, 33335])
+    """
+    data = get_data(__name__, 'SGP4-VER.TLE')
+    tle_lines = iter(data.decode('ascii').splitlines())
 
-        if accelerated:
-            # Non-standard: omits the ephemeris type integer.
-            expected_errs_line1.add(11801)
+    # Skip these lines, known errors
+    # Resulting TLEs are equivalent (same values in the Satrec object), but they are not the same
+    # 25954: BSTAR = 0 results in a negative exp, not positive
+    # 29141: BSTAR = 0.13519 results in a negative exp, not positive
+    # 33333: Checksum error as expected on both lines
+    # 33334: Checksum error as expected on line 1
+    # 33335: Checksum error as expected on line 1
+    expected_errs_line1 = set([25954, 29141, 33333, 33334, 33335])
+    expected_errs_line2 = set([33333, 33335])
 
-        for line1 in tle_lines:
+    if accelerated:
+        # Non-standard: omits the ephemeris type integer.
+        expected_errs_line1.add(11801)
 
-            if not line1.startswith('1'):
-                continue
+    for line1 in tle_lines:
 
-            line2 = next(tle_lines)
+        if not line1.startswith('1'):
+            continue
 
-            # trim lines to normal TLE string size
-            line1 = line1[:69]
-            line2 = line2[:69]
-            satrec = Satrec.twoline2rv(line1, line2)
+        line2 = next(tle_lines)
 
-            # Generate TLE from satrec
-            out_line1, out_line2 = export_tle(satrec)
+        # trim lines to normal TLE string size
+        line1 = line1[:69]
+        line2 = line2[:69]
+        satrec = Satrec.twoline2rv(line1, line2)
 
-            if satrec.satnum not in expected_errs_line1:
-                self.assertEqual(out_line1, line1)
-            if satrec.satnum not in expected_errs_line2:
-                self.assertEqual(out_line2, line2)
+        # Generate TLE from satrec
+        out_line1, out_line2 = export_tle(satrec)
 
-    def test_hyperbolic_orbit(self):
-        # Exercise the newtonnu() code path with asinh() to see whether
-        # we can replace it with the one from Python's math module.
+        if satrec.satnum not in expected_errs_line1:
+            assertEqual(out_line1, line1)
+        if satrec.satnum not in expected_errs_line2:
+            assertEqual(out_line2, line2)
 
-        e0, m = newtonnu(1.0, 2.9)  # parabolic
-        self.assertAlmostEqual(e0, 8.238092752965605, places=12)
-        self.assertAlmostEqual(m, 194.60069989482898, places=12)
+def test_three_gravity_models():
+    # The numbers below are those produced by Vallado's C++ code.
+    # (Why does the Python version not produce the same values to
+    # high accuracy, instead of agreeing to only 4 places?)
 
-        e0, m = newtonnu(1.1, 2.7)   # hyperbolic
-        self.assertAlmostEqual(e0, 4.262200676156417, places=12)
-        self.assertAlmostEqual(m, 34.76134082028372, places=12)
+    digits = 12 if accelerated else 4
+    jd, fr = 2451723.5, 0.0
 
-    def test_good_tle_checksum(self):
-        for line in LINE1, LINE2:
-            checksum = int(line[-1])
-            self.assertEqual(io.compute_checksum(line), checksum)
-            self.assertEqual(io.fix_checksum(line[:68]), line)
-            io.verify_checksum(line)
+    # Not specifying a gravity model should select WGS72.
 
-    def test_bad_tle_checksum(self):
-        checksum = LINE1[-1]
-        self.assertEqual(checksum, '3')
-        bad = LINE1[:68] + '7'
-        self.assertRaises(ValueError, io.verify_checksum, bad)
-        self.assertEqual(io.fix_checksum(bad), LINE1)
+    for sat in (Satrec.twoline2rv(LINE1, LINE2),
+                Satrec.twoline2rv(LINE1, LINE2, WGS72)):
+        e, r, v = sat.sgp4(jd, fr)
+        assertAlmostEqual(r[0], -3754.2514743216166, digits)
+        assertAlmostEqual(r[1], 7876.346817439062, digits)
+        assertAlmostEqual(r[2], 4719.220856478582, digits)
 
-    def test_jday2(self):
-        jd, fr = jday(2019, 10, 9, 16, 57, 15)
-        self.assertEqual(jd, 2458765.5)
-        self.assertAlmostEqual(fr, 0.7064236111111111)
+    # Other gravity models should give different numbers both from
+    # the default and also from each other.
 
-    def test_correct_epochyr(self):
-        # Make sure that the non-standard four-digit epochyr I switched
-        # to in the Python version of SGP4 is reverted back to the
-        # official behavior when that code is used behind Satrec.
-        sat = Satrec.twoline2rv(LINE1, LINE2)
-        self.assertEqual(sat.epochyr, 0)
+    e, r, v = Satrec.twoline2rv(LINE1, LINE2, WGS72OLD).sgp4(jd, fr)
+    assertAlmostEqual(r[0], -3754.251473242793, digits)
+    assertAlmostEqual(r[1], 7876.346815095482, digits)
+    assertAlmostEqual(r[2], 4719.220855042922, digits)
 
-    def test_three_gravity_models(self):
-        # The numbers below are those produced by Vallado's C++ code.
-        # (Why does the Python version not produce the same values to
-        # high accuracy, instead of agreeing to only 4 places?)
+    e, r, v = Satrec.twoline2rv(LINE1, LINE2, WGS84).sgp4(jd, fr)
+    assertAlmostEqual(r[0], -3754.2437675772426, digits)
+    assertAlmostEqual(r[1], 7876.3549956188945, digits)
+    assertAlmostEqual(r[2], 4719.227897029576, digits)
 
-        digits = 12 if accelerated else 4
-        jd, fr = 2451723.5, 0.0
+# ------------------------------------------------------------------------
+#                            Special Cases
+#
 
-        # Not specifying a gravity model should select WGS72.
+def test_intldesg_with_7_characters():
+    sat = Satrec.twoline2rv(
+        '1 39444U 13066AE  20110.89708219  .00000236  00000-0'
+        '  35029-4 0  9992',
+        '2 39444  97.5597 114.3769 0059573 102.0933 258.6965 '
+        '14.82098949344697',
+    )
+    assertEqual(sat.intldesg, '13066AE')
 
-        for sat in (Satrec.twoline2rv(LINE1, LINE2),
-                    Satrec.twoline2rv(LINE1, LINE2, WGS72)):
-            e, r, v = sat.sgp4(jd, fr)
-            self.assertAlmostEqual(r[0], -3754.2514743216166, digits)
-            self.assertAlmostEqual(r[1], 7876.346817439062, digits)
-            self.assertAlmostEqual(r[2], 4719.220856478582, digits)
+def test_hyperbolic_orbit():
+    # Exercise the newtonnu() code path with asinh() to see whether
+    # we can replace it with the one from Python's math module.
 
-        # Other gravity models should give different numbers both from
-        # the default and also from each other.
+    e0, m = newtonnu(1.0, 2.9)  # parabolic
+    assertAlmostEqual(e0, 8.238092752965605, places=12)
+    assertAlmostEqual(m, 194.60069989482898, places=12)
 
-        e, r, v = Satrec.twoline2rv(LINE1, LINE2, WGS72OLD).sgp4(jd, fr)
-        self.assertAlmostEqual(r[0], -3754.251473242793, digits)
-        self.assertAlmostEqual(r[1], 7876.346815095482, digits)
-        self.assertAlmostEqual(r[2], 4719.220855042922, digits)
+    e0, m = newtonnu(1.1, 2.7)   # hyperbolic
+    assertAlmostEqual(e0, 4.262200676156417, places=12)
+    assertAlmostEqual(m, 34.76134082028372, places=12)
 
-        e, r, v = Satrec.twoline2rv(LINE1, LINE2, WGS84).sgp4(jd, fr)
-        self.assertAlmostEqual(r[0], -3754.2437675772426, digits)
-        self.assertAlmostEqual(r[1], 7876.3549956188945, digits)
-        self.assertAlmostEqual(r[2], 4719.227897029576, digits)
+def test_correct_epochyr():
+    # Make sure that the non-standard four-digit epochyr I switched
+    # to in the Python version of SGP4 is reverted back to the
+    # official behavior when that code is used behind Satrec.
+    sat = Satrec.twoline2rv(LINE1, LINE2)
+    assertEqual(sat.epochyr, 0)
 
-    def test_legacy_epochyr(self):
-        # Apparently I saw fit to change the meaning of this attribute
-        # in the Python version of SGP4.
-        sat = io.twoline2rv(LINE1, LINE2, wgs72)
-        self.assertEqual(sat.epochyr, 2000)
+def test_legacy_epochyr():
+    # Apparently I saw fit to change the meaning of this attribute
+    # in the Python version of SGP4.
+    sat = io.twoline2rv(LINE1, LINE2, wgs72)
+    assertEqual(sat.epochyr, 2000)
 
-    def test_support_for_old_no_attribute(self):
-        s = io.twoline2rv(LINE1, LINE2, wgs72)
-        assert s.no == s.no_kozai
+def test_support_for_old_no_attribute():
+    s = io.twoline2rv(LINE1, LINE2, wgs72)
+    assert s.no == s.no_kozai
 
-    def test_december_32(self):
-        # ISS [Orbit 606], whose date is 2019 plus 366.82137887 days.
-        # The core SGP4 routines handled this fine, but my hamfisted
-        # attempt to provide a Python datetime for "convenience" ran
-        # into an overflow.
-        sat = io.twoline2rv(
-        '1 25544U 98067A   19366.82137887  .00016717  00000-0  10270-3 0  9129',
-        '2 25544  51.6392  96.6358 0005156  88.7140 271.4601 15.49497216  6061',
-        wgs72,
-        )
-        self.assertEqual(
-            dt.datetime(2020, 1, 1, 19, 42, 47, 134367),
-            sat.epoch,
-        )
+def test_december_32():
+    # ISS [Orbit 606], whose date is 2019 plus 366.82137887 days.
+    # The core SGP4 routines handled this fine, but my hamfisted
+    # attempt to provide a Python datetime for "convenience" ran
+    # into an overflow.
+    sat = io.twoline2rv(
+    '1 25544U 98067A   19366.82137887  .00016717  00000-0  10270-3 0  9129',
+    '2 25544  51.6392  96.6358 0005156  88.7140 271.4601 15.49497216  6061',
+    wgs72,
+    )
+    assertEqual(
+        dt.datetime(2020, 1, 1, 19, 42, 47, 134367),
+        sat.epoch,
+    )
 
-    def test_bad_first_line(self):
-        with self.assertRaisesRegex(ValueError, re.escape("""TLE format error
+def test_bad_first_line():
+    with assertRaisesRegex(ValueError, re.escape("""TLE format error
 
 The Two-Line Element (TLE) format was designed for punch cards, and so
 is very strict about the position of every period, space, and digit.
@@ -252,10 +253,10 @@ with an N where each digit should go, followed by the line you provided:
 
 1 NNNNNC NNNNNAAA NNNNN.NNNNNNNN +.NNNNNNNN +NNNNN-N +NNNNN-N N NNNNN
 1 00005U 58002B   00179.78495062  .000000234 00000-0  28098-4 0  4753""")):
-            io.twoline2rv(LINE1.replace('23 ', '234'), LINE2, wgs72)
+        io.twoline2rv(LINE1.replace('23 ', '234'), LINE2, wgs72)
 
-    def test_bad_second_line(self):
-        with self.assertRaisesRegex(ValueError, re.escape("""TLE format error
+def test_bad_second_line():
+    with assertRaisesRegex(ValueError, re.escape("""TLE format error
 
 The Two-Line Element (TLE) format was designed for punch cards, and so
 is very strict about the position of every period, space, and digit.
@@ -264,17 +265,16 @@ with an N where each digit should go, followed by the line you provided:
 
 2 NNNNN NNN.NNNN NNN.NNNN NNNNNNN NNN.NNNN NNN.NNNN NN.NNNNNNNNNNNNNN
 2 00005 34 .268234 8.7242 1859667 331.7664  19.3264 10.82419157413667""")):
-            io.twoline2rv(LINE1, LINE2.replace(' 34', '34 '), wgs72)
+        io.twoline2rv(LINE1, LINE2.replace(' 34', '34 '), wgs72)
 
-    def test_mismatched_lines(self):
-        msg = "Object numbers in lines 1 and 2 do not match"
-        with self.assertRaisesRegex(ValueError, re.escape(msg)):
-            io.twoline2rv(LINE1, BAD2, wgs72)
+def test_mismatched_lines():
+    msg = "Object numbers in lines 1 and 2 do not match"
+    with assertRaisesRegex(ValueError, re.escape(msg)):
+        io.twoline2rv(LINE1, BAD2, wgs72)
 
-
-# Tests ----------------------------------------------------------------------
-
-# Helpers --------------------------------------------------------------------
+# ------------------------------------------------------------------------
+#                           Helper routines
+#
 
 # Values for sgp4init tests, consistent with LINE1, LINE2 TLE lines
 jdsatepoch_combined = 2451723.28495062
