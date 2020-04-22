@@ -52,7 +52,8 @@ VANGUARD_ATTRS = {
 if sys.version_info[:2] == (2, 7) or sys.version_info[:2] == (2, 6):
     TestCase.assertRaisesRegex = TestCase.assertRaisesRegexp
 
-# Both the new Satrec and the old should offer the same core set of attributes.
+# Both the new Satrec and the old should offer the same core set of
+# orbital element attributes.
 
 def test_satrec_attributes():
     sat = Satrec.twoline2rv(LINE1, LINE2)
@@ -64,6 +65,30 @@ def test_legacy_attributes():
     fix_jd(sat, sat.jdsatepoch, 0.5, 0.5)
     verify_vanguard_1(sat)
     assertEqual(sat.epochdays, epochdays)
+
+# And those element attributes should also be correct for old and new
+# satellite objects built using `sgp4init().`
+
+def test_satrec_sgp4init():
+    # epochyr and epochdays are not set by sgp4init
+    sat = Satrec()
+    sat.sgp4init(
+        VANGUARD_ATTRS['satnum'],
+        jdsatepoch_combined-2433281.5,
+        *sgp4init_args(VANGUARD_ATTRS)
+    )
+    verify_vanguard_1(sat)
+
+def test_legacy_sgp4init():
+    sat = model.Satellite()
+    sat.whichconst = wgs72
+    jdSGP4epoch = jdsatepoch_combined - 2433281.5
+    sgp4init(
+        sat.whichconst, 'i', VANGUARD_ATTRS['satnum'], jdSGP4epoch,
+        *sgp4init_args(VANGUARD_ATTRS) + (sat,)
+    )
+    fix_jd(sat, jdSGP4epoch, 0.0, 2433281.5)
+    verify_vanguard_1(sat)
 
 #
 
@@ -375,27 +400,6 @@ with an N where each digit should go, followed by the line you provided:
 
 
 # Tests ----------------------------------------------------------------------
-
-def test_satrec_sgp4init():
-    # epochyr and epochdays are not set by sgp4init
-    sat = Satrec()
-    sat.sgp4init(
-        VANGUARD_ATTRS['satnum'],
-        jdsatepoch_combined-2433281.5,
-        *sgp4init_args(VANGUARD_ATTRS)
-    )
-    verify_vanguard_1(sat)
-
-def test_legacy_sgp4init():
-    sat = model.Satellite()
-    sat.whichconst = wgs72
-    jdSGP4epoch = jdsatepoch_combined - 2433281.5
-    sgp4init(
-        sat.whichconst, 'i', VANGUARD_ATTRS['satnum'], jdSGP4epoch,
-        *sgp4init_args(VANGUARD_ATTRS) + (sat,)
-    )
-    fix_jd(sat, jdSGP4epoch, 0.0, 2433281.5)
-    verify_vanguard_1(sat)
 
 # Helpers --------------------------------------------------------------------
 
