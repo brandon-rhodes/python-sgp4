@@ -313,19 +313,17 @@ def test_satrec_against_tcppver_using_julian_dates():
         jd = satrec.jdsatepoch + whole
         fr = satrec.jdsatepochF + fraction
         e, r, v = satrec.sgp4(jd, fr)
-        return e, SGP4_ERRORS[e] if e else '', r, v
+        return e, r, v
 
-    errs = [(e, SGP4_ERRORS[e]) for e in [1,1,6,6,4,3,6]]
-    run_satellite_against_tcppver(Satrec.twoline2rv, invoke, errs)
+    run_satellite_against_tcppver(Satrec.twoline2rv, invoke, [1,1,6,6,4,3,6])
 
 def test_satrec_against_tcppver_using_tsince():
 
     def invoke(satrec, tsince):
         e, r, v = satrec.sgp4_tsince(tsince)
-        return e, SGP4_ERRORS[e] if e else '', r, v
+        return e, r, v
 
-    errs = [(e, SGP4_ERRORS[e]) for e in [1,1,6,6,4,3,6]]
-    run_satellite_against_tcppver(Satrec.twoline2rv, invoke, errs)
+    run_satellite_against_tcppver(Satrec.twoline2rv, invoke, [1,1,6,6,4,3,6])
 
 def test_legacy_against_tcppver():
 
@@ -336,9 +334,7 @@ def test_legacy_against_tcppver():
 
     def run_legacy_sgp4(satrec, tsince):
         r, v = sgp4(satrec, tsince)
-        e = satrec.error
-        emsg = satrec.error_message
-        return e, emsg, r, v
+        return (satrec.error, satrec.error_message), r, v
 
     errs = [
         (1, 'mean eccentricity -0.001329 not within range 0.0 <= e < 1.0'),
@@ -456,9 +452,9 @@ def generate_satellite_output(satrec, invoke, line2, error_list):
 
     mu = wgs72.mu
 
-    e, emsg, r, v = invoke(satrec, 0.0)
+    e, r, v = invoke(satrec, 0.0)
     if isnan(r[0]) and isnan(r[1]) and isnan(r[2]):
-        error_list.append((e, emsg))
+        error_list.append(e)
         yield '(Use previous data line)'
         return
     yield format_short_line(0.0, r, v)
@@ -471,19 +467,19 @@ def generate_satellite_output(satrec, invoke, line2, error_list):
             tsince += tstep
             continue  # avoid duplicating the first line
 
-        e, emsg, r, v = invoke(satrec, tsince)
+        e, r, v = invoke(satrec, tsince)
 
-        if e:
-            error_list.append((e, emsg))
+        if e != 0 and e != (0, None):
+            error_list.append(e)
             return
         yield format_long_line(satrec, tsince, mu, r, v)
 
         tsince += tstep
 
     if tsince - tend < tstep - 1e-6:  # do not miss last line!
-        e, emsg, r, v = invoke(satrec, tend)
-        if e:
-            error_list.append((e, emsg))
+        e, r, v = invoke(satrec, tend)
+        if e != 0 and e != (0, None):
+            error_list.append(e)
             return
         yield format_long_line(satrec, tend, mu, r, v)
 
