@@ -71,6 +71,8 @@ def test_satrec_initialized_with_sgp4init():
     # epochyr and epochdays are not set by sgp4init
     sat = Satrec()
     sat.sgp4init(
+        WGS72,
+        'i',
         VANGUARD_ATTRS['satnum'],
         jdsatepoch_combined-2433281.5,
         *sgp4init_args(VANGUARD_ATTRS)
@@ -80,12 +82,12 @@ def test_satrec_initialized_with_sgp4init():
 def test_legacy_initialized_with_sgp4init():
     sat = model.Satellite()
     sat.whichconst = wgs72
-    jdSGP4epoch = jdsatepoch_combined - 2433281.5
+    epoch = jdsatepoch_combined - 2433281.5
     sgp4init(
-        sat.whichconst, 'i', VANGUARD_ATTRS['satnum'], jdSGP4epoch,
+        sat.whichconst, 'i', VANGUARD_ATTRS['satnum'], epoch,
         *sgp4init_args(VANGUARD_ATTRS) + (sat,)
     )
-    fix_jd(sat, jdSGP4epoch, 0.0, 2433281.5)
+    fix_jd(sat, epoch, 0.0, 2433281.5)
     verify_vanguard_1(sat)
 
 # ------------------------------------------------------------------------
@@ -501,7 +503,6 @@ def format_long_line(satrec, tsince, mu, r, v):
     (p, a, ecc, incl, node, argp, nu, m, arglat, truelon, lonper
      ) = rv2coe(r, v, mu)
 
-    #asdf
     return short + (' %14.6f %8.6f %10.5f %10.5f %10.5f %10.5f %10.5f'
                     ' %5i%3i%3i %2i:%2i:%9.6f\n') % (
         a, ecc, incl*rad, node*rad, argp*rad, nu*rad,

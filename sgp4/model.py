@@ -41,10 +41,6 @@ class Satrec(object):
 
     array = None       # replaced, if needed, with NumPy array()
 
-    def __init__(self):
-        self.jdsatepochF = 0.0  # for compatibility with accelerated version
-        self.whichconst = None
-
     @property
     def no(self):
         return self.no_kozai
@@ -65,13 +61,13 @@ class Satrec(object):
         self.epochyr %= 100
         return self
 
-    def sgp4init(self, satnum, jdSGP4epoch, bstar, ndot, nddot,
-                 ecco, argpo, inclo, mo, no_kozai, nodeo, whichconst=WGS72, opsmode='i'):
+    def sgp4init(self, whichconst, opsmode, satnum, epoch, bstar,
+                 ndot, nddot, ecco, argpo, inclo, mo, no_kozai, nodeo):
         whichconst = gravity_constants[whichconst]
-        self.jdsatepoch, self.jdsatepochF = divmod(jdSGP4epoch,1)
+        self.jdsatepoch, self.jdsatepochF = divmod(epoch, 1.0)
         self.jdsatepoch += 2433281.5
-        sgp4init(whichconst, opsmode, satnum, jdSGP4epoch, bstar, ndot, nddot,
-                        ecco, argpo, inclo, mo, no_kozai, nodeo, self)
+        sgp4init(whichconst, opsmode, satnum, epoch, bstar, ndot, nddot,
+                 ecco, argpo, inclo, mo, no_kozai, nodeo, self)
         return self
 
     def sgp4(self, jd, fr):
