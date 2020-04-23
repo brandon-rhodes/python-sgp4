@@ -23,7 +23,8 @@ _testcase = TestCase('setUp')
 assertEqual = _testcase.assertEqual
 assertAlmostEqual = _testcase.assertAlmostEqual
 assertRaises = _testcase.assertRaises
-assertRaisesRegex = _testcase.assertRaisesRegex
+assertRaisesRegex = getattr(_testcase, 'assertRaisesRegex',
+                            _testcase.assertRaisesRegexp)
 
 error = 2e-7
 rad = 180.0 / pi
