@@ -149,7 +149,7 @@ Satrec_sgp4init(PyObject *self, PyObject *args)
 
     elsetrec &satrec = ((SatrecObject*) self)->satrec;
 
-    SGP4Funcs::sgp4init(wgs72, 'i', satnum, epoch, bstar, ndot, nddot,
+    SGP4Funcs::sgp4init(wgs72, opsmode, satnum, epoch, bstar, ndot, nddot,
                         ecco, argpo, inclo, mo, no_kozai, nodeo, satrec);
 
     /* Populate jdsatepoch and jdsatepochF as SGP4Funcs::twoline2rv does */
@@ -223,6 +223,8 @@ static PyMemberDef Satrec_members[] = {
 
     {"satnum", T_LONG, O(satnum), READONLY,
      PyDoc_STR("Satellite number, from characters 3-7 of each TLE line.")},
+    {"operationmode", T_CHAR, O(operationmode), READONLY,
+     PyDoc_STR("Operation mode: 'a' legacy AFSPC, or 'i' improved.")},
     {"jdsatepoch", T_DOUBLE, O(jdsatepoch), READONLY,
      PyDoc_STR("Julian date of epoch, day number (see jdsatepochF).")},
     {"jdsatepochF", T_DOUBLE, O(jdsatepochF), READONLY,

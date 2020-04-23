@@ -34,6 +34,7 @@ BAD2  = '2 00007  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413669'
 VANGUARD_ATTRS = {
     # Identity
     'satnum': 5,
+    'operationmode': 'i',
     # Time
     'jdsatepoch': 2451722.5,
     # Orbit
@@ -78,6 +79,17 @@ def test_satrec_initialized_with_sgp4init():
         *sgp4init_args(VANGUARD_ATTRS)
     )
     verify_vanguard_1(sat)
+
+def test_satrec_initialized_with_sgp4init_in_afspc_mode():
+    sat = Satrec()
+    sat.sgp4init(
+        WGS72,
+        'a',
+        VANGUARD_ATTRS['satnum'],
+        jdsatepoch_combined-2433281.5,
+        *sgp4init_args(VANGUARD_ATTRS)
+    )
+    assertEqual(sat.operationmode, 'a')
 
 def test_legacy_initialized_with_sgp4init():
     sat = model.Satellite()
