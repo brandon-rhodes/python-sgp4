@@ -193,6 +193,10 @@ def test_three_gravity_models():
 #                            Special Cases
 #
 
+def test_intldesg_with_6_characters():
+    sat = Satrec.twoline2rv(LINE1, LINE2)
+    assertEqual(sat.intldesg, '58002B')
+
 def test_intldesg_with_7_characters():
     sat = Satrec.twoline2rv(
         '1 39444U 13066AE  20110.89708219  .00000236  00000-0'

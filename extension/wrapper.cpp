@@ -335,16 +335,18 @@ static PyMemberDef Satrec_members[] = {
 static PyObject *
 get_intldesg(SatrecObject *self, void *closure)
 {
-    return PyUnicode_FromString(self->satrec.intldesg);
+    int length = 7;
+    while (length && self->satrec.intldesg[length-1] == ' ')
+        length--;
+    return PyUnicode_FromStringAndSize(self->satrec.intldesg, length);
 }
 
 static PyGetSetDef Satrec_getset[] = {
     {"intldesg", (getter)get_intldesg, NULL,
-     PyDoc_STR("A 7-character string from the first line of the satellite TLE"
-               " that typically provides two digits for the launch year,"
-               " a 3-digit launch number,"
-               " and one or two letters specifying which piece of an object."
-               " Might include trailing spaces.")},
+     PyDoc_STR("International Designator: a string of up to 7 characters"
+               " from the first line of the TLE that typically provides"
+               " two digits for the launch year, a 3-digit launch number,"
+               " and one or two letters for which piece of the launch.")},
     {NULL},
 };
 
