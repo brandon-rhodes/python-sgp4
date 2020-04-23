@@ -68,7 +68,6 @@ class Satrec(object):
         self.jdsatepoch += 2433281.5
         sgp4init(whichconst, opsmode, satnum, epoch, bstar, ndot, nddot,
                  ecco, argpo, inclo, mo, no_kozai, nodeo, self)
-        return self
 
     def sgp4(self, jd, fr):
         tsince = ((jd - self.jdsatepoch) * minutes_per_day +

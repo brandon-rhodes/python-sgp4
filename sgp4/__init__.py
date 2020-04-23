@@ -100,6 +100,9 @@ compute ``jd`` and ``fr`` from calendar dates using ``jday()``.
 >>> fr
 0.5
 
+Array Acceleration
+------------------
+
 To avoid the expense of Python loops when you have many dates, you can
 pass them as arrays to another method that understands NumPy:
 
@@ -166,6 +169,9 @@ one.  Here is a sample computation for 2 satellites and 4 dates:
 The attributes of a ``Satrec`` object carry the data loaded from the TLE
 entry.  Look at the class's documentation for details.
 
+Export
+------
+
 If you have a ``Satrec`` you want to share with friends or persist to a
 file, there’s an export routine that will turn it back into a TLE:
 
@@ -175,6 +181,9 @@ file, there’s an export routine that will turn it back into a TLE:
 '1 25544U 98067A   19343.69339541  .00001764  00000-0  38792-4 0  9991'
 >>> line2
 '2 25544  51.6439 211.2001 0007417  17.6667  85.6398 15.50103472202482'
+
+Gravity
+-------
 
 The SGP4 algorithm operates atop a set of constants specifying how
 strong the Earth’s gravity is.  The most recent official paper on SGP4
@@ -194,6 +203,41 @@ as their basis.  The positions you generate will better agree with the
 real positions of each satellite if you use the same underlying gravity
 constants as were used to generate the TLE.
 
+Providing your own elements
+---------------------------
+
+If instead of parsing a TLE you want to provide your own orbital
+elements, you can call the ``sgp4init()`` method of any existing
+satellite object to reset it to those new elements.
+
+>>> sat = Satrec()
+>>> sat.sgp4init(
+...     WGS72,           # gravity model
+...     'i',             # 'a' = old AFSPC mode, 'i' = improved mode
+...     5,               # satnum: Satellite number
+...     18441.785,       # epoch: days since 1949 December 31 00:00 UT
+...     2.8098e-05,      # bstar: drag coefficient (kg/m2er)
+...     6.969196665e-13, # ndot: ballistic coefficient (revs/day)
+...     0.0,             # nddot: second derivative of mean motion (revs/day^3)
+...     0.1859667,       # ecco: eccentricity
+...     5.7904160274885, # argpo: argument of perigee (radians)
+...     0.5980929187319, # inclo: inclination (radians)
+...     0.3373093125574, # mo: mean anomaly (radians)
+...     0.0472294454407, # no_kozai: mean motion (radians/minute)
+...     6.0863854713832, # nodeo: right ascension of ascending node (radians)
+... )
+
+To compute the “epoch” value, simply take a normal Julian date and
+subtract ``2433281.5`` days.
+
+The character provided as the second argument can be ``'a'`` to run the
+computations so that they are compatible with the old Air Force Space
+Command edition of the library, or ``'i'`` to run the new and improved
+version of the SGP4 algorithm.
+
+Validation against the official algorithm
+-----------------------------------------
+
 This implementation passes all of the automated tests in the August 2010
 release of the reference implementation of SGP4 by Vallado et al., who
 originally published their revision of SGP4 in 2006:
@@ -209,8 +253,8 @@ always download the latest version of their code for comparison against
 this Python module (or other implementations) at `AIAA-2006-6753.zip
 <http://www.celestrak.com/publications/AIAA/2006-6753/AIAA-2006-6753.zip>`_.
 
-Development
------------
+For developers
+--------------
 
 Developers can check out this full project from GitHub:
 
