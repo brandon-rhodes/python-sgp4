@@ -108,9 +108,9 @@ class Satrec(object):
             results.append(self.sgp4(jd_i, fr_i))
         elist, rlist, vlist = zip(*results)
 
-        e = self.array(elist)
-        r = self.array(rlist)
-        v = self.array(vlist)
+        e = array(elist)
+        r = array(rlist)
+        v = array(vlist)
 
         r.shape = v.shape = len(jd), 3
         return e, r, v
