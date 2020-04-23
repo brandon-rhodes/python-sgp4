@@ -340,10 +340,11 @@ get_intldesg(SatrecObject *self, void *closure)
 
 static PyGetSetDef Satrec_getset[] = {
     {"intldesg", (getter)get_intldesg, NULL,
-     PyDoc_STR("A string copied from the first TLE line that typically"
-               " provides the last two digits of the launch year, a"
-               " 3-digit launch number, and a letter A-Z specifying"
-               " which piece of the launch.")},
+     PyDoc_STR("A 7-character string from the first line of the satellite TLE"
+               " that typically provides two digits for the launch year,"
+               " a 3-digit launch number,"
+               " and one or two letters specifying which piece of an object."
+               " Might include trailing spaces.")},
     {NULL},
 };
 
