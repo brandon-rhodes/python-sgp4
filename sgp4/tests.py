@@ -48,6 +48,7 @@ VANGUARD_ATTRS = {
     'no_kozai': 0.04722944544077857,
     'nodeo': 6.08638547138321,
 }
+VANGUARD_EPOCH = 18441.7849506199999894
 
 # Handle deprecated assertRaisesRegexp, but allow its use Python 2.6 and 2.7
 if sys.version_info[:2] == (2, 7) or sys.version_info[:2] == (2, 6):
@@ -64,8 +65,7 @@ def test_satrec_built_with_twoline2rv():
 
 def test_legacy_built_with_twoline2rv():
     sat = io.twoline2rv(LINE1, LINE2, wgs72)
-    fix_jd(sat, sat.jdsatepoch, 0.5, 0.5)
-    verify_vanguard_1(sat)
+    verify_vanguard_1(sat, legacy=True)
     assertEqual(sat.epochdays, epochdays)
 
 def test_satrec_initialized_with_sgp4init():
@@ -75,7 +75,7 @@ def test_satrec_initialized_with_sgp4init():
         WGS72,
         'i',
         VANGUARD_ATTRS['satnum'],
-        jdsatepoch_combined-2433281.5,
+        VANGUARD_EPOCH,
         *sgp4init_args(VANGUARD_ATTRS)
     )
     verify_vanguard_1(sat)
@@ -86,21 +86,18 @@ def test_satrec_initialized_with_sgp4init_in_afspc_mode():
         WGS72,
         'a',
         VANGUARD_ATTRS['satnum'],
-        jdsatepoch_combined-2433281.5,
+        VANGUARD_EPOCH,
         *sgp4init_args(VANGUARD_ATTRS)
     )
     assertEqual(sat.operationmode, 'a')
 
 def test_legacy_initialized_with_sgp4init():
     sat = model.Satellite()
-    sat.whichconst = wgs72
-    epoch = jdsatepoch_combined - 2433281.5
     sgp4init(
-        sat.whichconst, 'i', VANGUARD_ATTRS['satnum'], epoch,
+        wgs72, 'i', VANGUARD_ATTRS['satnum'], VANGUARD_EPOCH,
         *sgp4init_args(VANGUARD_ATTRS) + (sat,)
     )
-    fix_jd(sat, epoch, 0.0, 2433281.5)
-    verify_vanguard_1(sat)
+    verify_vanguard_1(sat, legacy=True)
 
 # ------------------------------------------------------------------------
 #                 Other Officially Supported Routines
@@ -191,16 +188,13 @@ def test_all_three_gravity_models_with_sgp4init():
     sat = Satrec()
     args = sgp4init_args(VANGUARD_ATTRS)
 
-    sat.sgp4init(WGS72OLD, 'i', VANGUARD_ATTRS['satnum'],
-                 jdsatepoch_combined - 2433281.5, *args)
+    sat.sgp4init(WGS72OLD, 'i', VANGUARD_ATTRS['satnum'], VANGUARD_EPOCH, *args)
     assert_wgs72old(sat)
 
-    sat.sgp4init(WGS72, 'i', VANGUARD_ATTRS['satnum'],
-                 jdsatepoch_combined - 2433281.5, *args)
+    sat.sgp4init(WGS72, 'i', VANGUARD_ATTRS['satnum'], VANGUARD_EPOCH, *args)
     assert_wgs72(sat)
 
-    sat.sgp4init(WGS84, 'i', VANGUARD_ATTRS['satnum'],
-                 jdsatepoch_combined - 2433281.5, *args)
+    sat.sgp4init(WGS84, 'i', VANGUARD_ATTRS['satnum'], VANGUARD_EPOCH, *args)
     assert_wgs84(sat)
 
 GRAVITY_DIGITS = 12 if accelerated else 4
@@ -318,26 +312,25 @@ def test_mismatched_lines():
 #
 
 # Values for sgp4init tests, consistent with LINE1, LINE2 TLE lines
-jdsatepoch_combined = 2451723.28495062
 epochdays = 179.78495062
 
-def verify_vanguard_1(sat):
-    for name, value in VANGUARD_ATTRS.items():
+def verify_vanguard_1(sat, legacy=False):
+    attrs = VANGUARD_ATTRS
+
+    if legacy:
+        attrs = attrs.copy()
+        del attrs['jdsatepoch']
+
+    for name, value in attrs.items():
         assertEqual(getattr(sat, name), value, name + ' attribute')
-    assertAlmostEqual(sat.jdsatepochF, 0.78495062, places=8)
+
+    if not legacy:
+        assertAlmostEqual(sat.jdsatepochF, 0.78495062, delta=1e-13)
 
 def sgp4init_args(d):
     """Given a dict of orbital parameters, return them in sgp4init order."""
     return (d['bstar'], d['ndot'], d['nddot'], d['ecco'], d['argpo'],
             d['inclo'], d['mo'], d['no_kozai'], d['nodeo'])
-
-def fix_jd(sat, jdsatepoch, offset1, offset2):
-    # To make it possible to test these old legacy objects using
-    # modern test code, let's give them the missing attributes
-    # `jdsatepoch` and `jdsatepochF`.
-    jd, fr = divmod(jdsatepoch - offset1, 1.0)
-    sat.jdsatepoch = jd + offset2
-    sat.jdsatepochF = fr
 
 # ----------------------------------------------------------------------
 #                           INTEGRATION TEST
@@ -370,7 +363,6 @@ def test_legacy_against_tcppver():
 
     def make_legacy_satellite(line1, line2):
         sat = io.twoline2rv(line1, line2, wgs72)
-        fix_jd(sat, sat.jdsatepoch, 0.5, 0.5)
         return sat
 
     def run_legacy_sgp4(satrec, tsince):

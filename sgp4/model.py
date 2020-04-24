@@ -1,7 +1,8 @@
 """The Satellite class."""
 
 from sgp4.earth_gravity import wgs72old, wgs72, wgs84
-from sgp4.ext import jday
+from sgp4.ext import days2mdhms, jday
+from sgp4.functions import jday as jday2
 from sgp4.io import twoline2rv
 from sgp4.propagation import sgp4, sgp4init
 
@@ -51,11 +52,11 @@ class Satrec(object):
         self = cls()
         twoline2rv(line1, line2, whichconst, 'i', self)
 
-        # Upgrade the lone float, native to our old Python code, to a
-        # fancier split float of the kind the C++ natively supports.
-        jd, fr = divmod(self.jdsatepoch - 0.5, 1.0)
-        self.jdsatepoch = jd + 0.5
-        self.jdsatepochF = fr
+        # Install a fancy split JD of the kind the C++ natively supports.
+        # We rebuild it from the TLE year and day to maintain precision.
+        year = self.epochyr
+        month, day, h, m, s = days2mdhms(year, self.epochdays);
+        self.jdsatepoch, self.jdsatepochF = jday2(year, month, day, h, m, s)
 
         # Undo my non-standard 4-digit year
         self.epochyr %= 100
