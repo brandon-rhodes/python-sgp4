@@ -281,7 +281,8 @@ https://pypi.org/project/sgp4/1.4/
 Changelog
 ---------
 
-| 2020-04-20 — 2.6 — New routines ``export_tle()`` (thank you, Egemen Imre!) and ``sgp4init()`` (thank you, Chris Lewicki!) are available. Improved how the accelerated C++ backend parses the ``intldesg`` string and the ``revnum`` integer.
+| 2020-04-24 — 2.7 — New method ``sgp4init()`` (thank you, Chris Lewicki!) is available.
+| 2020-04-20 — 2.6 — New routine ``export_tle()`` (thank you, Egemen Imre!) is available. Improved how the accelerated C++ backend parses the ``intldesg`` string and the ``revnum`` integer.
 | 2020-03-22 — 2.5 — Gave the new accelerated ``twoline2rv()`` an optional argument that lets the user choose a non-standard set of gravity constants.
 | 2020-02-25 — 2.4 — Improved the ``jday()`` docstring; made the old legacy Python resilient if the day of the month is out-of-range (past the end of the month) in a TLE; and Mark Rutten fixed the C++ so it compiles on Windows!
 | 2020-02-04 — 2.3 — Removed experimental code that caused performance problems for users with Numba installed.
