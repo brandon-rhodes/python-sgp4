@@ -136,8 +136,8 @@ Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
 static PyObject *
 Satrec_sgp4init(PyObject *self, PyObject *args)
 {
-    gravconsttype whichconst;
-    char opsmode;
+    int whichconst;  /* "int" rather than "gravconsttype" so we know size */
+    int opsmode;     /* "int" rather than "char" because "C" needs an int */
     long int satnum;
     double epoch, bstar, ndot, nddot;
     double ecco, argpo, inclo, mo, no_kozai, nodeo;
@@ -149,8 +149,9 @@ Satrec_sgp4init(PyObject *self, PyObject *args)
 
     elsetrec &satrec = ((SatrecObject*) self)->satrec;
 
-    SGP4Funcs::sgp4init(wgs72, opsmode, satnum, epoch, bstar, ndot, nddot,
-                        ecco, argpo, inclo, mo, no_kozai, nodeo, satrec);
+    SGP4Funcs::sgp4init((gravconsttype) whichconst, opsmode, satnum, epoch,
+                        bstar, ndot, nddot, ecco, argpo, inclo, mo, no_kozai,
+                        nodeo, satrec);
 
     /* Populate jdsatepoch and jdsatepochF as SGP4Funcs::twoline2rv does */
     satrec.jdsatepochF = modf(epoch, &satrec.jdsatepoch);

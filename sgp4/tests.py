@@ -171,35 +171,57 @@ def test_tle_export():
         if satrec.satnum not in expected_errs_line2:
             assertEqual(out_line2, line2)
 
-def test_three_gravity_models():
+def test_all_three_gravity_models_with_twoline2rv():
     # The numbers below are those produced by Vallado's C++ code.
     # (Why does the Python version not produce the same values to
     # high accuracy, instead of agreeing to only 4 places?)
 
-    digits = 12 if accelerated else 4
-    jd, fr = 2451723.5, 0.0
+    assert_wgs72old(Satrec.twoline2rv(LINE1, LINE2, WGS72OLD))
+    assert_wgs72(Satrec.twoline2rv(LINE1, LINE2, WGS72))
+    assert_wgs84(Satrec.twoline2rv(LINE1, LINE2, WGS84))
 
     # Not specifying a gravity model should select WGS72.
 
-    for sat in (Satrec.twoline2rv(LINE1, LINE2),
-                Satrec.twoline2rv(LINE1, LINE2, WGS72)):
-        e, r, v = sat.sgp4(jd, fr)
-        assertAlmostEqual(r[0], -3754.2514743216166, digits)
-        assertAlmostEqual(r[1], 7876.346817439062, digits)
-        assertAlmostEqual(r[2], 4719.220856478582, digits)
+    assert_wgs72(Satrec.twoline2rv(LINE1, LINE2))
 
-    # Other gravity models should give different numbers both from
-    # the default and also from each other.
+def test_all_three_gravity_models_with_sgp4init():
+    # Gravity models specified with sgp4init() should also change the
+    # positions generated.
 
-    e, r, v = Satrec.twoline2rv(LINE1, LINE2, WGS72OLD).sgp4(jd, fr)
-    assertAlmostEqual(r[0], -3754.251473242793, digits)
-    assertAlmostEqual(r[1], 7876.346815095482, digits)
-    assertAlmostEqual(r[2], 4719.220855042922, digits)
+    sat = Satrec()
+    args = sgp4init_args(VANGUARD_ATTRS)
 
-    e, r, v = Satrec.twoline2rv(LINE1, LINE2, WGS84).sgp4(jd, fr)
-    assertAlmostEqual(r[0], -3754.2437675772426, digits)
-    assertAlmostEqual(r[1], 7876.3549956188945, digits)
-    assertAlmostEqual(r[2], 4719.227897029576, digits)
+    sat.sgp4init(WGS72OLD, 'i', VANGUARD_ATTRS['satnum'],
+                 jdsatepoch_combined - 2433281.5, *args)
+    assert_wgs72old(sat)
+
+    sat.sgp4init(WGS72, 'i', VANGUARD_ATTRS['satnum'],
+                 jdsatepoch_combined - 2433281.5, *args)
+    assert_wgs72(sat)
+
+    sat.sgp4init(WGS84, 'i', VANGUARD_ATTRS['satnum'],
+                 jdsatepoch_combined - 2433281.5, *args)
+    assert_wgs84(sat)
+
+GRAVITY_DIGITS = 12 if accelerated else 4
+
+def assert_wgs72old(sat):
+    e, r, v = sat.sgp4_tsince(309.67110720001529)
+    assertAlmostEqual(r[0], -3754.251473242793, GRAVITY_DIGITS)
+    assertAlmostEqual(r[1], 7876.346815095482, GRAVITY_DIGITS)
+    assertAlmostEqual(r[2], 4719.220855042922, GRAVITY_DIGITS)
+
+def assert_wgs72(sat):
+    e, r, v = sat.sgp4_tsince(309.67110720001529)
+    assertAlmostEqual(r[0], -3754.2514743216166, GRAVITY_DIGITS)
+    assertAlmostEqual(r[1], 7876.346817439062, GRAVITY_DIGITS)
+    assertAlmostEqual(r[2], 4719.220856478582, GRAVITY_DIGITS)
+
+def assert_wgs84(sat):
+    e, r, v = sat.sgp4_tsince(309.67110720001529)
+    assertAlmostEqual(r[0], -3754.2437675772426, GRAVITY_DIGITS)
+    assertAlmostEqual(r[1], 7876.3549956188945, GRAVITY_DIGITS)
+    assertAlmostEqual(r[2], 4719.227897029576, GRAVITY_DIGITS)
 
 # ------------------------------------------------------------------------
 #                            Special Cases

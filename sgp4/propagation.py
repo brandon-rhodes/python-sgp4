@@ -1683,8 +1683,6 @@ def sgp4init(
 def sgp4(satrec, tsince, whichconst=None):
 
      mrt = 0.0
-     if whichconst is None:
-          whichconst = satrec.whichconst
 
      """
      /* ------------------ set mathematical constants --------------- */
