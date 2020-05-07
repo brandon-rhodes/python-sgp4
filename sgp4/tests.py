@@ -15,7 +15,7 @@ from pkgutil import get_data
 from sgp4.api import WGS72OLD, WGS72, WGS84, Satrec, jday, accelerated
 from sgp4.earth_gravity import wgs72
 from sgp4.ext import invjday, newtonnu, rv2coe
-from sgp4.functions import jday_datetime
+from sgp4.conveniences import jday_datetime
 from sgp4.propagation import sgp4, sgp4init
 from sgp4 import io
 from sgp4.exporter import export_tle
