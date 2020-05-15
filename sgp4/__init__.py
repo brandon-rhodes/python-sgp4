@@ -19,11 +19,19 @@ files.
 * Otherwise, a slower but reliable Python implementation of SGP4 is used
   instead.
 
-Note that this package produces raw Earth-centered cartesian
-coordinates.  It does not implement all the steps necessary to convert
-satellite positions into geographic coordinates.  For that, look for a
-comprehensive astronomy library that is built atop this one, like the
-`Skyfield <http://rhodesmill.org/skyfield/>`_ library:
+Note that the SGP4 propagator returns raw *x,y,z* Cartesian coordinates
+in a “True Equator Mean Equinox” (TEME) reference frame that’s centered
+on the Earth but does not rotate with it — an “Earth centered inertial”
+(ECI) reference frame.  The SGP4 propagator itself does not implement
+the math that’s necessary to convert these positions into more official
+ECI frames like J2000 or the ICRF.  Nor does it provide conversion into
+any Earth-centered Earth-fixed (ECEF) frames whose coordinates are fixed
+with respect to the Earth’s surface, like the ITRF that defines latitude
+and longitude.
+
+For conversions into other coordinate frames, look for a comprehensive
+astronomy library that is built atop this one, like the `Skyfield
+<http://rhodesmill.org/skyfield/>`_ library:
 
 http://rhodesmill.org/skyfield/earth-satellites.html
 
