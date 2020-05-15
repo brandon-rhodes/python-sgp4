@@ -224,7 +224,7 @@ satellite object to reset it to those new elements.
 ...     'i',             # 'a' = old AFSPC mode, 'i' = improved mode
 ...     5,               # satnum: Satellite number
 ...     18441.785,       # epoch: days since 1949 December 31 00:00 UT
-...     2.8098e-05,      # bstar: drag coefficient (kg/m2er)
+...     2.8098e-05,      # bstar: drag coefficient (/earth radii)
 ...     6.969196665e-13, # ndot: ballistic coefficient (revs/day)
 ...     0.0,             # nddot: second derivative of mean motion (revs/day^3)
 ...     0.1859667,       # ecco: eccentricity
@@ -242,6 +242,10 @@ The character provided as the second argument can be ``'a'`` to run the
 computations so that they are compatible with the old Air Force Space
 Command edition of the library, or ``'i'`` to run the new and improved
 version of the SGP4 algorithm.
+
+You can also directly access a satellite’s orbital parameters by asking
+for the attributes ``sat.epoch``, ``sat.bstar``, and so forth, using the
+names given in the comments above.
 
 Validation against the official algorithm
 -----------------------------------------
