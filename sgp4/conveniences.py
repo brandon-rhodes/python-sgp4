@@ -9,14 +9,14 @@ import datetime as dt
 from .functions import jday
 
 class _UTC(dt.tzinfo):
-     'UTC'
-     zero = dt.timedelta(0)
-     def utcoffset(self, datetime):
-          return self.zero
-     def tzname(self, datetime):
-          return 'UTC'
-     def dst(self, datetime):
-          return self.zero
+    'UTC'
+    zero = dt.timedelta(0)
+    def utcoffset(self, datetime):
+         return self.zero
+    def tzname(self, datetime):
+         return 'UTC'
+    def dst(self, datetime):
+         return self.zero
 
 UTC = _UTC()
 
