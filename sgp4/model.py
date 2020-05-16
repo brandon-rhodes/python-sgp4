@@ -58,6 +58,10 @@ class Satrec(object):
         month, day, h, m, s = days2mdhms(year, self.epochdays);
         self.jdsatepoch, self.jdsatepochF = jday2(year, month, day, h, m, s)
 
+        # Remove the legacy datetime "epoch", which is not provided by
+        # the C++ version of the object.
+        del self.epoch
+
         # Undo my non-standard 4-digit year
         self.epochyr %= 100
         return self
