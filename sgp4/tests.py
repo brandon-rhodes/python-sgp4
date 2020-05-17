@@ -16,6 +16,7 @@ from sgp4.api import WGS72OLD, WGS72, WGS84, Satrec, jday, accelerated
 from sgp4.earth_gravity import wgs72
 from sgp4.ext import invjday, newtonnu, rv2coe
 from sgp4.conveniences import jday_datetime
+from sgp4.functions import _day_of_year_to_month_day
 from sgp4.propagation import sgp4, sgp4init
 from sgp4 import io
 from sgp4.exporter import export_tle
@@ -286,6 +287,27 @@ def test_legacy_epochyr():
 def test_support_for_old_no_attribute():
     s = io.twoline2rv(LINE1, LINE2, wgs72)
     assert s.no == s.no_kozai
+
+def test_months_and_days():
+    # Make sure our hand-written months-and-days routine is perfect.
+
+    month_lengths = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+    day_of_year = 1
+    for month, length in enumerate(month_lengths, 1):
+        for day in range(1, length + 1):
+            tup = _day_of_year_to_month_day(day_of_year, False)
+            assertEqual((month, day), tup)
+            day_of_year += 1
+
+    month_lengths[1] = 29  # February, during a leap year
+    day_of_year = 1
+    for month, length in enumerate(month_lengths, 1):
+        for day in range(1, length + 1):
+            tup = _day_of_year_to_month_day(day_of_year, True)
+            assertEqual((month, day), tup)
+            day_of_year += 1
+
 
 def test_december_32():
     # ISS [Orbit 606], whose date is 2019 plus 366.82137887 days.
