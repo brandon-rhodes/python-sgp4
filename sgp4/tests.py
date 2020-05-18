@@ -319,15 +319,20 @@ def test_december_32():
     # The core SGP4 routines handled this fine, but my hamfisted
     # attempt to provide a Python datetime for "convenience" ran
     # into an overflow.
-    sat = io.twoline2rv(
-    '1 25544U 98067A   19366.82137887  .00016717  00000-0  10270-3 0  9129',
-    '2 25544  51.6392  96.6358 0005156  88.7140 271.4601 15.49497216  6061',
-    wgs72,
-    )
-    assertEqual(
-        dt.datetime(2020, 1, 1, 19, 42, 47, 134367),
-        sat.epoch,
-    )
+    a = '1 25544U 98067A   19366.82137887  .00016717  00000-0  10270-3 0  9129'
+    b = '2 25544  51.6392  96.6358 0005156  88.7140 271.4601 15.49497216  6061'
+    correct_epoch = dt.datetime(2020, 1, 1, 19, 42, 47, 134367)
+
+    # Legacy API.
+    sat = io.twoline2rv(a, b, wgs72)
+    assertEqual(sat.epoch, correct_epoch)
+
+    correct_epoch = correct_epoch.replace(tzinfo=conveniences.UTC)
+
+    # Modern API.
+    sat = Satrec.twoline2rv(a, b)
+    assertEqual(conveniences.sat_epoch_datetime(sat), correct_epoch)
+
 
 def test_bad_first_line():
     with assertRaisesRegex(ValueError, re.escape("""TLE format error

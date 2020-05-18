@@ -61,6 +61,10 @@ def sat_epoch_datetime(sat):
     year += 1900 + (year < 57) * 100
     days = sat.epochdays
     month, day, hour, minute, second = days2mdhms(year, days)
+    if month == 12 and day > 31:  # for that time the ISS epoch was "Dec 32"
+        year += 1
+        month = 1
+        day -= 31
     second, fraction = divmod(second, 1.0)
     second = int(second)
     micro = int(fraction * 1e6)
