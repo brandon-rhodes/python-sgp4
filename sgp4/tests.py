@@ -15,10 +15,9 @@ from pkgutil import get_data
 from sgp4.api import WGS72OLD, WGS72, WGS84, Satrec, jday, accelerated
 from sgp4.earth_gravity import wgs72
 from sgp4.ext import invjday, newtonnu, rv2coe
-from sgp4.conveniences import jday_datetime
 from sgp4.functions import _day_of_year_to_month_day
 from sgp4.propagation import sgp4, sgp4init
-from sgp4 import io
+from sgp4 import conveniences, io
 from sgp4.exporter import export_tle
 import sgp4.model as model
 
@@ -127,11 +126,17 @@ def test_jday_datetime():
             return self.offset
 
     datetime_local = dt.datetime(2011, 11, 4, 0, 5, 23, 0, UTC_plus_4())
-    jd, fr = jday_datetime(datetime_local)
+    jd, fr = conveniences.jday_datetime(datetime_local)
 
     # jd of this date is 2455868.5 + 0.8370717592592593
     assertEqual(jd, 2455868.5)
     assertAlmostEqual(fr, 0.8370717592592593)
+
+def test_sat_epoch_datetime():
+    sat = Satrec.twoline2rv(LINE1, LINE2)
+    datetime = conveniences.sat_epoch_datetime(sat)
+    zone = conveniences.UTC
+    assertEqual(datetime, dt.datetime(2000, 6, 27, 18, 50, 19, 733567, zone))
 
 def test_good_tle_checksum():
     for line in LINE1, LINE2:
@@ -593,6 +598,7 @@ def load_tests(loader, tests, ignore):
     # breaks the doctest, so we only run the doctest on later versions.
     if sys.version_info >= (2, 7):
         tests.addTests(DocTestSuite('sgp4', optionflags=ELLIPSIS))
+        tests.addTests(DocTestSuite('sgp4.conveniences', optionflags=ELLIPSIS))
         tests.addTests(DocTestSuite('sgp4.functions', optionflags=ELLIPSIS))
 
     return tests

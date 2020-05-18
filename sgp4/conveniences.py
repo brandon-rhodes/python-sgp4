@@ -6,7 +6,7 @@ itself, native Python datetime handling could be convenient.
 
 """
 import datetime as dt
-from .functions import jday
+from .functions import days2mdhms, jday
 
 class _UTC(dt.tzinfo):
     'UTC'
@@ -54,3 +54,14 @@ def jday_datetime(datetime):
     sec = u.second + u.microsecond * 1e-6
 
     return jday(year, mon, day, hr, minute, sec)
+
+def sat_epoch_datetime(sat):
+    """Return the epoch of the given satellite as a Python datetime."""
+    year = sat.epochyr
+    year += 1900 + (year < 57) * 100
+    days = sat.epochdays
+    month, day, hour, minute, second = days2mdhms(year, days)
+    second, fraction = divmod(second, 1.0)
+    second = int(second)
+    micro = int(fraction * 1e6)
+    return dt.datetime(year, month, day, hour, minute, second, micro, UTC)
