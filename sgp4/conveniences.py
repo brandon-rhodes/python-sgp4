@@ -11,12 +11,14 @@ from .functions import days2mdhms, jday
 class _UTC(dt.tzinfo):
     'UTC'
     zero = dt.timedelta(0)
-    def utcoffset(self, datetime):
-         return self.zero
-    def tzname(self, datetime):
-         return 'UTC'
+    def __repr__(self):
+        return 'UTC'
     def dst(self, datetime):
-         return self.zero
+        return self.zero
+    def tzname(self, datetime):
+        return 'UTC'
+    def utcoffset(self, datetime):
+        return self.zero
 
 UTC = _UTC()
 

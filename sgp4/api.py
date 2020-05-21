@@ -1,8 +1,9 @@
 """Public API that tries to import C++ module, but falls back to Python."""
 
-__all__ = 'Satrec', 'SatrecArray', 'jday', 'WGS72OLD', 'WGS72', 'WGS84'
+__all__ = ('Satrec', 'SatrecArray', 'WGS72OLD', 'WGS72', 'WGS84',
+           'jday', 'days2mdhms')
 
-from .functions import jday
+from .functions import jday, days2mdhms
 
 SGP4_ERRORS = {
     1: 'mean eccentricity is outside the range 0.0 to 1.0',

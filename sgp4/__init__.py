@@ -108,6 +108,60 @@ compute ``jd`` and ``fr`` from calendar dates using ``jday()``.
 >>> fr
 0.5
 
+Epoch
+-----
+
+Over a given satellite’s lifetime, dozens or hundreds of different TLE
+records will be produced as its orbit evolves.  Each TLE record
+specifies the “epoch date” for which it is most accurate.  Typically a
+TLE is only useful for a couple of weeks to either side of its epoch
+date, beyond which its predictions become unreliable.
+
+Satellite objects natively provide their epoch as a two-digit year and
+then a fractional number of days into the year:
+
+>>> satellite.epochyr
+19
+>>> satellite.epochdays
+343.69339541
+
+Because Sputnik was launched in 1957, satellite element sets will never
+refer to an earlier year, so years 57 through 99 mean 1957–1999 while 0
+through 56 mean 2000–2056.  The TLE format will presumably be obsolete
+in 2057 and have to be upgraded to 4-digit years.
+
+To turn the number of days and its fraction into a calendar date and
+time, use the ``days2mdhms()`` function.
+
+>>> from sgp4.api import days2mdhms
+>>> month, day, hour, minute, second = days2mdhms(19, 343.69339541)
+>>> month
+12
+>>> day
+9
+>>> hour
+16
+>>> minute
+38
+>>> second
+29.363423999457154
+
+The SGP4 library also translates those two numbers into a Julian date
+and fractional Julian date, since Julian dates are more commonly used in
+astronomy.
+
+>>> satellite.jdsatepoch
+2458826.5
+>>> satellite.jdsatepochF
+0.6933954099999937
+
+Finally, a convenience function is available in the library if you need
+the epoch date and time as Python ``datetime``.
+
+>>> from sgp4.conveniences import sat_epoch_datetime
+>>> sat_epoch_datetime(satellite)
+datetime.datetime(2019, 12, 9, 16, 38, 29, 363423, tzinfo=UTC)
+
 Array Acceleration
 ------------------
 
