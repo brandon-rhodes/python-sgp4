@@ -69,7 +69,7 @@ def days2mdhms(year, days, round_seconds=6):
     # The 8 digits of floating point day specified in the TLE have a
     # resolution of exactly 1e-8 * 24 * 3600 * 1e6 = 864 milliseconds,
     # so round off any floating-point noise beyond the millisecond.
-    if round_seconds:
+    if round_seconds is not None:
         second = round(second, round_seconds)
 
     return month, day, int(hour), int(minute), second

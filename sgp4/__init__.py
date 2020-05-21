@@ -347,6 +347,7 @@ https://pypi.org/project/sgp4/1.4/
 Changelog
 ---------
 
+| 2020-05-21 — 2.9 — Added ``sat_epoch_datetime()``, expanded documentation around converting a satellite epoch to a date and time, and started rounding the epoch to exactly the digits provided in the TLE; and removed the ``Satrec.epoch`` attribute from Python fallback code to better match the C++ version.
 | 2020-05-07 — 2.8 — New function ``jday_datetime()`` is now available in the ``sgp4.conveniences`` module, thanks to Egemen Imre.
 | 2020-04-24 — 2.7 — New method ``sgp4init()`` (thank you, Chris Lewicki!) is available.
 | 2020-04-20 — 2.6 — New routine ``export_tle()`` (thank you, Egemen Imre!) is available. Improved how the accelerated C++ backend parses the ``intldesg`` string and the ``revnum`` integer.

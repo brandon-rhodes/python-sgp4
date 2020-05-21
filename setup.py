@@ -34,7 +34,7 @@ if sys.version_info[0] == 3:
     ))
 
 setup(name = 'sgp4',
-      version = '2.8',
+      version = '2.9',
       description = description,
       long_description = long_description,
       license = 'MIT',
