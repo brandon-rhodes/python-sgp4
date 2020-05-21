@@ -144,7 +144,7 @@ time, use the ``days2mdhms()`` function.
 >>> minute
 38
 >>> second
-29.363423999457154
+29.363424
 
 The SGP4 library also translates those two numbers into a Julian date
 and fractional Julian date, since Julian dates are more commonly used in
@@ -153,7 +153,7 @@ astronomy.
 >>> satellite.jdsatepoch
 2458826.5
 >>> satellite.jdsatepochF
-0.6933954099999937
+0.69339541
 
 Finally, a convenience function is available in the library if you need
 the epoch date and time as Python ``datetime``.

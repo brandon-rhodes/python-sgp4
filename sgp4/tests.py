@@ -136,7 +136,7 @@ def test_sat_epoch_datetime():
     sat = Satrec.twoline2rv(LINE1, LINE2)
     datetime = conveniences.sat_epoch_datetime(sat)
     zone = conveniences.UTC
-    assertEqual(datetime, dt.datetime(2000, 6, 27, 18, 50, 19, 733567, zone))
+    assertEqual(datetime, dt.datetime(2000, 6, 27, 18, 50, 19, 733568, zone))
 
 def test_good_tle_checksum():
     for line in LINE1, LINE2:
@@ -321,7 +321,7 @@ def test_december_32():
     # into an overflow.
     a = '1 25544U 98067A   19366.82137887  .00016717  00000-0  10270-3 0  9129'
     b = '2 25544  51.6392  96.6358 0005156  88.7140 271.4601 15.49497216  6061'
-    correct_epoch = dt.datetime(2020, 1, 1, 19, 42, 47, 134367)
+    correct_epoch = dt.datetime(2020, 1, 1, 19, 42, 47, 134368)
 
     # Legacy API.
     sat = io.twoline2rv(a, b, wgs72)
@@ -375,7 +375,12 @@ def verify_vanguard_1(sat, legacy=False):
         del attrs['jdsatepoch']
 
     for name, value in attrs.items():
-        assertEqual(getattr(sat, name), value, name + ' attribute')
+        try:
+            assertEqual(getattr(sat, name), value)
+        except AssertionError as e:
+            message, = e.args
+            e.args = ('for attribute %s, %s' % (name, message),)
+            raise e
 
     if not legacy:
         assertAlmostEqual(sat.jdsatepochF, 0.78495062, delta=1e-13)
@@ -586,10 +591,13 @@ def format_long_line(satrec, tsince, mu, r, v):
     (p, a, ecc, incl, node, argp, nu, m, arglat, truelon, lonper
      ) = rv2coe(r, v, mu)
 
-    return short + (' %14.6f %8.6f %10.5f %10.5f %10.5f %10.5f %10.5f'
-                    ' %5i%3i%3i %2i:%2i:%9.6f\n') % (
+    return short + (
+        ' %14.6f %8.6f %10.5f %10.5f %10.5f %10.5f %10.5f'
+        ' %5i%3i%3i %2i:%2i:%9.6f\n'
+    ) % (
         a, ecc, incl*rad, node*rad, argp*rad, nu*rad,
-        m*rad, year, mon, day, hr, minute, sec)
+        m*rad, year, mon, day, hr, minute, sec,
+    )
 
 # ----------------------------------------------------------------------
 

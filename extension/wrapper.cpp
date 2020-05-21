@@ -120,6 +120,10 @@ Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
     SGP4Funcs::twoline2rv(line1, line2, ' ', ' ', 'i', whichconst,
                           dummy, dummy, dummy, self->satrec);
 
+    /* Usability bonus: round the fractional day to exactly the eight
+       digits specified in the TLE. */
+    self->satrec.jdsatepochF = round(self->satrec.jdsatepochF * 1e8) / 1e8;
+
     /* To avoid having scanf() interpret the "intldesg" as zero or as
        several fields, the C++ library changes spaces to periods and
        underscores.  Let's convert them back to avoid surprising users

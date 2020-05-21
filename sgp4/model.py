@@ -55,8 +55,9 @@ class Satrec(object):
         # Install a fancy split JD of the kind the C++ natively supports.
         # We rebuild it from the TLE year and day to maintain precision.
         year = self.epochyr
-        month, day, h, m, s = days2mdhms(year, self.epochdays);
-        self.jdsatepoch, self.jdsatepochF = jday2(year, month, day, h, m, s)
+        days, fraction = divmod(self.epochdays, 1.0)
+        self.jdsatepoch = year * 365 + (year - 1) // 4 + days + 1721044.5
+        self.jdsatepochF = round(fraction, 8)  # exact number of digits in TLE
 
         # Remove the legacy datetime "epoch", which is not provided by
         # the C++ version of the object.

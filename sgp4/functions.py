@@ -38,7 +38,7 @@ def jday(year, mon, day, hr, minute, sec):
     fr = (sec + minute * 60.0 + hr * 3600.0) / 86400.0;
     return jd, fr
 
-def days2mdhms(year, days):
+def days2mdhms(year, days, round_seconds=6):
     """Convert a float point number of days into the year into date and time.
 
     Given the integer year plus the "day of the year" (where 1.0 means
@@ -65,6 +65,12 @@ def days2mdhms(year, days):
     second = fraction * 86400.0
     minute, second = divmod(second, 60.0)
     hour, minute = divmod(minute, 60.0)
+
+    # The 8 digits of floating point day specified in the TLE have a
+    # resolution of exactly 1e-8 * 24 * 3600 * 1e6 = 864 milliseconds,
+    # so round off any floating-point noise beyond the millisecond.
+    if round_seconds:
+        second = round(second, round_seconds)
 
     return month, day, int(hour), int(minute), second
 
