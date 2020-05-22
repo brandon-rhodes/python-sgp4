@@ -3,6 +3,12 @@
 #include "SGP4.h"
 #include "structmember.h"
 
+/* Whether scanf() prefers commas as the decimal point: true means that
+   we cannot count on the current locale to interpret numbers correctly
+   when the Vallado C++ code calls `sscanf()`. */
+
+static bool switch_locale;
+
 /* Satrec object that wraps a single raw SGP4 struct, and a Satrec array
    that can broadcast into NumPy arrays. */
 
@@ -113,6 +119,14 @@ Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
     line1[68] = '\0';
     line2[68] = '\0';
 
+    /* Correct for locales that use a comma as the decimal point, since
+       users report that the scanf() function on macOS is sensitive to
+       locale when parsing floats.  This operation is not thread-safe,
+       but we have not released the GIL. */
+    char *old_locale = NULL;
+    if (switch_locale)
+        old_locale = setlocale(LC_NUMERIC, "C");
+
     SatrecObject *self = (SatrecObject*) cls->tp_alloc(cls, 0);
     if (!self)
         return NULL;
@@ -133,6 +147,10 @@ Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
     for (int i=1; i<11; i++)
          if (self->satrec.intldesg[i] == '_')
               self->satrec.intldesg[i] = ' ';
+
+    /* Restore previous locale. */
+    if (switch_locale)
+        setlocale(LC_NUMERIC, old_locale);
 
     return (PyObject*) self;
 }
@@ -444,9 +462,16 @@ static PyModuleDef module = {
     -1
 };
 
+#include <stdio.h>
+
 PyMODINIT_FUNC
 PyInit_vallado_cpp(void)
 {
+    // Auto-detect systems where scanf() wants comma for decimal point.
+    float f;
+    sscanf("1,5", "%f", &f);
+    switch_locale = (f == 1.5);
+
     SatrecType.tp_name = "sgp4.vallado_cpp.Satrec";
     SatrecType.tp_basicsize = sizeof(SatrecObject);
     SatrecArrayType.tp_itemsize = 0;
