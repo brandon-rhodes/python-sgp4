@@ -15,7 +15,7 @@ from pkgutil import get_data
 from sgp4.api import WGS72OLD, WGS72, WGS84, Satrec, jday, accelerated
 from sgp4.earth_gravity import wgs72
 from sgp4.ext import invjday, newtonnu, rv2coe
-from sgp4.functions import _day_of_year_to_month_day
+from sgp4.functions import days2mdhms, _day_of_year_to_month_day
 from sgp4.propagation import sgp4, sgp4init
 from sgp4 import conveniences, io
 from sgp4.exporter import export_tle
@@ -105,6 +105,11 @@ def test_legacy_initialized_with_sgp4init():
 # ------------------------------------------------------------------------
 #                 Other Officially Supported Routines
 #
+
+def test_days2mdhms():
+    # See https://github.com/brandon-rhodes/python-sgp4/issues/64
+    tup = days2mdhms(2020, 133.35625)
+    assertEqual(tup, (5, 12, 8, 33, 0.0))
 
 def test_jday2():
     jd, fr = jday(2019, 10, 9, 16, 57, 15)

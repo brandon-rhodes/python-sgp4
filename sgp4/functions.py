@@ -5,6 +5,8 @@ modules to offer simple date handling, so this small module holds the
 routines instead.
 
 """
+from math import trunc
+
 def jday(year, mon, day, hr, minute, sec):
     """Return two floats that, when added, produce the specified Julian date.
 
@@ -38,7 +40,7 @@ def jday(year, mon, day, hr, minute, sec):
     fr = (sec + minute * 60.0 + hr * 3600.0) / 86400.0;
     return jd, fr
 
-def days2mdhms(year, days, round_seconds=6):
+def days2mdhms(year, days, round_to_microsecond=6):
     """Convert a float point number of days into the year into date and time.
 
     Given the integer year plus the "day of the year" (where 1.0 means
@@ -62,15 +64,18 @@ def days2mdhms(year, days, round_seconds=6):
         month = 12
         day += 31
 
+    # The 8 digits of floating point day specified in the TLE have a
+    # resolution of exactly 1e-8 * 24 * 3600 * 1e6 = 864 microseconds,
+    # so round off any floating-point noise beyond the microsecond.
+    if round_to_microsecond:
+        fraction += 0.5 / 86400e6
+
     second = fraction * 86400.0
     minute, second = divmod(second, 60.0)
     hour, minute = divmod(minute, 60.0)
 
-    # The 8 digits of floating point day specified in the TLE have a
-    # resolution of exactly 1e-8 * 24 * 3600 * 1e6 = 864 milliseconds,
-    # so round off any floating-point noise beyond the millisecond.
-    if round_seconds is not None:
-        second = round(second, round_seconds)
+    if round_to_microsecond:
+        second = trunc(second * 1e6) / 1e6
 
     return month, day, int(hour), int(minute), second
 
