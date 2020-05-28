@@ -123,6 +123,10 @@ Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
        users report that the scanf() function on macOS is sensitive to
        locale when parsing floats.  This operation is not thread-safe,
        but we have not released the GIL. */
+    float f;
+    sscanf("1,5", "%f", &f);
+    switch_locale = (f == 1.5);
+
     char *old_locale = NULL;
     if (switch_locale)
         old_locale = setlocale(LC_NUMERIC, "C");
@@ -467,11 +471,6 @@ static PyModuleDef module = {
 PyMODINIT_FUNC
 PyInit_vallado_cpp(void)
 {
-    // Auto-detect systems where scanf() wants comma for decimal point.
-    float f;
-    sscanf("1,5", "%f", &f);
-    switch_locale = (f == 1.5);
-
     SatrecType.tp_name = "sgp4.vallado_cpp.Satrec";
     SatrecType.tp_basicsize = sizeof(SatrecObject);
     SatrecArrayType.tp_itemsize = 0;
