@@ -6,6 +6,7 @@ except:
     from unittest import TestCase, main
 
 import datetime as dt
+import platform
 import re
 import sys
 from doctest import DocTestSuite, ELLIPSIS
@@ -232,7 +233,14 @@ def test_all_three_gravity_models_with_sgp4init():
     sat.sgp4init(WGS84, 'i', VANGUARD_ATTRS['satnum'], VANGUARD_EPOCH, *args)
     assert_wgs84(sat)
 
-GRAVITY_DIGITS = 12 if accelerated else 4
+GRAVITY_DIGITS = (
+    # Why don't Python and C agree more closely?
+    4 if not accelerated
+    # See https://github.com/conda-forge/sgp4-feedstock/pull/19 for details.
+    else 11 if platform.system() != 'Linux'
+    # Insist on very high precision on my Linux laptop.
+    else 12
+)
 
 def assert_wgs72old(sat):
     e, r, v = sat.sgp4_tsince(309.67110720001529)
