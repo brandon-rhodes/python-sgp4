@@ -1,5 +1,6 @@
 import os
 import sys
+import platform
 from distutils.core import setup, Extension
 from textwrap import dedent
 
@@ -16,6 +17,37 @@ if sys.version_info[0] != 2 and os.environ.get('TRAVIS') == 'true':
 
 # It is hard to write C extensions that support both Python 2 and 3, so
 # we opt here to support the acceleration only for Python 3.
+
+
+def get_compile_args():
+
+    comp_args = {
+        'extra_compile_args': ['-fopenmp', '-O3'],  # , '-std=c++11'
+        'extra_link_args': ['-fopenmp'],
+        'language': 'c++',
+        }
+
+    if platform.system().lower() == 'windows':
+        comp_args['extra_compile_args'] = ['/openmp']
+        del comp_args['extra_link_args']
+
+    elif 'darwin' in platform.system().lower():
+
+        extra_compile_args = [
+            '-fopenmp', '-O3',  # '-std=c++11',
+            '-mmacosx-version-min=10.7',
+            ]
+
+        # if c++11 stdlib support is necessary and clang compiler is used
+        # from subprocess import getoutput
+        # if 'clang' in getoutput('gcc -v'):
+        #     extra_compile_args += ['-stdlib=libc++', ]
+
+        comp_args['extra_compile_args'] = extra_compile_args
+
+    return comp_args
+
+
 ext_modules = []
 if sys.version_info[0] == 3:
     ext_modules.append(Extension(
@@ -25,7 +57,7 @@ if sys.version_info[0] == 3:
             'extension/SGP4.cpp',
             'extension/wrapper.cpp',
         ],
-
+        **get_compile_args(),
         # TODO: can we safely figure out how to use a pair of options
         # like these, adapted to as many platforms as possible, to use
         # multiple processors when available?
