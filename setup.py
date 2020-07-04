@@ -57,12 +57,7 @@ if sys.version_info[0] == 3:
             'extension/SGP4.cpp',
             'extension/wrapper.cpp',
         ],
-        **get_compile_args(),
-        # TODO: can we safely figure out how to use a pair of options
-        # like these, adapted to as many platforms as possible, to use
-        # multiple processors when available?
-        # extra_compile_args=['-fopenmp'],
-        # extra_link_args=['-fopenmp'],
+        **get_compile_args()
     ))
 
 setup(name = 'sgp4',
