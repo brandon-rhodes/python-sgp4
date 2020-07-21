@@ -228,6 +228,9 @@ one.  Here is a sample computation for 2 satellites and 4 dates:
   [-3.85  6.28 -1.85]
   [-3.91  6.25 -1.83]]]
 
+Attributes
+----------
+
 The attributes of a ``Satrec`` object carry the data loaded from the TLE
 entry.  Look at the class's documentation for details.
 
