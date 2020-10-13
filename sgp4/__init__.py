@@ -3,7 +3,7 @@
 
 This Python package computes the position and velocity of an
 earth-orbiting satellite, given the satellite's TLE orbital elements
-from a source like `Celestrak <http://celestrak.com/>`_.  It implements
+from a source like `Celestrak <https://celestrak.com/>`_.  It implements
 the most recent version of SGP4, and is regularly run against the SGP4
 test suite to make sure that its satellite position predictions **agree
 to within 0.1 mm** with the predictions of the standard distribution of
@@ -31,9 +31,9 @@ and longitude.
 
 For conversions into other coordinate frames, look for a comprehensive
 astronomy library that is built atop this one, like the `Skyfield
-<http://rhodesmill.org/skyfield/>`_ library:
+<https://rhodesmill.org/skyfield/>`_ library:
 
-http://rhodesmill.org/skyfield/earth-satellites.html
+https://rhodesmill.org/skyfield/earth-satellites.html
 
 Usage
 -----
@@ -317,10 +317,10 @@ originally published their revision of SGP4 in 2006:
     21–24.
 
 If you would like to review the paper, it is `available online
-<http://www.celestrak.com/publications/AIAA/2006-6753/>`_.  You can
+<https://www.celestrak.com/publications/AIAA/2006-6753/>`_.  You can
 always download the latest version of their code for comparison against
 this Python module (or other implementations) at `AIAA-2006-6753.zip
-<http://www.celestrak.com/publications/AIAA/2006-6753/AIAA-2006-6753.zip>`_.
+<https://www.celestrak.com/publications/AIAA/2006-6753/AIAA-2006-6753.zip>`_.
 
 For developers
 --------------
