@@ -179,7 +179,13 @@ Satrec_sgp4init(PyObject *self, PyObject *args)
                         bstar, ndot, nddot, ecco, argpo, inclo, mo, no_kozai,
                         nodeo, satrec);
 
-    /* Populate jdsatepoch and jdsatepochF as SGP4Funcs::twoline2rv does */
+    /* Populate date fields that SGP4Funcs::twoline2rv would set. */
+    int y, m, d, H, M;
+    double S, jan0jd, jan0fr /* always comes out 0.0 */;
+    SGP4Funcs::invjday(2433281.5, epoch, y, m, d, H, M, S);
+    SGP4Funcs::jday(y, 1, 0, 0, 0, 0.0, jan0jd, jan0fr);
+    satrec.epochyr = y % 1000;
+    satrec.epochdays = 2433281.5 - jan0jd + epoch;
     satrec.jdsatepochF = modf(epoch, &satrec.jdsatepoch);
     satrec.jdsatepoch += 2433281.5;
 

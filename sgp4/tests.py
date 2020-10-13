@@ -39,6 +39,7 @@ VANGUARD_ATTRS = {
     'satnum': 5,
     'operationmode': 'i',
     # Time
+    'epochyr': 0,
     'jdsatepoch': 2451722.5,
     # Orbit
     'bstar': 2.8098e-05,
@@ -52,7 +53,6 @@ VANGUARD_ATTRS = {
     'nodeo': 6.08638547138321,
 }
 VANGUARD_EPOCH = 18441.7849506199999894
-VANGUARD_EPOCHDAYS = 179.78495062
 
 # Handle deprecated assertRaisesRegexp, but allow its use Python 2.6 and 2.7
 if sys.version_info[:2] == (2, 7) or sys.version_info[:2] == (2, 6):
@@ -65,12 +65,10 @@ if sys.version_info[:2] == (2, 7) or sys.version_info[:2] == (2, 6):
 def test_satrec_built_with_twoline2rv():
     sat = Satrec.twoline2rv(LINE1, LINE2)
     verify_vanguard_1(sat)
-    assertEqual(sat.epochdays, VANGUARD_EPOCHDAYS)
 
 def test_legacy_built_with_twoline2rv():
     sat = io.twoline2rv(LINE1, LINE2, wgs72)
     verify_vanguard_1(sat, legacy=True)
-    assertEqual(sat.epochdays, VANGUARD_EPOCHDAYS)
 
 def test_satrec_initialized_with_sgp4init():
     # epochyr and epochdays are not set by sgp4init
@@ -385,6 +383,7 @@ def verify_vanguard_1(sat, legacy=False):
 
     if legacy:
         attrs = attrs.copy()
+        del attrs['epochyr']
         del attrs['jdsatepoch']
 
     for name, value in attrs.items():
@@ -396,6 +395,7 @@ def verify_vanguard_1(sat, legacy=False):
             raise e
 
     if not legacy:
+        assertAlmostEqual(sat.epochdays, 179.78495062, delta=3e-14)
         assertAlmostEqual(sat.jdsatepochF, 0.78495062, delta=1e-13)
 
 def sgp4init_args(d):

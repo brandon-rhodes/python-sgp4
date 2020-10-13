@@ -295,6 +295,10 @@ satellite object to reset it to those new elements.
 To compute the “epoch” value, simply take a normal Julian date and
 subtract ``2433281.5`` days.
 
+In addition to setting the attributes natively set by the underlying
+``sgp4init()`` routine, this library also goes ahead and sets the date
+fields ``epochyr``, ``epochdays``, ``jdsatepoch``, and ``jdsatepochF``.
+
 The character provided as the second argument can be ``'a'`` to run the
 computations so that they are compatible with the old Air Force Space
 Command edition of the library, or ``'i'`` to run the new and improved

@@ -1,7 +1,7 @@
 """The Satellite class."""
 
 from sgp4.earth_gravity import wgs72old, wgs72, wgs84
-from sgp4.ext import days2mdhms, jday
+from sgp4.ext import days2mdhms, invjday, jday
 from sgp4.functions import jday as jday2
 from sgp4.io import twoline2rv
 from sgp4.propagation import sgp4, sgp4init
@@ -70,8 +70,15 @@ class Satrec(object):
     def sgp4init(self, whichconst, opsmode, satnum, epoch, bstar,
                  ndot, nddot, ecco, argpo, inclo, mo, no_kozai, nodeo):
         whichconst = gravity_constants[whichconst]
+
+        y, m, d, H, M, S = invjday(epoch + 2433281.5)
+        jan0epoch = jday(y, 1, 0, 0, 0, 0.0) - 2433281.5
+
+        self.epochyr = y % 1000
+        self.epochdays = epoch - jan0epoch
         self.jdsatepoch, self.jdsatepochF = divmod(epoch, 1.0)
         self.jdsatepoch += 2433281.5
+
         sgp4init(whichconst, opsmode, satnum, epoch, bstar, ndot, nddot,
                  ecco, argpo, inclo, mo, no_kozai, nodeo, self)
 
