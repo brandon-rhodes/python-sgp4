@@ -354,6 +354,7 @@ https://pypi.org/project/sgp4/1.4/
 Changelog
 ---------
 
+| 2020-10-14 — 2.13 — Enhanced ``sgp4init()`` with custom code that also sets the ``epochdays`` and ``epochyr`` satellite attributes.
 | 2020-05-28 — 2.12 — Moved the decision of whether to set the locale during ``twoline2rv()`` from import time to runtime, for users who change locales after their application is up and running.
 | 2020-05-24 — 2.11 — Fixed a regression in how dates are split into hours, minutes, and seconds that would sometimes produce a time whose second=60, crashing the pure-Python version of the library.
 | 2020-05-22 — 2.10 — Switch the locale temporarily to ``C`` during the C++ accelerated ``twoline2rv()``, since it does not protect its ``sscanf()`` calls from locales that, like German, expect comma decimal points instead of the period decimal points always used in a TLE.
