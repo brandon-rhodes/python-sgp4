@@ -469,25 +469,21 @@ def test_legacy_against_tcppver():
     run_satellite_against_tcppver(make_legacy_satellite, run_legacy_sgp4, errs)
 
 def run_satellite_against_tcppver(twoline2rv, invoke, expected_errors):
-    # Check whether a test run produces the output in tcppver.out
-
-    error_list = []
-    actual = generate_test_output(twoline2rv, invoke, error_list)
-    previous_data_line = None
-
-    # Iterate across "tcppver.out", making sure that we ourselves
-    # produce a line that looks very much like the corresponding
-    # line in that file.
+    # Check whether this library can produce (at least roughly) the
+    # output in tcppver.out.
 
     data = get_data(__name__, 'tcppver.out')
     tcppver_lines = data.decode('ascii').splitlines(True)
-    for i, expected_line in enumerate(tcppver_lines, start = 1):
 
-        try:
-            actual_line = next(actual)
-        except StopIteration:
-            raise ValueError(
-                'WARNING: our output ended early, on line %d' % (i,))
+    error_list = []
+    actual_lines = list(generate_test_output(twoline2rv, invoke, error_list))
+
+    assert len(tcppver_lines) == len(actual_lines) == 700
+
+    previous_data_line = None
+    linepairs = zip(tcppver_lines, actual_lines)
+
+    for lineno, (expected_line, actual_line) in enumerate(linepairs, start=1):
 
         if actual_line == '(Use previous data line)':
             actual_line = ('       0.00000000' +
@@ -527,15 +523,7 @@ def run_satellite_against_tcppver(twoline2rv, invoke, expected_errors):
         if 'xx' not in actual_line:
             previous_data_line = actual_line
 
-    # Make sure the test file is not missing lines.
-
-    missing_count = 0
-    for actual_line in actual:
-        missing_count += 1
-
-    if missing_count > 0:
-        raise ValueError('we produced %d extra lines' % (missing_count,))
-
+    # Make sure we produced the correct list of errors.
     assertEqual(error_list, expected_errors)
 
 def generate_test_output(twoline2rv, invoke, error_list):
