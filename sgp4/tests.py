@@ -209,14 +209,13 @@ def test_tle_export():
 
 def test_export_tle_raises_error_for_out_of_range_angles():
     # See https://github.com/brandon-rhodes/python-sgp4/issues/70
-    sat = Satrec()
-
     for angle in 'inclo', 'nodeo', 'argpo', 'mo':
-        WRONG_VANGUARD_ATTRS = VANGUARD_ATTRS.copy()
-        WRONG_VANGUARD_ATTRS[angle] = -1.0
+        sat = Satrec()
+        wrong_vanguard_attrs = VANGUARD_ATTRS.copy()
+        wrong_vanguard_attrs[angle] = -1.0
         sat.sgp4init(
-            WGS84, 'i', WRONG_VANGUARD_ATTRS['satnum'], VANGUARD_EPOCH,
-            *sgp4init_args(WRONG_VANGUARD_ATTRS)
+            WGS84, 'i', wrong_vanguard_attrs['satnum'], VANGUARD_EPOCH,
+            *sgp4init_args(wrong_vanguard_attrs)
         )
         assertRaises(ValueError, export_tle, sat)
 
