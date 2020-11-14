@@ -207,6 +207,19 @@ def test_tle_export():
         if satrec.satnum not in expected_errs_line2:
             assertEqual(out_line2, line2)
 
+def test_export_tle_raises_error_for_out_of_range_angles():
+    # See https://github.com/brandon-rhodes/python-sgp4/issues/70
+    sat = Satrec()
+
+    for angle in 'inclo', 'nodeo', 'argpo', 'mo':
+        WRONG_VANGUARD_ATTRS = VANGUARD_ATTRS.copy()
+        WRONG_VANGUARD_ATTRS[angle] = -1.0
+        sat.sgp4init(
+            WGS84, 'i', WRONG_VANGUARD_ATTRS['satnum'], VANGUARD_EPOCH,
+            *sgp4init_args(WRONG_VANGUARD_ATTRS)
+        )
+        assertRaises(ValueError, export_tle, sat)
+
 def test_all_three_gravity_models_with_twoline2rv():
     # The numbers below are those produced by Vallado's C++ code.
     # (Why does the Python version not produce the same values to
