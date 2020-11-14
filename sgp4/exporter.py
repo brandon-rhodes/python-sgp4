@@ -30,7 +30,10 @@ def export_tle(satrec):
     append(satrec.intldesg.ljust(8, " ") + " ")
 
     # Add epoch year and days in YYDDD.DDDDDDDD format
-    append(str(satrec.epochyr).zfill(2) + "{:012.8f}".format(satrec.epochdays) + " ")
+    epochyr = satrec.epochyr
+    # Undo non-standard 4-digit year for old satrec objects
+    epochyr %= 100
+    append(str(epochyr).zfill(2) + "{:012.8f}".format(satrec.epochdays) + " ")
 
     # Add First Time Derivative of the Mean Motion (don't use "+")
     append("{0: 8.8f}".format(satrec.ndot * (_xpdotp * 1440.0)).replace("0", "", 1) + " ")
