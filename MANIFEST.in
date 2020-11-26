@@ -1,3 +1,4 @@
+include LICENSE
 include extension/SGP4.h
 include sgp4/SGP4-VER.TLE
 include sgp4/tcppver.out
