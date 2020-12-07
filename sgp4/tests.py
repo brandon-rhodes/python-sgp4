@@ -26,6 +26,7 @@ from sgp4.propagation import sgp4, sgp4init
 from sgp4 import conveniences, io, omm
 from sgp4.exporter import export_tle
 import sgp4.model as model
+from sgp4.fast.model import Satrec as FastSatrec, twoline2rv as fast_twoline2rv
 
 _testcase = TestCase('setUp')
 assertEqual = _testcase.assertEqual
@@ -450,6 +451,17 @@ def test_satrec_against_tcppver_using_julian_dates():
 
     run_satellite_against_tcppver(Satrec.twoline2rv, invoke, [1,1,6,6,4,3,6])
 
+def test_fast_satrec_against_tcppver_using_julian_dates():
+
+    def invoke(satrec, tsince):
+        whole, fraction = divmod(tsince / 1440.0, 1.0)
+        jd = satrec.jdsatepoch + whole
+        fr = satrec.jdsatepochF + fraction
+        e, r, v = satrec.sgp4(jd, fr)
+        return e, r, v
+
+    run_satellite_against_tcppver(lambda l1, l2: fast_twoline2rv(FastSatrec(), l1, l2), invoke, [1,1,6,6,4,3,6])
+
 def test_satrec_against_tcppver_using_tsince():
 
     def invoke(satrec, tsince):
@@ -457,6 +469,14 @@ def test_satrec_against_tcppver_using_tsince():
         return e, r, v
 
     run_satellite_against_tcppver(Satrec.twoline2rv, invoke, [1,1,6,6,4,3,6])
+
+def test_fast_satrec_against_tcppver_using_tsince():
+
+    def invoke(satrec, tsince):
+        e, r, v = satrec.sgp4_tsince(tsince)
+        return e, r, v
+
+    run_satellite_against_tcppver(lambda l1, l2: fast_twoline2rv(FastSatrec(), l1, l2), invoke, [1,1,6,6,4,3,6])
 
 def test_legacy_against_tcppver():
 

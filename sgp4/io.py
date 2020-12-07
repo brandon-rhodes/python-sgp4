@@ -98,7 +98,7 @@ with an N where each digit should go, followed by the line you provided:
   --------------------------------------------------------------------------- */
 """
 
-def twoline2rv(longstr1, longstr2, whichconst, opsmode='i', satrec=None):
+def twoline2rv(longstr1, longstr2, whichconst, opsmode='i', satrec=None, init=True):
     """Return a Satellite imported from two lines of TLE data.
 
     Provide the two TLE lines as strings `longstr1` and `longstr2`,
@@ -231,11 +231,15 @@ def twoline2rv(longstr1, longstr2, whichconst, opsmode='i', satrec=None):
         year, mon, day, hr, minute, sec = invjday(satrec.jdsatepoch)
         satrec.epoch = datetime(year, mon, day, hr, minute, int(sec_whole),
                                 int(sec_fraction * 1000000.0 // 1.0))
+    except AttributeError:
+        # No support for epoch, only epochyr and epochdays
+        pass
 
-    #  ---------------- initialize the orbit at sgp4epoch -------------------
-    sgp4init(whichconst, opsmode, satrec.satnum, satrec.jdsatepoch-2433281.5, satrec.bstar,
-             satrec.ndot, satrec.nddot, satrec.ecco, satrec.argpo, satrec.inclo, satrec.mo,
-             satrec.no_kozai, satrec.nodeo, satrec)
+    if init:
+        #  ---------------- initialize the orbit at sgp4epoch -------------------
+        sgp4init(whichconst, opsmode, satrec.satnum, satrec.jdsatepoch-2433281.5, satrec.bstar,
+                 satrec.ndot, satrec.nddot, satrec.ecco, satrec.argpo, satrec.inclo, satrec.mo,
+                 satrec.no_kozai, satrec.nodeo, satrec)
 
     return satrec
 
