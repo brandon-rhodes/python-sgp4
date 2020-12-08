@@ -58,7 +58,7 @@ setup(name = 'sgp4',
         'Programming Language :: Python :: 3.8',
         'Topic :: Scientific/Engineering :: Astronomy',
         ],
-      packages = ['sgp4'],
+      packages = ['sgp4', 'sgp4.fast'],
       package_data = {'sgp4': ['SGP4-VER.TLE', 'tcppver.out']},
       ext_modules = ext_modules,
 )
