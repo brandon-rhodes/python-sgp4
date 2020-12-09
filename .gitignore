@@ -4,6 +4,7 @@
 /.coverage
 /MANIFEST
 /build/
+/cpp/
 /dist/
 /htmlcov/
 /t/
