@@ -24,10 +24,13 @@ def export_tle(satrec):
         append(str(satrec.satnum).zfill(5))
 
     # Add classification code (use "U" if empty)
-    append((satrec.classification.strip() or "U") + " ")
+    classification = getattr(satrec, 'classification', 'U')
+    append(classification.strip() or 'U')
+    append(' ')
 
     # Add int'l designator and pad to 8 chars
-    append(satrec.intldesg.ljust(8, " ") + " ")
+    intldesg = getattr(satrec, 'intldesg', '')
+    append('{0:8} '.format(intldesg))
 
     # Add epoch year and days in YYDDD.DDDDDDDD format
     epochyr = satrec.epochyr
@@ -48,7 +51,9 @@ def export_tle(satrec):
     append("{0: 4.4e}".format(satrec.bstar * 10).replace(".", "").replace("e+00", "+0").replace("e-0", "-") + " ")
 
     # Add Ephemeris Type and Element Number
-    append("{} ".format(satrec.ephtype) + str(satrec.elnum).rjust(4, " "))
+    ephtype = getattr(satrec, 'ephtype', 0)
+    elnum = getattr(satrec, 'elnum', 0)
+    append('{0} {1:4}'.format(ephtype, elnum))
 
     # Join all the parts and add the Checksum
     line1 = ''.join(pieces)
