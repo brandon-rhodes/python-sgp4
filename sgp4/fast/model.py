@@ -1,3 +1,4 @@
+import numpy as np
 from numba import typeof
 from numba.core.types import float64, int32, int64, string
 from numba.experimental import jitclass
@@ -179,6 +180,22 @@ class Satrec:
     def sgp4_tsince(self, tsince):
         r, v = sgp4(self, tsince)
         return self.error, r, v
+
+    def sgp4_array(self, jd, fr):
+        assert len(jd) == len(fr)
+        n = len(jd)
+
+        e_array = np.zeros((n,))
+        r_array = np.zeros((n, 3))
+        v_array = np.zeros((n, 3))
+
+        for index in range(n):
+            e, r, v = self.sgp4(jd[index], fr[index])
+            e_array[index] = e
+            r_array[index] = r
+            v_array[index] = v
+
+        return e_array, r_array, v_array
 
 
 # Separate function instead of @classmethod
