@@ -1,6 +1,6 @@
 import numpy as np
 from numba import typeof
-from numba.core.types import float64, int32, int64, string
+from numba.core.types import float64, int32, int64, string, ListType
 from numba.experimental import jitclass
 
 from sgp4.earth_gravity import wgs72old, wgs72, wgs84
@@ -189,6 +189,32 @@ class Satrec:
 
         for index in range(n):
             e, r, v = self.sgp4(jd[index], fr[index])
+            e_array[index] = e
+            r_array[index] = r
+            v_array[index] = v
+
+        return e_array, r_array, v_array
+
+
+@jitclass
+class SatrecArray:
+
+    _satrecs: ListType(typeof(Satrec()))
+
+    def __init__(self, satrecs):
+        self._satrecs = satrecs
+
+    def sgp4(self, jd, fr):
+        assert len(jd) == len(fr)
+        n = len(self._satrecs)
+        m = len(jd)
+
+        e_array = np.zeros((n, m))
+        r_array = np.zeros((n, m, 3))
+        v_array = np.zeros((n, m, 3))
+
+        for index in range(n):
+            e, r, v = self._satrecs[index].sgp4_array(jd, fr)
             e_array[index] = e
             r_array[index] = r
             v_array[index] = v
