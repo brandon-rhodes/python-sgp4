@@ -1,5 +1,5 @@
 import numpy as np
-from numba import typeof
+from numba import typeof, njit, prange
 from numba.core.types import float64, int32, int64, string, ListType
 from numba.experimental import jitclass
 
@@ -179,47 +179,44 @@ class Satrec:
         r, v = sgp4(self, tsince)
         return self.error, r, v
 
-    def sgp4_array(self, jd, fr):
-        assert len(jd) == len(fr)
-        n = len(jd)
 
-        e_array = np.zeros((n,))
-        r_array = np.zeros((n, 3))
-        v_array = np.zeros((n, 3))
+@njit(parallel=True)
+def sgp4_array(satrec, jd, fr):
+    assert len(jd) == len(fr)
+    n = len(jd)
 
-        for index in range(n):
-            e, r, v = self.sgp4(jd[index], fr[index])
-            e_array[index] = e
-            r_array[index] = r
-            v_array[index] = v
+    e_array = np.zeros((n,))
+    r_array = np.zeros((n, 3))
+    v_array = np.zeros((n, 3))
 
-        return e_array, r_array, v_array
+    for ii in prange(n):
+        e, r, v = satrec.sgp4(jd[ii], fr[ii])
+        e_array[ii] = e
+        r_array[ii] = r
+        v_array[ii] = v
+
+    return e_array, r_array, v_array
 
 
-@jitclass
-class SatrecArray:
+@njit(parallel=True)
+def sgp4_many(satrecs, jd, fr):
+    assert len(jd) == len(fr)
+    n = len(satrecs)
+    m = len(jd)
 
-    _satrecs: ListType(typeof(Satrec()))
+    e_array = np.zeros((n, m))
+    r_array = np.zeros((n, m, 3))
+    v_array = np.zeros((n, m, 3))
 
-    def __init__(self, satrecs):
-        self._satrecs = satrecs
+    for ii in prange(n):
+        satrec = satrecs[ii]
+        for jj in prange(m):
+            e, r, v = satrec.sgp4(jd[jj], fr[jj])
+            e_array[ii, jj] = e
+            r_array[ii, jj] = r
+            v_array[ii, jj] = v
 
-    def sgp4(self, jd, fr):
-        assert len(jd) == len(fr)
-        n = len(self._satrecs)
-        m = len(jd)
-
-        e_array = np.zeros((n, m))
-        r_array = np.zeros((n, m, 3))
-        v_array = np.zeros((n, m, 3))
-
-        for index in range(n):
-            e, r, v = self._satrecs[index].sgp4_array(jd, fr)
-            e_array[index] = e
-            r_array[index] = r
-            v_array[index] = v
-
-        return e_array, r_array, v_array
+    return e_array, r_array, v_array
 
 
 # Separate function instead of @classmethod
