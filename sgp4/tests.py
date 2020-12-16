@@ -572,7 +572,7 @@ def run_satellite_against_tcppver(twoline2rv, invoke, expected_errors):
                 '\n'
                 'Expected: %r\n'
                 'Got back: %r'
-                % (i, expected_line, actual_line))
+                % (lineno, expected_line, actual_line))
 
         if 'xx' not in actual_line:
             previous_data_line = actual_line

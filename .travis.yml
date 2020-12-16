@@ -1,6 +1,9 @@
 # Config file for automatic testing at travis-ci.org
 
 language: python
+arch:
+  - amd64
+  - ppc64le
 
 python:
   - "2.7"
@@ -23,4 +26,4 @@ script:
   - python -m sgp4.tests
   - pyflakes $(find sgp4/ -name '*.py')
   - |-
-    if grep ' $' $(find extension/ sgp4/ -type f) ;then echo ERROR: TRAILING WHITESPACE; exit 0 ;fi
+    if grep ' $' $(find extension/ sgp4/ -type f) && [[ "$TRAVIS_CPU_ARCH" != "ppc64le" ]] ;then echo ERROR: TRAILING WHITESPACE; exit 0 ;fi
