@@ -290,6 +290,28 @@ def assert_wgs84(sat):
 #                            Special Cases
 #
 
+def test_satnum_alpha5_encoding():
+    def make_sat(satnum_string):
+        return Satrec.twoline2rv(LINE1.replace('00005', satnum_string),
+                                 LINE2.replace('00005', satnum_string))
+
+    # Test cases from https://www.space-track.org/documentation#tle-alpha5
+    cases = [(100000, 'A0000'),
+             (148493, 'E8493'),
+             (182931, 'J2931'),
+             (234018, 'P4018'),
+             (301928, 'W1928'),
+             (339999, 'Z9999')]
+
+    for satnum, satnum_string in cases:
+        sat = make_sat(satnum_string)
+        assert sat.satnum == satnum
+
+    args = sgp4init_args(VANGUARD_ATTRS)
+    for satnum, satnum_string in cases:
+        sat.sgp4init(WGS72, 'i', satnum, VANGUARD_EPOCH, *args)
+        assert sat.satnum == satnum
+
 def test_intldesg_with_6_characters():
     sat = Satrec.twoline2rv(LINE1, LINE2)
     assertEqual(sat.intldesg, '58002B')

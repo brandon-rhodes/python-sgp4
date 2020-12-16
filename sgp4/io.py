@@ -141,7 +141,7 @@ def twoline2rv(longstr1, longstr2, whichconst, opsmode='i', satrec=None):
         line[61] == ' ' and
         line[63] == ' '):
 
-        _saved_satnum = satrec.satnum = int(line[2:7])
+        _saved_satnum = satrec.satnum = _alpha5(line[2:7])
         satrec.classification = line[7] or 'U'
         satrec.intldesg = line[9:17].rstrip()
         two_digit_year = int(line[18:20])
@@ -171,7 +171,7 @@ def twoline2rv(longstr1, longstr2, whichconst, opsmode='i', satrec=None):
         line[46] == '.' and
         line[51] == ' '):
 
-        satrec.satnum = int(line[2:7])
+        satrec.satnum = _alpha5(line[2:7])
         if _saved_satnum != satrec.satnum:
             raise ValueError('Object numbers in lines 1 and 2 do not match')
 
@@ -269,3 +269,12 @@ def fix_checksum(line):
 def compute_checksum(line):
     """Compute the TLE checksum for the given line."""
     return sum((int(c) if c.isdigit() else c == '-') for c in line[0:68]) % 10
+
+def _alpha5(s):
+    if s[0].isdigit():
+        return int(s)
+    c = s[0]
+    n = ord(c) - ord('A') + 10
+    n -= c > 'I'
+    n -= c > 'O'
+    return n * 10000 + int(s[1:])
