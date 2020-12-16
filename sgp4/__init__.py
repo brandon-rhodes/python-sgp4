@@ -113,21 +113,21 @@ The industry is making adjustments because the fixed-width TLE format
 will soon run out of satellite numbers.
 
 * Some TLE files now use a new “Alpha-5” convention that expands the
-  range of satellite numbers by using letters; for example, “E8493”
-  means satellite 148493.  This ``sgp4`` library supports the Alpha-5
+  range of satellite numbers by using an initial letter; for example,
+  “E8493” means satellite 148493.  This library now supports the Alpha-5
   convention and should return the correct integer in Python.
 
 * Some authorities are now distributing satellite elements in an “OMM”
   Orbit Mean Elements Message format that replaces the TLE format.
 
-Experimental support for OMM is provided in this library:
+You can already try out experimental support for OMM:
 
 >>> from sgp4 import omm
 
 Reading OMM data takes two steps, because OMM supports several different
-text formats.  The first step parses the input text to recover the field
-names and values that it stores.  The second step then builds a Python
-satellite object using those fields.  For example, to load OMM from XML:
+text formats.  First, parse the input text to recover the field names
+and values that it stores; second, build a Python satellite object from
+those field values.  For example, to load OMM from XML:
 
 >>> with open('sample_omm.xml') as f:
 ...     fields = next(omm.parse_xml(f))
@@ -370,8 +370,8 @@ Developers can check out this full project from GitHub:
 https://github.com/brandon-rhodes/python-sgp4
 
 To run its unit tests, install Python 2, Python 3, and the ``tox``
-testing tool.  The tests runing in Python 2 will exercise the backup
-pure Python version of the routines, while Python 3 exercises the fast
+testing tool.  The tests runing in Python 2 will exercise the fallback
+pure-Python version of the routines, while Python 3 exercises the fast
 new C++ accelerated code::
 
     cd python-sgp4
@@ -390,6 +390,7 @@ https://pypi.org/project/sgp4/1.4/
 Changelog
 ---------
 
+| 2020-12-? — ? — New data formats: added OMM message support for both XML and CSV, and added support for the new Alpha-5 extension to TLE files.
 | 2020-10-14 — 2.13 — Enhanced ``sgp4init()`` with custom code that also sets the ``epochdays`` and ``epochyr`` satellite attributes.
 | 2020-05-28 — 2.12 — Moved the decision of whether to set the locale during ``twoline2rv()`` from import time to runtime, for users who change locales after their application is up and running.
 | 2020-05-24 — 2.11 — Fixed a regression in how dates are split into hours, minutes, and seconds that would sometimes produce a time whose second=60, crashing the pure-Python version of the library.
