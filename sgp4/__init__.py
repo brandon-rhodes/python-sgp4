@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Track earth satellite TLE orbits using up-to-date 2010 version of SGP4
+"""Track earth satellite TLE orbits using up-to-date 2020 version of SGP4
 
 This Python package computes the position and velocity of an
 earth-orbiting satellite, given the satellite's TLE orbital elements
@@ -390,7 +390,7 @@ https://pypi.org/project/sgp4/1.4/
 Changelog
 ---------
 
-| 2020-12-? — ? — New data formats: added OMM message support for both XML and CSV, and added support for the new Alpha-5 extension to TLE files.
+| 2020-12-16 — 2.14 — New data formats: added OMM message support for both XML and CSV, and added support for the new Alpha-5 extension to TLE files.
 | 2020-10-14 — 2.13 — Enhanced ``sgp4init()`` with custom code that also sets the ``epochdays`` and ``epochyr`` satellite attributes.
 | 2020-05-28 — 2.12 — Moved the decision of whether to set the locale during ``twoline2rv()`` from import time to runtime, for users who change locales after their application is up and running.
 | 2020-05-24 — 2.11 — Fixed a regression in how dates are split into hours, minutes, and seconds that would sometimes produce a time whose second=60, crashing the pure-Python version of the library.
