@@ -325,6 +325,24 @@ def test_intldesg_with_7_characters():
     )
     assertEqual(sat.intldesg, '13066AE')
 
+def test_setters():
+    sat = Satrec()
+
+    sat.classification = 'S'
+    assert sat.classification == 'S'
+
+    sat.intldesg = 'Russian'
+    assert sat.intldesg == 'Russian'
+
+    sat.ephtype = 23
+    assert sat.ephtype == 23
+
+    sat.elnum = 123
+    assert sat.elnum == 123
+
+    sat.revnum = 1234
+    assert sat.revnum == 1234
+
 def test_hyperbolic_orbit():
     # Exercise the newtonnu() code path with asinh() to see whether
     # we can replace it with the one from Python's math module.
@@ -373,7 +391,6 @@ def test_months_and_days():
             tup = _day_of_year_to_month_day(day_of_year, True)
             assertEqual((month, day), tup)
             day_of_year += 1
-
 
 def test_december_32():
     # ISS [Orbit 606], whose date is 2019 plus 366.82137887 days.

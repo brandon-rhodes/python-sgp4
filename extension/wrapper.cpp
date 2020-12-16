@@ -272,7 +272,7 @@ static PyMemberDef Satrec_members[] = {
      PyDoc_STR("Julian date of epoch, day number (see jdsatepochF).")},
     {"jdsatepochF", T_DOUBLE, O(jdsatepochF), READONLY,
      PyDoc_STR("Julian date of epoch, fraction of day (see jdsatepoch).")},
-    {"classification", T_CHAR, O(classification), READONLY,
+    {"classification", T_CHAR, O(classification), 0,
      "Usually U=Unclassified, C=Classified, or S=Secret."},
     /* intldesg: inline character array; see Satrec_getset. */
     {"epochyr", T_INT, O(epochyr), READONLY,
@@ -285,9 +285,9 @@ static PyMemberDef Satrec_members[] = {
      PyDoc_STR("Second Derivative of Mean Motion in revs/day^3.")},
     {"bstar", T_DOUBLE, O(bstar), READONLY,
      PyDoc_STR("Drag Term in inverse Earth radii.")},
-    {"ephtype", T_INT, O(ephtype), READONLY,
+    {"ephtype", T_INT, O(ephtype), 0,
      PyDoc_STR("Ephemeris type (should be 0 in published TLEs).")},
-    {"elnum", T_LONG, O(elnum), READONLY,
+    {"elnum", T_LONG, O(elnum), 0,
      PyDoc_STR("Element set number.")},
     {"inclo", T_DOUBLE, O(inclo), READONLY,
      PyDoc_STR("Inclination in radians.")},
@@ -301,7 +301,7 @@ static PyMemberDef Satrec_members[] = {
      PyDoc_STR("Mean anomaly in radians.")},
     {"no_kozai", T_DOUBLE, O(no_kozai), READONLY,
      PyDoc_STR("Mean motion in radians per minute.")},
-    {"revnum", T_LONG, O(revnum), READONLY,
+    {"revnum", T_LONG, O(revnum), 0,
      PyDoc_STR("Integer revolution number at the epoch.")},
 
     /* For compatibility with the old struct members, also accept the
@@ -386,6 +386,18 @@ get_intldesg(SatrecObject *self, void *closure)
     return PyUnicode_FromStringAndSize(self->satrec.intldesg, length);
 }
 
+static int
+set_intldesg(SatrecObject *self, PyObject *value, void *closure)
+{
+    if (!PyUnicode_Check(value))
+        return -1;
+    const char *s = PyUnicode_AsUTF8(value);
+    if (!s)
+        return -1;
+    strncpy(self->satrec.intldesg, s, 11);
+    return 0;
+}
+
 static PyObject *
 get_satnum(SatrecObject *self, void *closure)
 {
@@ -403,7 +415,7 @@ get_satnum(SatrecObject *self, void *closure)
 }
 
 static PyGetSetDef Satrec_getset[] = {
-    {"intldesg", (getter)get_intldesg, NULL,
+    {"intldesg", (getter)get_intldesg, (setter)set_intldesg,
      PyDoc_STR("International Designator: a string of up to 7 characters"
                " from the first line of the TLE that typically provides"
                " two digits for the launch year, a 3-digit launch number,"
