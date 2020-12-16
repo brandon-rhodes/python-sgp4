@@ -59,6 +59,6 @@ setup(name = 'sgp4',
         'Topic :: Scientific/Engineering :: Astronomy',
         ],
       packages = ['sgp4'],
-      package_data = {'sgp4': ['SGP4-VER.TLE', 'tcppver.out']},
+      package_data = {'sgp4': ['SGP4-VER.TLE', 'sample*', 'tcppver.out']},
       ext_modules = ext_modules,
 )

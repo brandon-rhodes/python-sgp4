@@ -23,11 +23,10 @@ Note that the SGP4 propagator returns raw *x,y,z* Cartesian coordinates
 in a “True Equator Mean Equinox” (TEME) reference frame that’s centered
 on the Earth but does not rotate with it — an “Earth centered inertial”
 (ECI) reference frame.  The SGP4 propagator itself does not implement
-the math that’s necessary to convert these positions into more official
-ECI frames like J2000 or the ICRF.  Nor does it provide conversion into
-any Earth-centered Earth-fixed (ECEF) frames whose coordinates are fixed
-with respect to the Earth’s surface, like the ITRF that defines latitude
-and longitude.
+the math to convert these positions into more official ECI frames like
+J2000 or the ICRF; nor to convert positions into any Earth-centered
+Earth-fixed (ECEF) frames like the ITRS; nor to convert them to
+latitudes and longitudes through an Earth ellipsoid like WGS84.
 
 For conversions into other coordinate frames, look for a comprehensive
 astronomy library that is built atop this one, like the `Skyfield
@@ -73,10 +72,9 @@ As input, you can provide either:
   the solver might be bothered by the 20.1 µs plateau between each jump
   in the satellite’s position.
 
-* Or, you can provide a coarse date ``jd`` that is within a few weeks or
-  months of the satellite’s epoch, and a very precise fraction ``fr``
-  that supplies the rest of the value.  The Julian Date for which the
-  satellite position is computed is the sum of the two values.  One
+* Or, you can provide a coarse date ``jd`` plus a very precise fraction
+  ``fr`` that supplies the rest of the value.  The Julian Date for which
+  the satellite position is computed is the sum of the two values.  One
   common practice is to provide the whole number as ``jd`` and the
   fraction as ``fr``; another is to have ``jd`` carry the fraction 0.5
   since UTC midnight occurs halfway through each Julian Date.  Either
@@ -107,6 +105,44 @@ compute ``jd`` and ``fr`` from calendar dates using ``jday()``.
 2458826.5
 >>> fr
 0.5
+
+OMM
+---
+
+The industry is making adjustments because the fixed-width TLE format
+will soon run out of satellite numbers.
+
+* Some TLE files now use a new “Alpha-5” convention that expands the
+  range of satellite numbers by using letters; for example, “E8493”
+  means satellite 148493.  This ``sgp4`` library supports the Alpha-5
+  convention and should return the correct integer in Python.
+
+* Some authorities are now distributing satellite elements in an “OMM”
+  Orbit Mean Elements Message format that replaces the TLE format.
+
+Experimental support for OMM is provided in this library:
+
+>>> from sgp4 import omm
+
+Reading OMM data takes two steps, because OMM supports several different
+text formats.  The first step parses the input text to recover the field
+names and values that it stores.  The second step then builds a Python
+satellite object using those fields.  For example, to load OMM from XML:
+
+>>> with open('sample_omm.xml') as f:
+...     fields = next(omm.parse_xml(f))
+>>> sat = Satrec()
+>>> omm.initialize(sat, fields)
+
+Or, to load OMM from CSV:
+
+>>> with open('sample_omm.csv') as f:
+...     fields = next(omm.parse_csv(f))
+>>> sat = Satrec()
+>>> omm.initialize(sat, fields)
+
+Either way, the satellite object should wind up properly initialized and
+ready to start producing positions.
 
 Epoch
 -----

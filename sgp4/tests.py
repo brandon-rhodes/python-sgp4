@@ -8,6 +8,7 @@ except:
 import datetime as dt
 import platform
 import re
+import os
 import sys
 from doctest import DocTestSuite, ELLIPSIS
 from math import pi, isnan
@@ -743,9 +744,17 @@ def load_tests(loader, tests, ignore):
     # Python 2.6 formats floating-point numbers a bit differently and
     # breaks the doctest, so we only run the doctest on later versions.
     if sys.version_info >= (2, 7):
-        tests.addTests(DocTestSuite('sgp4', optionflags=ELLIPSIS))
-        tests.addTests(DocTestSuite('sgp4.conveniences', optionflags=ELLIPSIS))
-        tests.addTests(DocTestSuite('sgp4.functions', optionflags=ELLIPSIS))
+
+        def setCwd(suite):
+            suite.olddir = os.getcwd()
+            os.chdir(os.path.dirname(__file__))
+        def restoreCwd(suite):
+            os.chdir(suite.olddir)
+
+        options = dict(optionflags=ELLIPSIS, setUp=setCwd, tearDown=restoreCwd)
+        tests.addTests(DocTestSuite('sgp4', **options))
+        tests.addTests(DocTestSuite('sgp4.conveniences', **options))
+        tests.addTests(DocTestSuite('sgp4.functions', **options))
 
     return tests
 
