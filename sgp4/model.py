@@ -1,8 +1,7 @@
 """The Satellite class."""
 
 from sgp4.earth_gravity import wgs72old, wgs72, wgs84
-from sgp4.ext import days2mdhms, invjday, jday
-from sgp4.functions import jday as jday2
+from sgp4.ext import invjday, jday
 from sgp4.io import twoline2rv
 from sgp4.propagation import sgp4, sgp4init
 
@@ -51,6 +50,10 @@ class Satrec(object):
         whichconst = gravity_constants[whichconst]
         self = cls()
         twoline2rv(line1, line2, whichconst, 'i', self)
+
+        # Expose the same attribute types as the C++ code.
+        self.ephtype = int(self.ephtype.strip() or '0')
+        self.revnum = int(self.revnum)
 
         # Install a fancy split JD of the kind the C++ natively supports.
         # We rebuild it from the TLE year and day to maintain precision.

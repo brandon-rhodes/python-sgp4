@@ -380,10 +380,13 @@ static PyMemberDef Satrec_members[] = {
 static PyObject *
 get_intldesg(SatrecObject *self, void *closure)
 {
-    int length = 7;
-    while (length && self->satrec.intldesg[length-1] == ' ')
+    int length = 0;
+    char *s = self->satrec.intldesg;
+    while (length <= 7 && s[length])
+        length++;
+    while (length && s[length-1] == ' ')
         length--;
-    return PyUnicode_FromStringAndSize(self->satrec.intldesg, length);
+    return PyUnicode_FromStringAndSize(s, length);
 }
 
 static int

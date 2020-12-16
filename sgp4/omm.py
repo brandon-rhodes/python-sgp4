@@ -26,6 +26,12 @@ _to_radians = pi / 180.0
 _ndot_units = 1036800.0 / pi  # See SGP4.cpp for details.
 
 def initialize(sat, fields):
+    sat.classification = fields['CLASSIFICATION_TYPE']
+    sat.intldesg = fields['OBJECT_ID'][2:].replace('-', '')
+    sat.ephtype = int(fields['EPHEMERIS_TYPE'])
+    sat.elnum = int(fields['ELEMENT_SET_NO'])
+    sat.revnum = int(fields['REV_AT_EPOCH'])
+
     epoch_datetime = datetime.strptime(fields['EPOCH'], '%Y-%m-%dT%H:%M:%S.%f')
     epoch = (epoch_datetime - _epoch0).total_seconds() / 86400.0
 

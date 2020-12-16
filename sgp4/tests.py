@@ -183,9 +183,8 @@ def test_tle_export():
     expected_errs_line1 = set([25954, 29141, 33333, 33334, 33335])
     expected_errs_line2 = set([33333, 33335])
 
-    if accelerated:
-        # Non-standard: omits the ephemeris type integer.
-        expected_errs_line1.add(11801)
+    # Non-standard: omits the ephemeris type integer.
+    expected_errs_line1.add(11801)
 
     for line1 in tle_lines:
 
@@ -715,8 +714,7 @@ def test_omm_csv_matches_old_tle():
 
 def assert_satellites_match(sat1, sat2):
     julian_fractions = {'epochdays', 'jdsatepochF'}
-    todo = {'classification', 'elnum', 'ephtype', 'intldesg', 'revnum',
-            'whichconst'}
+    todo = {'whichconst'}
 
     for attr in dir(sat1):
         if attr.startswith('_'):
@@ -732,7 +730,7 @@ def assert_satellites_match(sat1, sat2):
         if attr in julian_fractions:
             value1 = round(value1, 10)
             value2 = round(value2, 10)
-        assertEqual(value1, value2)
+        assertEqual(value1, value2, '%s %r != %r' % (attr, value1, value2))
 
 # ----------------------------------------------------------------------
 
