@@ -5,6 +5,7 @@ Contributed by Egemen Imre https://github.com/egemenimre
 """
 from math import pi
 from sgp4.io import compute_checksum
+from sgp4.conveniences import sat_epoch_datetime
 
 # Define constants
 _deg2rad = pi / 180.0  # 0.0174532925199433
@@ -103,3 +104,32 @@ def export_tle(satrec):
     line2 += str(compute_checksum(line2))
 
     return line1, line2
+
+def export_omm(satrec, object_name):
+    launch_year = int(satrec.intldesg[:2])
+    launch_year += 1900 + (launch_year < 57) * 100
+    object_id = str(launch_year) + "-" + str(satrec.intldesg[2:-1]) + "-" + str(satrec.intldesg[-1])
+
+    return {
+        "OBJECT_NAME": object_name,
+        "OBJECT_ID": object_id,
+        "CENTER_NAME": "EARTH",
+        "REF_FRAME": "TEME",
+        "TIME_SYSTEM": "UTC",
+        "MEAN_ELEMENT_THEORY": "SGP4",
+        "EPOCH": sat_epoch_datetime(satrec).strftime('%Y-%m-%dT%H:%M:%S.%f'),
+        "MEAN_MOTION": satrec.no_kozai * _xpdotp,
+        "ECCENTRICITY": satrec.ecco,
+        "INCLINATION": satrec.inclo / _deg2rad,
+        "RA_OF_ASC_NODE": satrec.nodeo / _deg2rad,
+        "ARG_OF_PERICENTER": satrec.argpo / _deg2rad,
+        "MEAN_ANOMALY": satrec.mo / _deg2rad,
+        "EPHEMERIS_TYPE": satrec.ephtype,
+        "CLASSIFICATION_TYPE": satrec.classification,
+        "NORAD_CAT_ID": satrec.satnum,
+        "ELEMENT_SET_NO": satrec.elnum,
+        "REV_AT_EPOCH": satrec.revnum,
+        "BSTAR": satrec.bstar,
+        "MEAN_MOTION_DOT": satrec.ndot * (_xpdotp * 1440.0),
+        "MEAN_MOTION_DDOT": satrec.nddot * (_xpdotp * 1440.0 * 1440),
+    }
