@@ -390,6 +390,7 @@ https://pypi.org/project/sgp4/1.4/
 Changelog
 ---------
 
+| 2021-01-? — 2.15 — Fixed parsing of the ``satnum`` TLE field in the Python fallback code, when the field has a leading space.
 | 2020-12-16 — 2.14 — New data formats: added OMM message support for both XML and CSV, and added support for the new Alpha-5 extension to TLE files.
 | 2020-10-14 — 2.13 — Enhanced ``sgp4init()`` with custom code that also sets the ``epochdays`` and ``epochyr`` satellite attributes.
 | 2020-05-28 — 2.12 — Moved the decision of whether to set the locale during ``twoline2rv()`` from import time to runtime, for users who change locales after their application is up and running.

@@ -271,7 +271,7 @@ def compute_checksum(line):
     return sum((int(c) if c.isdigit() else c == '-') for c in line[0:68]) % 10
 
 def _alpha5(s):
-    if s[0].isdigit():
+    if not s[0].isalpha():
         return int(s)
     c = s[0]
     n = ord(c) - ord('A') + 10
