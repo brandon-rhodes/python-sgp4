@@ -25,10 +25,11 @@ from sgp4.ext import invjday, newtonnu, rv2coe
 from sgp4.functions import days2mdhms, _day_of_year_to_month_day
 from sgp4.propagation import sgp4, sgp4init
 from sgp4 import conveniences, io, omm
-from sgp4.exporter import export_tle
+from sgp4.exporter import export_omm, export_tle
 import sgp4.model as model
 
 _testcase = TestCase('setUp')
+_testcase.maxDiff = 9999
 assertEqual = _testcase.assertEqual
 assertAlmostEqual = _testcase.assertAlmostEqual
 assertRaises = _testcase.assertRaises
@@ -739,6 +740,38 @@ def assert_satellites_match(sat1, sat2):
             value1 = round(value1, 10)
             value2 = round(value2, 10)
         assertEqual(value1, value2, '%s %r != %r' % (attr, value1, value2))
+
+# Live example of OMM:
+# https://celestrak.com/NORAD/elements/gp.php?INTDES=2020-025&FORMAT=JSON-PRETTY
+
+def test_omm_export():
+    line0, line1, line2 = VANGUARD_TLE.splitlines()
+    sat = Satrec.twoline2rv(line1, line2)
+
+    fields = export_omm(sat, 'VANGUARD 1')
+    assertEqual(fields, {
+        'ARG_OF_PERICENTER': 162.2516,
+        'BSTAR': -2.2483e-05,
+        'CENTER_NAME': 'EARTH',
+        'CLASSIFICATION_TYPE': 'U',
+        'ECCENTRICITY': 0.1845686,
+        'ELEMENT_SET_NO': 999,
+        'EPHEMERIS_TYPE': 0,
+        'EPOCH': '2020-10-13T04:52:48.472320',
+        'INCLINATION': 34.2443,
+        'MEAN_ANOMALY': 205.2356,
+        'MEAN_ELEMENT_THEORY': 'SGP4',
+        'MEAN_MOTION': 10.84869164,
+        'MEAN_MOTION_DDOT': 0.0,
+        'MEAN_MOTION_DOT': -1.6e-07,
+        'NORAD_CAT_ID': 5,
+        'OBJECT_ID': '1958-002B',
+        'OBJECT_NAME': 'VANGUARD 1',
+        'RA_OF_ASC_NODE': 225.5254,
+        'REF_FRAME': 'TEME',
+        'REV_AT_EPOCH': 21814,
+        'TIME_SYSTEM': 'UTC',
+    })
 
 # ----------------------------------------------------------------------
 

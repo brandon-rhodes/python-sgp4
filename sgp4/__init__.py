@@ -3,7 +3,7 @@
 
 This Python package computes the position and velocity of an
 earth-orbiting satellite, given the satellite's TLE orbital elements
-from a source like `Celestrak <https://celestrak.com/>`_.  It implements
+from a source like `CelesTrak <https://celestrak.com/>`_.  It implements
 the most recent version of SGP4, and is regularly run against the SGP4
 test suite to make sure that its satellite position predictions **agree
 to within 0.1 mm** with the predictions of the standard distribution of
@@ -118,7 +118,10 @@ will soon run out of satellite numbers.
   convention and should return the correct integer in Python.
 
 * Some authorities are now distributing satellite elements in an “OMM”
-  Orbit Mean Elements Message format that replaces the TLE format.
+  Orbit Mean Elements Message format that replaces the TLE format.  You
+  can learn about OMM in Dr. T.S. Kelso’s `“A New Way to Obtain GP Data”
+  <https://celestrak.com/NORAD/documentation/gp-data-formats.php>`_ at
+  the CelesTrak site.
 
 You can already try out experimental support for OMM:
 
@@ -143,6 +146,9 @@ Or, to load OMM from CSV:
 
 Either way, the satellite object should wind up properly initialized and
 ready to start producing positions.
+
+If you are interested in saving satellite parameters using the new OMM
+format, then read the section on “Export” below.
 
 Epoch
 -----
@@ -276,12 +282,40 @@ Export
 If you have a ``Satrec`` you want to share with friends or persist to a
 file, there’s an export routine that will turn it back into a TLE:
 
->>> from sgp4.exporter import export_tle
->>> line1, line2 = export_tle(satellite)
+>>> from sgp4 import exporter
+>>> line1, line2 = exporter.export_tle(satellite)
 >>> line1
 '1 25544U 98067A   19343.69339541  .00001764  00000-0  38792-4 0  9991'
 >>> line2
 '2 25544  51.6439 211.2001 0007417  17.6667  85.6398 15.50103472202482'
+
+And another that produces the fields defined by the new OMM format (see
+the “OMM” section above):
+
+>>> from pprint import pprint
+>>> fields = exporter.export_omm(satellite, 'ISS (ZARYA)')
+>>> pprint(fields)
+{'ARG_OF_PERICENTER': 17.6667,
+ 'BSTAR': 3.8792e-05,
+ 'CENTER_NAME': 'EARTH',
+ 'CLASSIFICATION_TYPE': 'U',
+ 'ECCENTRICITY': 0.0007417,
+ 'ELEMENT_SET_NO': 999,
+ 'EPHEMERIS_TYPE': 0,
+ 'EPOCH': '2019-12-09T16:38:29.363423',
+ 'INCLINATION': 51.6439,
+ 'MEAN_ANOMALY': 85.6398,
+ 'MEAN_ELEMENT_THEORY': 'SGP4',
+ 'MEAN_MOTION': 15.501034720000002,
+ 'MEAN_MOTION_DDOT': 0.0,
+ 'MEAN_MOTION_DOT': 1.764e-05,
+ 'NORAD_CAT_ID': 25544,
+ 'OBJECT_ID': '1998-067A',
+ 'OBJECT_NAME': 'ISS (ZARYA)',
+ 'RA_OF_ASC_NODE': 211.2001,
+ 'REF_FRAME': 'TEME',
+ 'REV_AT_EPOCH': 20248,
+ 'TIME_SYSTEM': 'UTC'}
 
 Gravity
 -------
@@ -390,7 +424,7 @@ https://pypi.org/project/sgp4/1.4/
 Changelog
 ---------
 
-| 2021-01-? — 2.15 — Fixed parsing of the ``satnum`` TLE field in the Python fallback code, when the field has a leading space.
+| 2021-01-08 — 2.15 — Fixed parsing of the ``satnum`` TLE field in the Python fallback code, when the field has a leading space; added OMM export routine.
 | 2020-12-16 — 2.14 — New data formats: added OMM message support for both XML and CSV, and added support for the new Alpha-5 extension to TLE files.
 | 2020-10-14 — 2.13 — Enhanced ``sgp4init()`` with custom code that also sets the ``epochdays`` and ``epochyr`` satellite attributes.
 | 2020-05-28 — 2.12 — Moved the decision of whether to set the locale during ``twoline2rv()`` from import time to runtime, for users who change locales after their application is up and running.

@@ -108,7 +108,7 @@ def export_tle(satrec):
 def export_omm(satrec, object_name):
     launch_year = int(satrec.intldesg[:2])
     launch_year += 1900 + (launch_year < 57) * 100
-    object_id = str(launch_year) + "-" + str(satrec.intldesg[2:-1]) + "-" + str(satrec.intldesg[-1])
+    object_id = '{0}-{1}'.format(launch_year, satrec.intldesg[2:])
 
     return {
         "OBJECT_NAME": object_name,
