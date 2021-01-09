@@ -5,8 +5,6 @@ modules to offer simple date handling, so this small module holds the
 routines instead.
 
 """
-from math import trunc
-
 def jday(year, mon, day, hr, minute, sec):
     """Return two floats that, when added, produce the specified Julian date.
 
