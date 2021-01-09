@@ -43,9 +43,9 @@ def jday(year, mon, day, hr, minute, sec):
 def days2mdhms(year, days, round_to_microsecond=6):
     """Convert a float point number of days into the year into date and time.
 
-    Given the integer year plus the "day of the year" (where 1.0 means
+    Given the integer year plus the "day of the year" where 1.0 means
     the beginning of January 1, 2.0 means the beginning of January 2,
-    and so forth), returns the Gregorian calendar month, day, hour,
+    and so forth, return the Gregorian calendar month, day, hour,
     minute, and floating point seconds.
 
     >>> days2mdhms(2000, 1.0)   # January 1
@@ -55,27 +55,27 @@ def days2mdhms(year, days, round_to_microsecond=6):
     >>> days2mdhms(2000, 366.0)  # December 31, since 2000 was a leap year
     (12, 31, 0, 0, 0.0)
 
+    The floating point seconds are rounded to an even number of
+    microseconds if ``round_to_microsecond`` is true.
+
     """
-    whole, fraction = divmod(days, 1.0)
+    second = days * 86400.0
+    if round_to_microsecond:
+        second = round(second, round_to_microsecond)
+
+    minute, second = divmod(second, 60.0)
+    if round_to_microsecond:
+        second = round(second, round_to_microsecond)
+
+    minute = int(minute)
+    hour, minute = divmod(minute, 60)
+    day_of_year, hour = divmod(hour, 24)
 
     is_leap = year % 400 == 0 or (year % 4 == 0 and year % 100 != 0)
-    month, day = _day_of_year_to_month_day(int(whole), is_leap)
+    month, day = _day_of_year_to_month_day(day_of_year, is_leap)
     if month == 13:  # behave like the original in case of overflow
         month = 12
         day += 31
-
-    # The 8 digits of floating point day specified in the TLE have a
-    # resolution of exactly 1e-8 * 24 * 3600 * 1e6 = 864 microseconds,
-    # so round off any floating-point noise beyond the microsecond.
-    if round_to_microsecond:
-        fraction += 0.5 / 86400e6
-
-    second = fraction * 86400.0
-    minute, second = divmod(second, 60.0)
-    hour, minute = divmod(minute, 60.0)
-
-    if round_to_microsecond:
-        second = trunc(second * 1e6) / 1e6
 
     return month, day, int(hour), int(minute), second
 
