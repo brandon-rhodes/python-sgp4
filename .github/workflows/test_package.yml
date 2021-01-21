@@ -105,7 +105,7 @@ jobs:
     # default on github.
     # Reference: https://cibuildwheel.readthedocs.io/en/stable/
     # OS: Windows, Linux and macOS
-    # Python: versions 3.4 - 3.9
+    # Python: versions 3.5 - 3.9 (limited by capabilities cibuildwheel)
     # As all build wheels are installed after build, the tests run in
     # accelerated mode only.
 
@@ -132,7 +132,7 @@ jobs:
       - name: build_test
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BUILD: "cp32-* cp33-* cp34-* cp35-* cp36-* cp37-* cp38-* cp39-*"
+          CIBW_BUILD: "cp3*"
           CIBW_BUILD_VERBOSITY: 0
           CIBW_TEST_REQUIRES: numpy
           CIBW_TEST_COMMAND: python -m sgp4.tests
