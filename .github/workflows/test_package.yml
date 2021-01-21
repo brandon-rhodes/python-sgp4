@@ -41,6 +41,7 @@ jobs:
   # - Uploading the artifacts to PyPI package if branch is release
   # The uploading job needs all tests to be finished without error.
   
+  
   build_test_dist:
     # Build the distribution in a matrix. Jobs are done in parallel.
     # The formal distro which is uploaded to PyPI will be build on
@@ -98,6 +99,7 @@ jobs:
       - name: run_tests
         run: python -m sgp4.tests
 
+
   build_test_wheels:
     # Building wheels for different OS and python versions. This is done with 
     # the help of 'cibuildwheel' package. It will run on the three different
@@ -108,6 +110,10 @@ jobs:
     # Python: versions 3.5 - 3.9 (limited by capabilities cibuildwheel)
     # As all build wheels are installed after build, the tests run in
     # accelerated mode only.
+    #
+    # Actually need to address cp39 in CIBW_BUILD explicit, otherwise
+    # only cp35 - cp38 are build. No earlier versions, fits exactly
+    # to actual travis (except aarch64, which is not supported on github)
 
     runs-on: ${{ matrix.os }}
     needs: [build_test_dist]
@@ -132,7 +138,7 @@ jobs:
       - name: build_test
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BUILD: "cp3*"
+          CIBW_BUILD: "cp3* cp39-*"
           CIBW_BUILD_VERBOSITY: 0
           CIBW_TEST_REQUIRES: numpy
           CIBW_TEST_COMMAND: python -m sgp4.tests
@@ -172,22 +178,10 @@ jobs:
         name: wheelhouse
         path: dist
 
-    # Actually I only have the test version of PyPI running. The secret token
-    # name I have chosen from my test repo is <PYPI_TEST>. This will not work
-    # in your repo. Please take care of it.
-    #
-    # For the activation of the real index, please add a secret token from
+    # For the activation of the PyPI index, please add a secret token from
     # PyPI to the GitHub repo, give it a name and replace in the password
     # reference the <pypi_password> with the name of the secret's name you have
     # chosen for the PyPI token.
-
-    - name: upload_to_test_pypi
-      uses: pypa/gh-action-pypi-publish@v1.4.1
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_TEST }}
-        skip_existing: true
-        repository_url: https://test.pypi.org/legacy/
 
     # - name: upload_to_pypi
     #   uses: pypa/gh-action-pypi-publish@v1.4.1
