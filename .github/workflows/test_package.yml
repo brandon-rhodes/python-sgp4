@@ -70,13 +70,13 @@ jobs:
       # installation before running the tests
       
       - name: install_deps
-        run: python -m pip install pyflakes
+        run: python -m pip install numpy twine pyflakes
       
       - name: build_sdist
         run: python setup.py sdist
       
-      #- name: check_metadata
-      #  run: twine check dist/*
+      - name: check_metadata
+        run: twine check dist/*
 
       - name: upload_sdist
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'
