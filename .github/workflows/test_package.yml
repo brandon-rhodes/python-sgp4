@@ -38,18 +38,19 @@ jobs:
   # This action is split into three jobs:
   # - Building the distribution linting and testing without acceleration
   # - Building the wheels for the distribution and testing with acceleration
-  # - Uploading the artifacts to PyPI package
-  # Each job build on top of the o
+  # - Uploading the artifacts to PyPI package if branch is release
   # The uploading job needs all tests to be finished without error.
   
   build_test_dist:
     # Build the distribution in a matrix. Jobs are done in parallel.
-    # The formal distro which is uploaded will be build on ubuntu-latest for 
-    # python 3.9. which is the recent one.
+    # The formal distro which is uploaded to PyPI will be build on
+    # ubuntu-latest for python 3.9, which is the recent one.
+    # As in dist build no compilation takes place, we run all tests
+    # in not accelerated mode.
     
     runs-on: ${{ matrix.os }}
     strategy:
-      max-parallel: 20
+      max-parallel: 18
       matrix:
         python-version: [2.7, 3.5, 3.6, 3.7, 3.8, 3.9]
         os: [ubuntu-latest, windows-latest, macos-latest]
@@ -105,6 +106,8 @@ jobs:
     # Reference: https://cibuildwheel.readthedocs.io/en/stable/
     # OS: Windows, Linux and macOS
     # Python: versions 3.4 - 3.9
+    # As all build wheels are installed after build, the tests run in
+    # accelerated mode only.
 
     runs-on: ${{ matrix.os }}
     needs: [build_test_dist]
@@ -129,8 +132,8 @@ jobs:
       - name: build_test
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BUILD: "cp34-* cp35-* cp36-* cp37-* cp38-* cp39-*"
-          CIBW_BUILD_VERBOSITY: 1
+          CIBW_BUILD: "cp32-* cp33-* cp34-* cp35-* cp36-* cp37-* cp38-* cp39-*"
+          CIBW_BUILD_VERBOSITY: 0
           CIBW_TEST_REQUIRES: numpy
           CIBW_TEST_COMMAND: python -m sgp4.tests
 
@@ -186,7 +189,7 @@ jobs:
         skip_existing: true
         repository_url: https://test.pypi.org/legacy/
 
-    # - name: upload_to_PyPI
+    # - name: upload_to_pypi
     #   uses: pypa/gh-action-pypi-publish@v1.4.1
     #   with:
     #     user: __token__
