@@ -29,7 +29,7 @@ if sys.version_info[0] == 3:
         # TODO: can we safely figure out how to use a pair of options
         # like these, adapted to as many platforms as possible, to use
         # multiple processors when available?
-        # extra_compile_args=['-fopenmp'],
+        extra_compile_args=['-ffloat-store'],
         # extra_link_args=['-fopenmp'],
     ))
 

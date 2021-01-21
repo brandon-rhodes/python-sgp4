@@ -1,0 +1,193 @@
+#
+# GitHub actions for building the distribution and wheels of the sgp4 package
+# linting and testing the source.
+#
+# v0.3, @mworion
+#
+# Strategy:
+# The action is called with each commit, pull request master (and) release
+# branch. If commit is to release branch, the PyPI upload will follow
+# successful tests automatically.
+#
+# Run lint on python source, build step by step the python distro and
+# run all package tests for all OS and python versions
+#
+# If this job succeeds, build step by step all wheels for all OS and python 
+# versions and run the tests in accelerated mode.
+#
+# If the first two jobs succeed, upload the distro and wheels to PyPI
+#
+
+name: test_package
+
+on:
+  # the trigger event for running the action is either a push on master or
+  # release branch
+  
+  push:
+    branches:
+      - master
+      - release
+  
+  # or a pull request to master branch
+  pull_request:
+    branches:
+      - master
+  
+jobs:
+  # This action is split into three jobs:
+  # - Building the distribution linting and testing without acceleration
+  # - Building the wheels for the distribution and testing with acceleration
+  # - Uploading the artifacts to PyPI package
+  # Each job build on top of the o
+  # The uploading job needs all tests to be finished without error.
+  
+  build_test_dist:
+    # Build the distribution in a matrix. Jobs are done in parallel.
+    # The formal distro which is uploaded will be build on ubuntu-latest for 
+    # python 3.9. which is the recent one.
+    
+    runs-on: ${{ matrix.os }}
+    strategy:
+      max-parallel: 20
+      matrix:
+        python-version: [2.7, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        exclude:
+          - {python-version: 3.4, os: 'macos-latest'}
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      
+      - name: Setup_Python_${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      # The build test needs numpy and pyflakes. Adding twine enables for
+      # testing and checking the metadata. Adding wheels for package
+      # installation before running the tests
+      
+      - name: install_deps
+        run: python -m pip install pyflakes
+      
+      - name: build_sdist
+        run: python setup.py sdist
+      
+      #- name: check_metadata
+      #  run: twine check dist/*
+
+      - name: upload_sdist
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: dist/*.tar.gz
+          
+      - name: copy_file
+        run: mv dist/sgp4*.* dist/sgp4.tar.gz
+
+      - name: install_dist
+        run: |
+          pip install dist/sgp4.tar.gz
+          python -c "from sgp4.api import accelerated; print(accelerated)"
+
+      - name: run_tests
+        run: python -m sgp4.tests
+
+  build_test_wheels:
+    # Building wheels for different OS and python versions. This is done with 
+    # the help of 'cibuildwheel' package. It will run on the three different
+    # supported OS each running cibuildwheel on newest python supported as
+    # default on github.
+    # Reference: https://cibuildwheel.readthedocs.io/en/stable/
+    # OS: Windows, Linux and macOS
+    # Python: versions 3.4 - 3.9
+
+    runs-on: ${{ matrix.os }}
+    needs: [build_test_dist]
+
+    strategy:
+      max-parallel: 3
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: Setup_Python_${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: install_deps
+        run: python -m pip install cibuildwheel
+
+      - name: build_test
+        run: python -m cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_BUILD: "cp34-* cp35-* cp36-* cp37-* cp38-* cp39-*"
+          CIBW_BUILD_VERBOSITY: 1
+          CIBW_TEST_REQUIRES: numpy
+          CIBW_TEST_COMMAND: python -m sgp4.tests
+
+      - name: upload_wheels
+        uses: actions/upload-artifact@v2
+        with:
+          name: wheelhouse
+          path: wheelhouse
+
+
+  upload_to_pypi:
+    # Finally, we collect all out data from the artifacts and put them back to
+    # dist directory for an upload. The final step waits for the other jobs to
+    # be finished and starts only if the trigger event of the action was a push
+    # on release branch
+
+    runs-on: [ubuntu-latest]
+    needs: [build_test_dist, build_test_wheels]
+
+    if: |
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/release'
+
+    steps:
+    - uses: actions/setup-python@v2
+
+    # download dist files
+    - uses: actions/download-artifact@v2
+      with:
+        name: dist
+        path: dist
+
+    # download wheels
+    - uses: actions/download-artifact@v2
+      with:
+        name: wheelhouse
+        path: dist
+
+    # Actually I only have the test version of PyPI running. The secret token
+    # name I have chosen from my test repo is <PYPI_TEST>. This will not work
+    # in your repo. Please take care of it.
+    #
+    # For the activation of the real index, please add a secret token from
+    # PyPI to the GitHub repo, give it a name and replace in the password
+    # reference the <pypi_password> with the name of the secret's name you have
+    # chosen for the PyPI token.
+
+    - name: upload_to_test_pypi
+      uses: pypa/gh-action-pypi-publish@v1.4.1
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_TEST }}
+        skip_existing: true
+        repository_url: https://test.pypi.org/legacy/
+
+    # - name: upload_to_PyPI
+    #   uses: pypa/gh-action-pypi-publish@v1.4.1
+    #   with:
+    #     user: __token__
+    #     password: ${{ secrets.pypi_password }}
+    #     skip_existing: true
