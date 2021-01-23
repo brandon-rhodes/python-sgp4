@@ -31,6 +31,7 @@ if sys.version_info[0] == 3:
         # multiple processors when available?
         # extra_compile_args=['-fopenmp'],
         # extra_link_args=['-fopenmp'],
+        extra_compile_args=['-ffloat-store'],
     ))
 
 setup(name = 'sgp4',

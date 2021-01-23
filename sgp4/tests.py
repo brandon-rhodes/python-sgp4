@@ -536,6 +536,7 @@ def run_satellite_against_tcppver(twoline2rv, invoke, expected_errors):
     # output in tcppver.out.
 
     data = get_data(__name__, 'tcppver.out')
+    data = data.replace(b'\r', b'')
     tcppver_lines = data.decode('ascii').splitlines(True)
 
     error_list = []
