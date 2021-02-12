@@ -274,9 +274,10 @@ Attributes
 ----------
 
 The attributes of a ``Satrec`` object carry the data loaded from the TLE
-entry.  Look at the class’s documentation for details.  The parameters
-are also listed briefly, along with their units, in the “Providing your
-own elements” section below.
+entry.  [INSERT CLASS DOCSTRING HERE.]
+
+The parameters are also listed briefly, along with their units, in the
+“Providing your own elements” section below.
 
 Export
 ------

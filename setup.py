@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 from distutils.core import setup, Extension
 from textwrap import dedent
@@ -7,7 +8,12 @@ import sgp4, sgp4.model
 
 description, long_description = sgp4.__doc__.split('\n', 1)
 satdoc = dedent(sgp4.model.Satellite.__doc__.split('\n', 1)[1])
-long_description = long_description.replace('entry.', 'entry.' + satdoc)
+long_description = re.sub(
+    r'\s+\[INSERT CLASS DOCSTRING HERE.\]\s+',
+    satdoc,
+    long_description,
+    re.M,
+)
 
 # Force compilation on Travis CI + Python 3 to make sure it keeps working.
 optional = True
