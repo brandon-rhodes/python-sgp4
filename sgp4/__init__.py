@@ -274,7 +274,9 @@ Attributes
 ----------
 
 The attributes of a ``Satrec`` object carry the data loaded from the TLE
-entry.  Look at the class's documentation for details.
+entry.  Look at the class’s documentation for details.  The parameters
+are also listed briefly, along with their units, in the “Providing your
+own elements” section below.
 
 Export
 ------
@@ -352,8 +354,8 @@ satellite object to reset it to those new elements.
 ...     5,               # satnum: Satellite number
 ...     18441.785,       # epoch: days since 1949 December 31 00:00 UT
 ...     2.8098e-05,      # bstar: drag coefficient (/earth radii)
-...     6.969196665e-13, # ndot: ballistic coefficient (ignored)
-...     0.0,             # nddot: second derivative of mean motion (ignored)
+...     6.969196665e-13, # ndot (NOT USED): ballistic coefficient (revs/day)
+...     0.0,             # nddot (NOT USED): mean motion 2nd derivative (revs/day^3)
 ...     0.1859667,       # ecco: eccentricity
 ...     5.7904160274885, # argpo: argument of perigee (radians)
 ...     0.5980929187319, # inclo: inclination (radians)
@@ -362,8 +364,14 @@ satellite object to reset it to those new elements.
 ...     6.0863854713832, # nodeo: right ascension of ascending node (radians)
 ... )
 
-To compute the “epoch” value, simply take a normal Julian date and
-subtract ``2433281.5`` days.
+The two parameters marked “NOT USED” above, ``ndot`` and ``nddot``, do
+get saved to the satellite object, and do get written out if you write
+the parameters to a TLE or OMM file.  But they are ignored by SGP4 when
+doing propagation, so you can leave them ``0.0`` without any effect on
+the resulting satellite positions.
+
+To compute the “epoch” value, you can simply take a normal Julian date
+and subtract ``2433281.5`` days.
 
 In addition to setting the attributes natively set by the underlying
 ``sgp4init()`` routine, this library also goes ahead and sets the date
@@ -424,6 +432,7 @@ https://pypi.org/project/sgp4/1.4/
 Changelog
 ---------
 
+| 2021-02-12 — 2.16 — Fixed ``days2mdhms()`` rounding to always match TLE epoch.
 | 2021-01-08 — 2.15 — Fixed parsing of the ``satnum`` TLE field in the Python fallback code, when the field has a leading space; added OMM export routine.
 | 2020-12-16 — 2.14 — New data formats: added OMM message support for both XML and CSV, and added support for the new Alpha-5 extension to TLE files.
 | 2020-10-14 — 2.13 — Enhanced ``sgp4init()`` with custom code that also sets the ``epochdays`` and ``epochyr`` satellite attributes.
