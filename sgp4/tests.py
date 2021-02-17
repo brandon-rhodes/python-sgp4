@@ -19,6 +19,8 @@ try:
 except ImportError:
     from StringIO import StringIO
 
+import numpy as np
+
 from sgp4.api import WGS72OLD, WGS72, WGS84, Satrec, jday, accelerated
 from sgp4.earth_gravity import wgs72
 from sgp4.ext import invjday, newtonnu, rv2coe
@@ -107,6 +109,21 @@ def test_legacy_initialized_with_sgp4init():
         *sgp4init_args(VANGUARD_ATTRS) + (sat,)
     )
     verify_vanguard_1(sat, legacy=True)
+
+# ------------------------------------------------------------------------
+#                            Test array API
+
+def test_whether_array_logic_writes_nan_values_to_correct_row():
+    # https://github.com/brandon-rhodes/python-sgp4/issues/87
+    l1 = "1 44160U 19006AX  20162.79712247 +.00816806 +19088-3 +34711-2 0  9997"
+    l2 = "2 44160 095.2472 272.0808 0216413 032.6694 328.7739 15.58006382062511"
+    sat = Satrec.twoline2rv(l1, l2)
+    jd0 = np.array([2459054.5, 2459055.5])
+    jd1 = np.array([0.79712247, 0.79712247])
+    e, r, v = sat.sgp4_array(jd0, jd1)
+    assert list(e) == [6, 1]
+    assert np.isnan(r).tolist() == [[False, False, False], [True, True, True]]
+    assert np.isnan(v).tolist() == [[False, False, False], [True, True, True]]
 
 # ------------------------------------------------------------------------
 #                 Other Officially Supported Routines
