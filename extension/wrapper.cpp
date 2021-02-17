@@ -74,12 +74,13 @@ _vectorized_sgp4(PyObject *args, elsetrec *raw_satrec_array, int imax)
             for (Py_ssize_t j=0; j < jmax; j++) {
                 double t = (jd[j] - satrec.jdsatepoch) * 1440.0
                          + (fr[j] - satrec.jdsatepochF) * 1440.0;
-                Py_ssize_t k = i * jmax + j;
-                SGP4Funcs::sgp4(satrec, t, r + k*3, v + k*3);
+                Py_ssize_t k1 = i * jmax + j;
+                Py_ssize_t k3 = 3 * k1;
+                SGP4Funcs::sgp4(satrec, t, r + k3, v + k3);
+                e[k1] = (uint8_t) satrec.error;
                 if (satrec.error && satrec.error < 6) {
-                    r[k] = r[k+1] = r[k+2] = v[k] = v[k+1] = v[k+2] = NAN;
+                    r[k3] = r[k3+1] = r[k3+2] = v[k3] = v[k3+1] = v[k3+2] = NAN;
                 }
-                e[k] = (uint8_t) satrec.error;
             }
         }
     }
