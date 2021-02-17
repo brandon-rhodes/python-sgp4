@@ -433,6 +433,7 @@ https://pypi.org/project/sgp4/1.4/
 Changelog
 ---------
 
+| 2021-02-17 — 2.17 — Fixed where in the output array the ``sgp4_array()`` method writes NaN values when an SGP4 propagation fails.
 | 2021-02-12 — 2.16 — Fixed ``days2mdhms()`` rounding to always match TLE epoch.
 | 2021-01-08 — 2.15 — Fixed parsing of the ``satnum`` TLE field in the Python fallback code, when the field has a leading space; added OMM export routine.
 | 2020-12-16 — 2.14 — New data formats: added OMM message support for both XML and CSV, and added support for the new Alpha-5 extension to TLE files.
