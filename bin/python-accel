@@ -1,0 +1,11 @@
+#!/bin/bash
+#
+# Run a Python interpreter that always uses an accelerated version of
+# sgp4, never the Python version.
+
+HERE="$(readlink -f $(dirname "${BASH_SOURCE[0]}"))"
+mv $HERE/../sgp4 $HERE/../sgp4.tmp
+$HERE/../.tox/py38/bin/python "$@"
+mv $HERE/../sgp4.tmp $HERE/../sgp4
+CODE=$?
+exit $CODE
