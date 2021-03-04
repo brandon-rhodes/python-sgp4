@@ -120,6 +120,11 @@ Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
     line1[68] = '\0';
     line2[68] = '\0';
 
+    /* Allocate the new object. */
+    SatrecObject *self = (SatrecObject*) cls->tp_alloc(cls, 0);
+    if (!self)
+        return NULL;
+
     /* Correct for locales that use a comma as the decimal point, since
        users report that the scanf() function on macOS is sensitive to
        locale when parsing floats.  This operation is not thread-safe,
@@ -132,10 +137,18 @@ Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
     if (switch_locale)
         old_locale = setlocale(LC_NUMERIC, "C");
 
-    SatrecObject *self = (SatrecObject*) cls->tp_alloc(cls, 0);
-    if (!self)
-        return NULL;
+    /* Leading spaces in a catalog number make scanf() in the official
+       code consume the Classification letter as part of the catalog
+       number.  (The first character of the International Designator
+       then gets consumed as the Classification instead.)  But no
+       parsing error is reported, which is bad for users, so let's avoid
+       the situation by adding leading zeros ourselves. */
+    for (int i=2; i<7; i++) {
+        if (line1[i] == ' ') line1[i] = '0';
+        if (line2[i] == ' ') line2[i] = '0';
+    }
 
+    /* Call the official routine. */
     SGP4Funcs::twoline2rv(line1, line2, ' ', ' ', 'i', whichconst,
                           dummy, dummy, dummy, self->satrec);
 

@@ -310,10 +310,13 @@ def assert_wgs84(sat):
 
 def test_satnum_leading_spaces():
     # https://github.com/brandon-rhodes/python-sgp4/issues/81
+    # https://github.com/brandon-rhodes/python-sgp4/issues/90
     l1 = '1  4859U 21001A   21007.63955392  .00000000  00000+0  00000+0 0  9990'
     l2 = '2  4859 000.0000 000.0000 0000000 000.0000 000.0000 01.00000000    09'
     sat = Satrec.twoline2rv(l1, l2)
     assertEqual(sat.satnum, 4859)
+    assertEqual(sat.classification, 'U')
+    assertEqual(sat.intldesg, '21001A')
 
 def test_satnum_alpha5_encoding():
     def make_sat(satnum_string):
