@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Track earth satellite TLE orbits using up-to-date 2020 version of SGP4
+"""Track Earth satellites given TLE data, using up-to-date 2020 SGP4 routines.
 
 This Python package computes the position and velocity of an
 earth-orbiting satellite, given the satellite's TLE orbital elements
@@ -11,13 +11,16 @@ the algorithm.  This error is far less than the 1–3 km/day by which
 satellites themselves deviate from the ideal orbits described in TLE
 files.
 
-* If your platform supports it, this package compiles the verbatim
-  source code from the official C++ version of SGP4.  You can call the
-  routine directly, or through an array API that loops over arrays of
-  satellites and arrays of times with machine code instead of Python.
+* If your platform supports it, this package compiles and uses the
+  verbatim source code from the official C++ version of SGP4.
 
 * Otherwise, a slower but reliable Python implementation of SGP4 is used
   instead.
+
+* If, instead of asking for the position of a single satellite at a
+  single time, you supply this library with an array of satellites and
+  an array of times, then the arrays can be processed using machine code
+  instead of requiring you to run a slow Python loop over them.
 
 Note that the SGP4 propagator returns raw *x,y,z* Cartesian coordinates
 in a “True Equator Mean Equinox” (TEME) reference frame that’s centered
@@ -335,9 +338,9 @@ constants as were used to generate the TLE.
 Providing your own elements
 ---------------------------
 
-If instead of parsing a TLE you want to provide your own orbital
-elements, you can call the ``sgp4init()`` method of any existing
-satellite object to reset it to those new elements.
+If instead of parsing a TLE you want to specify orbital elements
+directly, you can call a satellite object’s ``sgp4init()`` method with
+the new elements:
 
 >>> sat = Satrec()
 >>> sat.sgp4init(
@@ -345,7 +348,7 @@ satellite object to reset it to those new elements.
 ...     'i',             # 'a' = old AFSPC mode, 'i' = improved mode
 ...     5,               # satnum: Satellite number
 ...     18441.785,       # epoch: days since 1949 December 31 00:00 UT
-...     2.8098e-05,      # bstar: drag coefficient (/earth radii)
+...     2.8098e-05,      # bstar: drag coefficient (1/earth radii)
 ...     6.969196665e-13, # ndot (NOT USED): ballistic coefficient (revs/day)
 ...     0.0,             # nddot (NOT USED): mean motion 2nd derivative (revs/day^3)
 ...     0.1859667,       # ecco: eccentricity
@@ -362,38 +365,33 @@ the parameters to a TLE or OMM file.  But they are ignored by SGP4 when
 doing propagation, so you can leave them ``0.0`` without any effect on
 the resulting satellite positions.
 
-To compute the “epoch” value, you can simply take a normal Julian date
-and subtract ``2433281.5`` days.
+To compute the “epoch” argument, you can take a normal Julian date and
+subtract ``2433281.5`` days.  In addition to setting the attributes
+natively set by the underlying ``sgp4init()`` routine, this library — as
+a convenience — goes ahead and also sets the date fields ``epochyr``,
+``epochdays``, ``jdsatepoch``, and ``jdsatepochF``.
 
-In addition to setting the attributes natively set by the underlying
-``sgp4init()`` routine, this library also goes ahead and sets the date
-fields ``epochyr``, ``epochdays``, ``jdsatepoch``, and ``jdsatepochF``.
-
-The character provided as the second argument can be ``'a'`` to run the
-computations so that they are compatible with the old Air Force Space
-Command edition of the library, or ``'i'`` to run the new and improved
-version of the SGP4 algorithm.
-
-You can also directly access a satellite’s orbital parameters by asking
-for the attributes ``sat.epoch``, ``sat.bstar``, and so forth, using the
-names given in the comments above.
+See the next section for the complete list of attributes that are
+available from the satellite record once it has been initialized.
 
 Attributes
 ----------
 
 There are several dozen ``Satrec`` attributes
-that expose data from the underlying C++ SGP4 model.
+that expose data from the underlying C++ SGP4 record.
 They fall into several categories.
 
 *Identification*
 
-These are copied directly from the TLE record but are ignored by the
+These are copied directly from the TLE record but aren’t used by the
 propagation math.
 
 | ``satnum`` — Unique number assigned to the satellite.
-| ``classification`` — A single character ``U``, ``C``, or ``S``
-  that indicates the element set is Unclassified, Classified, or Secret.
-| ``ephtype`` — “Ephemeris type”, used internally by space agencies to mark element sets that are not ready for publication; this field should always be ``0`` in published TLEs.
+| ``classification`` — ``'U'``, ``'C'``, or ``'S'``
+  indicating the element set is Unclassified, Classified, or Secret.
+| ``ephtype`` — Integer “ephemeris type”, used internally by space
+  agencies to mark element sets that are not ready for publication;
+  this field should always be ``0`` in published TLEs.
 | ``elnum`` — Element set number.
 | ``revnum`` — Satellite’s revolution number at the moment of the epoch,
   presumably counting from 1 following launch.
@@ -423,9 +421,9 @@ You can also access the epoch as a Julian date:
 
 *Derived Orbit Properties*
 
-These are computed when the satellite is first loaded
-as a convenience for callers who might be interested in them,
-but are ignored by the SGP4 propagator itself.
+These are computed when the satellite is first loaded,
+as a convenience for callers who might be interested in them.
+They aren’t used by the SGP4 propagator itself.
 
 | ``a`` — Semi-major axis (earth radii).
 | ``altp`` — Altitude of the satellite at perigee
@@ -474,13 +472,13 @@ The possible ``error`` codes are:
 
 Partway through each propagation, the SGP4 routine saves a set of
 “singly averaged mean elements” that describe the orbit’s shape at the
-moment of propagation.  They are averaged with respect to the mean
-anomaly and include the effects of secular gravity, atmospheric drag,
-and — in Deep Space mode — of those pertubations from the Sun and Moon
-that SGP4 averages over an entire revolution of each of those bodies.
-They omit both the shorter-term and longer-term periodic pertubations
-from the Sun and Moon that SGP4 applies right before computing each
-position.
+moment for which a position is being computed.  They are averaged with
+respect to the mean anomaly and include the effects of secular gravity,
+atmospheric drag, and — in Deep Space mode — of those pertubations from
+the Sun and Moon that SGP4 averages over an entire revolution of each of
+those bodies.  They omit both the shorter-term and longer-term periodic
+pertubations from the Sun and Moon that SGP4 applies right before
+computing each position.
 
 | ``am`` — Average semi-major axis (earth radii).
 | ``em`` — Average eccentricity.
