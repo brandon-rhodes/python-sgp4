@@ -270,15 +270,6 @@ one.  Here is a sample computation for 2 satellites and 4 dates:
   [-3.85  6.28 -1.85]
   [-3.91  6.25 -1.83]]]
 
-Attributes
-----------
-
-The attributes of a ``Satrec`` object carry the data loaded from the TLE
-entry.  [INSERT CLASS DOCSTRING HERE.]
-
-The parameters are also listed briefly, along with their units, in the
-“Providing your own elements” section below.
-
 Export
 ------
 
@@ -386,6 +377,130 @@ version of the SGP4 algorithm.
 You can also directly access a satellite’s orbital parameters by asking
 for the attributes ``sat.epoch``, ``sat.bstar``, and so forth, using the
 names given in the comments above.
+
+Attributes
+----------
+
+There are several dozen ``Satrec`` attributes
+that expose data from the underlying C++ SGP4 model.
+They fall into several categories.
+
+*Identification*
+
+These are copied directly from the TLE record but are ignored by the
+propagation math.
+
+| ``satnum`` — Unique number assigned to the satellite.
+| ``classification`` — A single character ``U``, ``C``, or ``S``
+  that indicates the element set is Unclassified, Classified, or Secret.
+| ``ephtype`` — “Ephemeris type”, used internally by space agencies to mark element sets that are not ready for publication; this field should always be ``0`` in published TLEs.
+| ``elnum`` — Element set number.
+| ``revnum`` — Satellite’s revolution number at the moment of the epoch,
+  presumably counting from 1 following launch.
+
+*The Orbital Elements*
+
+| ``epochyr`` — Epoch date: the last two digits of the year.
+| ``epochdays`` — Epoch date: the number of days into the year,
+  including a decimal fraction for the UTC time of day.
+| ``ndot`` — First time derivative of the mean motion
+  (loaded from the TLE, but otherwise ignored).
+| ``nddot`` — Second time derivative of the mean motion
+  (loaded from the TLE, but otherwise ignored).
+| ``bstar`` — Ballistic drag coefficient B* (1/earth radii).
+| ``inclo`` — Inclination (radians).
+| ``nodeo`` — Right ascension of ascending node (radians).
+| ``ecco`` — Eccentricity.
+| ``argpo`` — Argument of perigee (radians).
+| ``mo`` — Mean anomaly (radians).
+| ``no_kozai`` — Mean motion (radians/minute).
+| ``no`` — Alias for ``no_kozai``, for compatibility with old code.
+
+You can also access the epoch as a Julian date:
+
+| ``jdsatepoch`` — Whole part of the epoch’s Julian date.
+| ``jdsatepochF`` — Fractional part of the epoch’s Julian date.
+
+*Derived Orbit Properties*
+
+These are computed when the satellite is first loaded
+as a convenience for callers who might be interested in them,
+but are ignored by the SGP4 propagator itself.
+
+| ``a`` — Semi-major axis (earth radii).
+| ``altp`` — Altitude of the satellite at perigee
+  (earth radii, assuming a spherical Earth).
+| ``alta`` — Altitude of the satellite at apogee
+  (earth radii, assuming a spherical Earth).
+| ``argpdot`` — Rate at which the argument of perigee is changing
+  (radians/minute).
+| ``gsto`` — Greenwich Sidereal Time at the satellite’s epoch (radians).
+| ``mdot`` — Rate at which the mean anomaly is changing (radians/minute)
+| ``nodedot`` — Rate at which the right ascension of the ascending node
+  is changing (radians/minute).
+
+*Propagator Mode*
+
+| ``operationmode`` — A single character that directs SGP4
+  to either operate in its modern ``'i'`` improved mode
+  or in its legacy ``'a'`` AFSPC mode.
+| ``method`` — A single character, chosen automatically
+  when the orbital elements were loaded, that indicates whether SGP4
+  has chosen to use its built-in ``'n'`` Near Earth
+  or ``'d'`` Deep Space mode for this satellite.
+
+*Results From the Most Recent Call*
+
+| ``t`` —
+  The time you gave when you most recently asked SGP4
+  to compute this satellite’s position,
+  measured in minutes before (negative) or after (position)
+  the satellite’s epoch.
+| ``error`` —
+  Error code produced by the most recent SGP4 propagation
+  you performed with this element set.
+
+The possible ``error`` codes are:
+
+0. No error.
+1. Mean eccentricity is outside the range 0 ≤ e < 1.
+2. Mean motion has fallen below zero.
+3. Perturbed eccentricity is outside the range 0 ≤ e ≤ 1.
+4. Length of the orbit’s semi-latus rectum has fallen below zero.
+5. (No longer used.)
+6. Orbit has decayed: the computed position is underground.
+   (The position is still returned, in case the vector is helpful
+   to software that might be searching for the moment of re-entry.)
+
+Partway through each propagation, the SGP4 routine saves a set of
+“singly averaged mean elements” that describe the orbit’s shape at the
+moment of propagation.  They are averaged with respect to the mean
+anomaly and include the effects of secular gravity, atmospheric drag,
+and — in Deep Space mode — of those pertubations from the Sun and Moon
+that SGP4 averages over an entire revolution of each of those bodies.
+They omit both the shorter-term and longer-term periodic pertubations
+from the Sun and Moon that SGP4 applies right before computing each
+position.
+
+| ``am`` — Average semi-major axis (earth radii).
+| ``em`` — Average eccentricity.
+| ``im`` — Average inclination (radians).
+| ``Om`` — Average right ascension of ascending node (radians).
+| ``om`` — Average argument of perigee (radians).
+| ``mm`` — Average mean anomaly (radians).
+| ``nm`` — Average mean motion (radians/minute).
+
+*Gravity Model Parameters*
+
+When the satellite record is initialized, your choice of gravity model
+results in a slate of eight constants being copied in:
+
+| ``tumin`` — Minutes in one “time unit”.
+| ``xke`` — The reciprocal of ``tumin``.
+| ``mu`` — Earth’s gravitational parameter (km³/s²).
+| ``radiusearthkm`` — Radius of the earth (km).
+| ``j2``, ``j3``, ``j4`` — Un-normalized zonal harmonic values J₂, J₃, and J₄.
+| ``j3oj2`` — The ratio J₃/J₂.
 
 Validation against the official algorithm
 -----------------------------------------
