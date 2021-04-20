@@ -546,6 +546,13 @@ https://pypi.org/project/sgp4/1.4/
 Changelog
 ---------
 
+| 2021-04-? — 2.19
+
+* Extended the documentation on the Python Package Index and in the
+  module docstring to offer an exhaustive list of every single
+  ``Satrec`` attribute, since even the more obscure ones might be useful
+  to folks working to analyze satellite orbits.
+
 | 2021-03-08 — 2.18
 
 * If a TLE satellite number lacks the required 5 digits,
