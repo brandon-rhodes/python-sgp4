@@ -359,17 +359,19 @@ the new elements:
 ...     6.0863854713832, # nodeo: right ascension of ascending node (radians)
 ... )
 
-The two parameters marked “NOT USED” above, ``ndot`` and ``nddot``, do
-get saved to the satellite object, and do get written out if you write
-the parameters to a TLE or OMM file.  But they are ignored by SGP4 when
-doing propagation, so you can leave them ``0.0`` without any effect on
-the resulting satellite positions.
+* The two parameters marked “NOT USED” above, ``ndot`` and ``nddot``, do
+  get saved to the satellite object, and do get written out if you write
+  the parameters to a TLE or OMM file.  But they are ignored by SGP4
+  when doing propagation, so you can leave them ``0.0`` without any
+  effect on the resulting satellite positions.
 
-To compute the “epoch” argument, you can take a normal Julian date and
-subtract ``2433281.5`` days.  In addition to setting the attributes
-natively set by the underlying ``sgp4init()`` routine, this library — as
-a convenience — goes ahead and also sets the date fields ``epochyr``,
-``epochdays``, ``jdsatepoch``, and ``jdsatepochF``.
+* To compute the “epoch” argument, you can take a normal Julian date and
+  subtract ``2433281.5`` days.
+
+* Once the underlying C++ routine is finished, this Python library — as
+  a convenience for callers — goes ahead and sets four time attributes
+  that ``sgp4init()`` leaves unset: the date fields ``epochyr``,
+  ``epochdays``, ``jdsatepoch``, and ``jdsatepochF``.
 
 See the next section for the complete list of attributes that are
 available from the satellite record once it has been initialized.
@@ -397,6 +399,11 @@ propagation math.
   presumably counting from 1 following launch.
 
 *The Orbital Elements*
+
+These are the orbital parameters, copied verbatim from the text of the
+TLE record.  They describe the orbit at the moment of the TLE’s epoch
+and so remain constant even as the satellite record is used over and
+over again to propagate positions for different times.
 
 | ``epochyr`` — Epoch date: the last two digits of the year.
 | ``epochdays`` — Epoch date: the number of days into the year,
