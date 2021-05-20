@@ -120,6 +120,7 @@ jobs:
       max-parallel: 3
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
+        python-version: [3.7]
 
     steps:
       - name: checkout
