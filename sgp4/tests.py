@@ -49,7 +49,9 @@ VANGUARD_ATTRS = {
     'operationmode': 'i',
     # Time
     'epochyr': 0,
+    'epochdays': 179.78495062,
     'jdsatepoch': 2451722.5,
+    'jdsatepochF': 0.78495062,
     # Orbit
     'bstar': 2.8098e-05,
     'ndot': 6.96919666594958e-13,
@@ -80,7 +82,6 @@ def test_legacy_built_with_twoline2rv():
     verify_vanguard_1(sat, legacy=True)
 
 def test_satrec_initialized_with_sgp4init():
-    # epochyr and epochdays are not set by sgp4init
     sat = Satrec()
     sat.sgp4init(
         WGS72,
@@ -490,7 +491,9 @@ def verify_vanguard_1(sat, legacy=False):
     if legacy:
         attrs = attrs.copy()
         del attrs['epochyr']
+        del attrs['epochdays']
         del attrs['jdsatepoch']
+        del attrs['jdsatepochF']
 
     for name, value in attrs.items():
         try:
@@ -499,10 +502,6 @@ def verify_vanguard_1(sat, legacy=False):
             message, = e.args
             e.args = ('for attribute %s, %s' % (name, message),)
             raise e
-
-    if not legacy:
-        assertAlmostEqual(sat.epochdays, 179.78495062, delta=3e-14)
-        assertAlmostEqual(sat.jdsatepochF, 0.78495062, delta=1e-13)
 
 def sgp4init_args(d):
     """Given a dict of orbital parameters, return them in sgp4init order."""
@@ -754,7 +753,6 @@ def test_omm_csv_matches_old_tle():
     assert_satellites_match(sat1, sat2)
 
 def assert_satellites_match(sat1, sat2):
-    julian_fractions = {'epochdays', 'jdsatepochF'}
     todo = {'whichconst'}
 
     for attr in dir(sat1):
@@ -768,9 +766,6 @@ def assert_satellites_match(sat1, sat2):
         if callable(value1):
             continue
         value2 = getattr(sat2, attr)
-        if attr in julian_fractions:
-            value1 = round(value1, 10)
-            value2 = round(value2, 10)
         assertEqual(value1, value2, '%s %r != %r' % (attr, value1, value2))
 
 # Live example of OMM:

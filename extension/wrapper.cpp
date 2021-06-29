@@ -206,14 +206,27 @@ Satrec_sgp4init(PyObject *self, PyObject *args)
                         nodeo, satrec);
 
     /* Populate date fields that SGP4Funcs::twoline2rv would set. */
+    double whole;
+    double fraction = modf(epoch, &whole);
+    double whole_jd = whole + 2433281.5;
+
+    /* Go out on a limb: if `epoch` has no decimal digits past the 8
+       decimal places stored in a TLE, then assume the user is trying
+       to specify an exact decimal fraction. */
+    double epoch8 = epoch * 1e8;
+    if (round(epoch8) == epoch8) {
+        fraction = round(fraction * 1e8) / 1e8;
+    }
+
+    satrec.jdsatepoch = whole_jd;
+    satrec.jdsatepochF = fraction;
+
     int y, m, d, H, M;
     double S, jan0jd, jan0fr /* always comes out 0.0 */;
-    SGP4Funcs::invjday_SGP4(2433281.5, epoch, y, m, d, H, M, S);
+    SGP4Funcs::invjday_SGP4(2433281.5, whole, y, m, d, H, M, S);
     SGP4Funcs::jday_SGP4(y, 1, 0, 0, 0, 0.0, jan0jd, jan0fr);
     satrec.epochyr = y % 100;
-    satrec.epochdays = 2433281.5 - jan0jd + epoch;
-    satrec.jdsatepochF = modf(epoch, &satrec.jdsatepoch);
-    satrec.jdsatepoch += 2433281.5;
+    satrec.epochdays = whole_jd - jan0jd + fraction;
 
     /* Return true as sgp4init does, satrec.error contains any error codes */
 

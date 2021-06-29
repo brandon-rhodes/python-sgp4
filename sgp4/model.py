@@ -73,14 +73,22 @@ class Satrec(object):
     def sgp4init(self, whichconst, opsmode, satnum, epoch, bstar,
                  ndot, nddot, ecco, argpo, inclo, mo, no_kozai, nodeo):
         whichconst = gravity_constants[whichconst]
+        whole, fraction = divmod(epoch, 1.0)
+        whole_jd = whole + 2433281.5
 
-        y, m, d, H, M, S = invjday(epoch + 2433281.5)
-        jan0epoch = jday(y, 1, 0, 0, 0, 0.0) - 2433281.5
+        # Go out on a limb: if `epoch` has no decimal digits past the 8
+        # decimal places stored in a TLE, then assume the user is trying
+        # to specify an exact decimal fraction.
+        if round(epoch, 8) == epoch:
+            fraction = round(fraction, 8)
 
+        self.jdsatepoch = whole_jd
+        self.jdsatepochF = fraction
+
+        y, m, d, H, M, S = invjday(whole_jd)
+        jan0 = jday(y, 1, 0, 0, 0, 0.0)
         self.epochyr = y % 100
-        self.epochdays = epoch - jan0epoch
-        self.jdsatepoch, self.jdsatepochF = divmod(epoch, 1.0)
-        self.jdsatepoch += 2433281.5
+        self.epochdays = whole_jd - jan0 + fraction
 
         sgp4init(whichconst, opsmode, satnum, epoch, bstar, ndot, nddot,
                  ecco, argpo, inclo, mo, no_kozai, nodeo, self)
