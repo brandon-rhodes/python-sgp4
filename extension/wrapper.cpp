@@ -210,7 +210,7 @@ Satrec_sgp4init(PyObject *self, PyObject *args)
     double S, jan0jd, jan0fr /* always comes out 0.0 */;
     SGP4Funcs::invjday_SGP4(2433281.5, epoch, y, m, d, H, M, S);
     SGP4Funcs::jday_SGP4(y, 1, 0, 0, 0, 0.0, jan0jd, jan0fr);
-    satrec.epochyr = y % 1000;
+    satrec.epochyr = y % 100;
     satrec.epochdays = 2433281.5 - jan0jd + epoch;
     satrec.jdsatepochF = modf(epoch, &satrec.jdsatepoch);
     satrec.jdsatepoch += 2433281.5;

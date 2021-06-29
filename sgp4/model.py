@@ -77,7 +77,7 @@ class Satrec(object):
         y, m, d, H, M, S = invjday(epoch + 2433281.5)
         jan0epoch = jday(y, 1, 0, 0, 0, 0.0) - 2433281.5
 
-        self.epochyr = y % 1000
+        self.epochyr = y % 100
         self.epochdays = epoch - jan0epoch
         self.jdsatepoch, self.jdsatepochF = divmod(epoch, 1.0)
         self.jdsatepoch += 2433281.5

@@ -553,14 +553,20 @@ https://pypi.org/project/sgp4/1.4/
 Changelog
 ---------
 
-| 2021-04-22 — 2.19
+2021-?-? — 2.20
+
+* Fixed the ``epochyr`` assigned by ``sgp4init()`` so years before 2000
+  have two digits instead of three (for example, so that 1980 produces
+  an ``epochyr`` of 80 instead of 980).
+
+2021-04-22 — 2.19
 
 * Extended the documentation on the Python Package Index and in the
   module docstring so it lists every ``Satrec`` attribute that this
   library exposes; even the more obscure ones might be useful to folks
   working to analyze satellite orbits.
 
-| 2021-03-08 — 2.18
+2021-03-08 — 2.18
 
 * If a TLE satellite number lacks the required 5 digits,
   ``twoline2rv()`` now gives the underlying C++ library a little help so

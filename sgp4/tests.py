@@ -353,6 +353,17 @@ def test_intldesg_with_7_characters():
     )
     assertEqual(sat.intldesg, '13066AE')
 
+def test_1990s_satrec_initialized_with_sgp4init():
+    sat = Satrec()
+    sat.sgp4init(
+        WGS72,
+        'i',
+        VANGUARD_ATTRS['satnum'],
+        VANGUARD_EPOCH - 365.0,  # change year 2000 to 1999
+        *sgp4init_args(VANGUARD_ATTRS)
+    )
+    assertEqual(sat.epochyr, 99)
+
 def test_setters():
     sat = Satrec()
 
