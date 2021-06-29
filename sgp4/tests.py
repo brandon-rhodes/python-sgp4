@@ -61,7 +61,7 @@ VANGUARD_ATTRS = {
     'no_kozai': 0.04722944544077857,
     'nodeo': 6.08638547138321,
 }
-VANGUARD_EPOCH = 18441.7849506199999894
+VANGUARD_EPOCH = 18441.78495062
 
 # Handle deprecated assertRaisesRegexp, but allow its use Python 2.6 and 2.7
 if sys.version_info[:2] == (2, 7) or sys.version_info[:2] == (2, 6):
