@@ -242,6 +242,16 @@ def test_export_tle_raises_error_for_out_of_range_angles():
         )
         assertRaises(ValueError, export_tle, sat)
 
+def test_tle_import_export_round_trips():
+    for line1, line2 in [(
+        '1 44542U 19061A   21180.78220369 -.00000015  00000-0 -66561+1 0  9997',
+        '2 44542  54.7025 244.1098 0007981 318.8601 283.5781  1.86231125 12011',
+    )]:
+        sat = Satrec.twoline2rv(line1, line2)
+        outline1, outline2 = export_tle(sat)
+        assertEqual(line1, outline1)
+        assertEqual(line2, outline2)
+
 def test_all_three_gravity_models_with_twoline2rv():
     # The numbers below are those produced by Vallado's C++ code.
     # (Why does the Python version not produce the same values to

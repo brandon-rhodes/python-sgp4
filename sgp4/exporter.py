@@ -42,14 +42,11 @@ def export_tle(satrec):
     # Add First Time Derivative of the Mean Motion (don't use "+")
     append("{0: 8.8f}".format(satrec.ndot * (_xpdotp * 1440.0)).replace("0", "", 1) + " ")
 
-    # Add Second Time Derivative of Mean Motion (don't use "+")
-    # Multiplication with 10 is a hack to get the exponent right
-    append("{0: 4.4e}".format((satrec.nddot * (_xpdotp * 1440.0 * 1440)) * 10).replace(".", "")
-                        .replace("e+00", "-0").replace("e-0", "-") + " ")
+    # Add Second Time Derivative of Mean Motion
+    append(_abbreviate_rate(satrec.nddot * _xpdotp * 20736000.0, '-0'))
 
     # Add BSTAR
-    # Multiplication with 10 is a hack to get the exponent right
-    append("{0: 4.4e}".format(satrec.bstar * 10).replace(".", "").replace("e+00", "+0").replace("e-0", "-") + " ")
+    append(_abbreviate_rate(satrec.bstar * 10.0, '+0'))
 
     # Add Ephemeris Type and Element Number
     ephtype = getattr(satrec, 'ephtype', 0)
@@ -104,6 +101,15 @@ def export_tle(satrec):
     line2 += str(compute_checksum(line2))
 
     return line1, line2
+
+def _abbreviate_rate(value, zero_exponent_string):
+    return (
+        '{0: 4.4e} '.format(value)
+        .replace('.', '')
+        .replace('e+00', zero_exponent_string)
+        .replace('e-0', '-')
+        .replace('e+0', '+')
+    )
 
 def export_omm(satrec, object_name):
     launch_year = int(satrec.intldesg[:2])
