@@ -553,13 +553,16 @@ https://pypi.org/project/sgp4/1.4/
 Changelog
 ---------
 
-2021-?-? — 2.20
+2021-07-01 — 2.20
 
 * Taught ``sgp4init()`` to round both ``epochdays`` and ``jdsatepochF``
   to the same 8 decimal places used for the date fraction in a TLE, if
   the user-supplied ``epoch`` itself has 8 or fewer digits behind the
   decimal point.  This should make it easier to build satellites that
   round-trip to TLE format with perfect accuracy.
+
+* Fixed how ``export_tle()`` formats the BSTAR field when its value, if
+  written in scientific notation, has a positive exponent.
 
 * Fixed the ``epochyr`` assigned by ``sgp4init()`` so years before 2000
   have two digits instead of three (for example, so that 1980 produces
@@ -610,3 +613,4 @@ Changelog
 | 2012-08-27 — 1.0 — Initial release
 
 """
+__version__ = '2.20'

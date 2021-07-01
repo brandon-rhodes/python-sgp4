@@ -1,8 +1,6 @@
 import os
-import re
 import sys
 from distutils.core import setup, Extension
-from textwrap import dedent
 
 import sgp4
 description, long_description = sgp4.__doc__.split('\n', 1)
@@ -32,8 +30,14 @@ if sys.version_info[0] == 3:
         extra_compile_args=['-ffloat-store'],
     ))
 
+# Read the package's "__version__" without importing it.
+namespace = {}
+path = 'sgp4/__init__.py'
+with open(path) as f:
+    version = eval(compile(f.read(), path, 'exec'), namespace)
+
 setup(name = 'sgp4',
-      version = '2.19',
+      version = namespace['__version__'],
       description = description,
       long_description = long_description,
       license = 'MIT',
