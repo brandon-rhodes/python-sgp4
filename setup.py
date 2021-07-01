@@ -31,10 +31,11 @@ if sys.version_info[0] == 3:
     ))
 
 # Read the package's "__version__" without importing it.
-namespace = {}
 path = 'sgp4/__init__.py'
-with open(path) as f:
-    version = eval(compile(f.read(), path, 'exec'), namespace)
+with open(path, 'rb') as f:
+    text = f.read().decode('utf-8')
+namespace = {}
+eval(compile(text, path, 'exec'), namespace)
 
 setup(name = 'sgp4',
       version = namespace['__version__'],
