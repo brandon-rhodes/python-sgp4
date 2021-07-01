@@ -34,6 +34,7 @@ if sys.version_info[0] == 3:
 path = 'sgp4/__init__.py'
 with open(path, 'rb') as f:
     text = f.read().decode('utf-8')
+text = text.replace('-*- coding: utf-8 -*-', '')  # for Python 2.7
 namespace = {}
 eval(compile(text, path, 'exec'), namespace)
 
