@@ -507,6 +507,24 @@ results in a slate of eight constants being copied in:
 | ``j2``, ``j3``, ``j4`` — Un-normalized zonal harmonic values J₂, J₃, and J₄.
 | ``j3oj2`` — The ratio J₃/J₂.
 
+Printing satellite attributes
+-----------------------------
+
+If you want to print out a satellite, this library provides a convenient
+“attribute dump” routine that takes a satellite and generates lines that
+list its attributes::
+
+    from sys import stdout
+    from sgp4.conveniences import dump_satrec
+
+    stdout.writelines(dump_satrec(satellite))
+
+If you want to compare two satellites, then simply pass a second
+argument; the second satellite’s attributes will be printed in a second
+column next to those of the first. ::
+
+    stdout.writelines(dump_satrec(satellite, satellite2))
+
 Validation against the official algorithm
 -----------------------------------------
 
@@ -552,6 +570,10 @@ https://pypi.org/project/sgp4/1.4/
 
 Changelog
 ---------
+
+2021-? — 2.21
+
+* Added ``dump_satrec()`` to the ``sgp4.conveniences`` module.
 
 2021-07-01 — 2.20
 
