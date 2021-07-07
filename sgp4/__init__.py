@@ -589,6 +589,9 @@ Changelog
 
 * Added ``dump_satrec()`` to the ``sgp4.conveniences`` module.
 
+* Removed ``.whichconst`` from Python ``Satrec``, to help users avoid
+  writing code that will break when the C++ extension is available.
+
 2021-07-01 — 2.20
 
 * Taught ``sgp4init()`` to round both ``epochdays`` and ``jdsatepochF``

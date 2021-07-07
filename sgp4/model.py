@@ -33,7 +33,7 @@ class Satrec(object):
         'pho', 'pinco', 'plo', 'radiusearthkm', 'revnum', 'satnum', 'se2',
         'se3', 'sgh2', 'sgh3', 'sgh4', 'sh2', 'sh3', 'si2', 'si3', 'sinmao',
         'sl2', 'sl3', 'sl4', 't', 't2cof', 't3cof', 't4cof', 't5cof', 'tumin',
-        'whichconst', 'x1mth2', 'x7thm1', 'xfact', 'xgh2', 'xgh3', 'xgh4',
+        'x1mth2', 'x7thm1', 'xfact', 'xgh2', 'xgh3', 'xgh4',
         'xh2', 'xh3', 'xi2', 'xi3', 'xke', 'xl2', 'xl3', 'xl4', 'xlamo',
         'xlcof', 'xli', 'xmcof', 'xni', 'zmol', 'zmos',
         'jdsatepochF'

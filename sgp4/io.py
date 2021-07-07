@@ -126,7 +126,6 @@ def twoline2rv(longstr1, longstr2, whichconst, opsmode='i', satrec=None):
         satrec = Satellite()
 
     satrec.error = 0;
-    satrec.whichconst = whichconst  # Python extension: remembers its consts
 
     line = longstr1.rstrip()
 

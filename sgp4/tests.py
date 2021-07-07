@@ -763,12 +763,8 @@ def test_omm_csv_matches_old_tle():
     assert_satellites_match(sat1, sat2)
 
 def assert_satellites_match(sat1, sat2):
-    todo = {'whichconst'}
-
     for attr in dir(sat1):
         if attr.startswith('_'):
-            continue
-        if attr in todo:
             continue
         value1 = getattr(sat1, attr, None)
         if value1 is None:
