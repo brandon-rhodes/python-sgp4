@@ -240,9 +240,9 @@ dates, build a ``SatrecArray`` from several individual satellites.  Its
 so if you only have one date, be sure to provide NumPy arrays of length
 one.  Here is a sample computation for 2 satellites and 4 dates:
 
->>> s = '1 20580U 90037B   19342.88042116  .00000361  00000-0  11007-4 0  9996'
->>> t = '2 20580  28.4682 146.6676 0002639 185.9222 322.7238 15.09309432427086'
->>> satellite2 = Satrec.twoline2rv(s, t)
+>>> u = '1 20580U 90037B   19342.88042116  .00000361  00000-0  11007-4 0  9996'
+>>> w = '2 20580  28.4682 146.6676 0002639 185.9222 322.7238 15.09309432427086'
+>>> satellite2 = Satrec.twoline2rv(u, w)
 
 >>> from sgp4.api import SatrecArray
 >>> a = SatrecArray([satellite, satellite2])
@@ -286,8 +286,14 @@ file, there’s an export routine that will turn it back into a TLE:
 >>> line2
 '2 25544  51.6439 211.2001 0007417  17.6667  85.6398 15.50103472202482'
 
-And another that produces the fields defined by the new OMM format (see
-the “OMM” section above):
+Happily, these are exactly the two TLE lines that we used to create this
+satellite object:
+
+>>> (s == line1) and (t == line2)
+True
+
+Another export routine is available that produces the fields defined by
+the new OMM format (see the “OMM” section above):
 
 >>> from pprint import pprint
 >>> fields = exporter.export_omm(satellite, 'ISS (ZARYA)')
@@ -339,39 +345,46 @@ Providing your own elements
 ---------------------------
 
 If instead of parsing a TLE you want to specify orbital elements
-directly, you can call a satellite object’s ``sgp4init()`` method with
-the new elements:
+directly, you can pass them as floating point numbers to a satellite
+object’s ``sgp4init()`` method.  For example, here’s how to build the
+same International Space Station orbit that we loaded from a TLE in the
+first code example above:
 
->>> sat = Satrec()
->>> sat.sgp4init(
-...     WGS72,           # gravity model
-...     'i',             # 'a' = old AFSPC mode, 'i' = improved mode
-...     5,               # satnum: Satellite number
-...     18441.785,       # epoch: days since 1949 December 31 00:00 UT
-...     2.8098e-05,      # bstar: drag coefficient (1/earth radii)
-...     6.969196665e-13, # ndot (NOT USED): ballistic coefficient (revs/day)
-...     0.0,             # nddot (NOT USED): mean motion 2nd derivative (revs/day^3)
-...     0.1859667,       # ecco: eccentricity
-...     5.7904160274885, # argpo: argument of perigee (radians)
-...     0.5980929187319, # inclo: inclination (radians)
-...     0.3373093125574, # mo: mean anomaly (radians)
-...     0.0472294454407, # no_kozai: mean motion (radians/minute)
-...     6.0863854713832, # nodeo: right ascension of ascending node (radians)
+>>> satellite2 = Satrec()
+>>> satellite2.sgp4init(
+...     WGS72,                # gravity model
+...     'i',                  # 'a' = old AFSPC mode, 'i' = improved mode
+...     25544,                # satnum: Satellite number
+...     25545.69339541,       # epoch: days since 1949 December 31 00:00 UT
+...     3.8792e-05,           # bstar: drag coefficient (1/earth radii)
+...     0.0,                  # ndot: ballistic coefficient (revs/day)
+...     0.0,                  # nddot: mean motion 2nd derivative (revs/day^3)
+...     0.0007417,            # ecco: eccentricity
+...     0.3083420829620822,   # argpo: argument of perigee (radians)
+...     0.9013560935706996,   # inclo: inclination (radians)
+...     1.4946964807494398,   # mo: mean anomaly (radians)
+...     0.06763602333248933,  # no_kozai: mean motion (radians/minute)
+...     3.686137125541276,    # nodeo: R.A. of ascending node (radians)
 ... )
 
-* The two parameters marked “NOT USED” above, ``ndot`` and ``nddot``, do
-  get saved to the satellite object, and do get written out if you write
-  the parameters to a TLE or OMM file.  But they are ignored by SGP4
-  when doing propagation, so you can leave them ``0.0`` without any
-  effect on the resulting satellite positions.
+These numbers don’t look the same as the numbers in the TLE, because the
+underlying ``sgp4init()`` routine uses different units: radians rather
+than degrees.  But this is the same orbit and will produce the same
+positions.
 
-* To compute the “epoch” argument, you can take a normal Julian date and
-  subtract ``2433281.5`` days.
+Note that ``ndot`` and ``nddot`` are ignored by the SGP4 propagator, so
+you can leave them ``0.0`` without any effect on the resulting satellite
+positions.  But they do at least get saved to the satellite object, and
+written out if you write the parameters to a TLE or OMM file (see the
+“Export” section, above).
 
-* Once the underlying C++ routine is finished, this Python library — as
-  a convenience for callers — goes ahead and sets four time attributes
-  that ``sgp4init()`` leaves unset: the date fields ``epochyr``,
-  ``epochdays``, ``jdsatepoch``, and ``jdsatepochF``.
+To compute the “epoch” argument, take the epoch’s Julian date and
+subtract 2433281.5 days.
+
+While the underlying ``sgp4init()`` routine leaves the attributes
+``epochyr``, ``epochdays``, ``jdsatepoch``, and ``jdsatepochF`` unset,
+this library goes ahead and sets them anyway for you, using the epoch
+you provided.
 
 See the next section for the complete list of attributes that are
 available from the satellite record once it has been initialized.
@@ -379,9 +392,8 @@ available from the satellite record once it has been initialized.
 Attributes
 ----------
 
-There are several dozen ``Satrec`` attributes
-that expose data from the underlying C++ SGP4 record.
-They fall into several categories.
+There are several dozen ``Satrec`` attributes that expose data from the
+underlying C++ SGP4 record.  They fall into the following categories.
 
 *Identification*
 
@@ -398,7 +410,7 @@ propagation math.
 | ``revnum`` — Satellite’s revolution number at the moment of the epoch,
   presumably counting from 1 following launch.
 
-*The Orbital Elements*
+*Orbital Elements*
 
 These are the orbital parameters, copied verbatim from the text of the
 TLE record.  They describe the orbit at the moment of the TLE’s epoch
@@ -426,7 +438,7 @@ You can also access the epoch as a Julian date:
 | ``jdsatepoch`` — Whole part of the epoch’s Julian date.
 | ``jdsatepochF`` — Fractional part of the epoch’s Julian date.
 
-*Derived Orbit Properties*
+*Computed Orbit Properties*
 
 These are computed when the satellite is first loaded,
 as a convenience for callers who might be interested in them.
@@ -454,12 +466,12 @@ They aren’t used by the SGP4 propagator itself.
   has chosen to use its built-in ``'n'`` Near Earth
   or ``'d'`` Deep Space mode for this satellite.
 
-*Results From the Most Recent Call*
+*Result of Most Recent Propagation*
 
 | ``t`` —
   The time you gave when you most recently asked SGP4
   to compute this satellite’s position,
-  measured in minutes before (negative) or after (position)
+  measured in minutes before (negative) or after (positive)
   the satellite’s epoch.
 | ``error`` —
   Error code produced by the most recent SGP4 propagation
@@ -476,6 +488,8 @@ The possible ``error`` codes are:
 6. Orbit has decayed: the computed position is underground.
    (The position is still returned, in case the vector is helpful
    to software that might be searching for the moment of re-entry.)
+
+*Mean Elements From Most Recent Propagation*
 
 Partway through each propagation, the SGP4 routine saves a set of
 “singly averaged mean elements” that describe the orbit’s shape at the
