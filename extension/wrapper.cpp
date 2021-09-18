@@ -1,7 +1,109 @@
 #define PY_SSIZE_T_CLEAN
+#include <errno.h>
+#include <stdlib.h>
+#include <string.h>
 #include <Python.h>
 #include "SGP4.h"
 #include "structmember.h"
+
+// See https://www.space-track.org/documentation#tle-alpha5
+#define MIN_ALPHA5 100000
+#define MAX_ALPHA5 339999
+#define ALPHA5_BLOCKSIZE 10000
+#define MAX_SATNUM_STRLEN 6
+
+int encode_a5_satnum(int satnum_int, char *output)
+{
+    /*
+    * Given a numeric satnum, convert it to a string representation
+    * Returns the numeric satnum on success, or -1 in case of error.
+    */
+
+    if (satnum_int < 0 || satnum_int > MAX_ALPHA5) {
+        PyErr_SetString(PyExc_ValueError, "Satnum out of range");
+        return -1;
+    }
+
+    if (satnum_int < MIN_ALPHA5) {
+        (void)snprintf(output, 6, "%05d", satnum_int);
+        return satnum_int;
+    }
+
+    int tmp = satnum_int - MIN_ALPHA5;
+    char c = 'A' + tmp / ALPHA5_BLOCKSIZE;
+    if (c >= 'I')
+        c += 1;
+    if (c >= 'O')
+        c += 1;
+    (void)snprintf(output, 6, "%c%04d", c, tmp % ALPHA5_BLOCKSIZE);
+    return satnum_int;
+}
+
+int decode_a5_satnum(char *satnum_str)
+{
+    /*
+    * Given a string representing a satellite number, in either Alpha-5 format
+    * (eg. "Q4242") or numeric (eg. "25544", "123456"), convert it to an int.
+    *
+    * Returns -1 in case of error.
+    */
+
+    int input_len = strlen(satnum_str);
+    if (input_len < 1 || input_len > MAX_SATNUM_STRLEN) {
+        PyErr_SetString(PyExc_ValueError, "Inapproprate string length for satnum");
+        return -1;
+    }
+
+    // a 1-6 character string might be an int like "123456" which is in range
+    errno = 0;
+    char *first_non_numeric;
+    long satnum_int = strtol(satnum_str, &first_non_numeric, 10);
+    if (errno) {
+        PyErr_SetString(PyExc_RuntimeError, "strtol() failed");
+        return -1;
+    }
+
+    if (first_non_numeric[0] == '\0') {
+        if ((satnum_int < 0) || (satnum_int > MAX_ALPHA5)) {
+            PyErr_SetString(PyExc_ValueError, "Satnum out of range");
+            return -1;
+        } else {
+            return satnum_int;
+        }
+    }
+
+    // If we got here, this is Alpha-5, so the string length must be 5.
+    if (input_len != 5) {
+        PyErr_SetString(PyExc_ValueError, "Inapproprate string length for satnum");
+        return -1;
+    }
+
+    char alpha = satnum_str[0];
+    if (!isupper(alpha) || alpha == 'I' || alpha == 'O') {
+        PyErr_SetString(PyExc_ValueError, "Alpha-5 contains invalid characters");
+        return -1;
+    }
+
+    errno = 0;
+    satnum_int = strtol(satnum_str + 1, &first_non_numeric, 10);
+    if (errno) {
+        PyErr_SetString(PyExc_RuntimeError, "strtol() failed");
+        return -1;
+    }
+    if (first_non_numeric[0] != '\0') {
+        PyErr_SetString(PyExc_ValueError, "Satnum contains invalid characters");
+        return -1;
+    }
+
+    if (alpha <= 'I')
+        satnum_int = (alpha - 'A' + 10) * ALPHA5_BLOCKSIZE + satnum_int;
+    else if (alpha <= 'O')
+        satnum_int = (alpha - 'A' + 9) * ALPHA5_BLOCKSIZE + satnum_int;
+    else
+        satnum_int = (alpha - 'A' + 8) * ALPHA5_BLOCKSIZE + satnum_int;
+
+    return satnum_int;
+}
 
 /* Whether scanf() prefers commas as the decimal point: true means that
    we cannot count on the current locale to interpret numbers correctly
@@ -176,7 +278,7 @@ Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
 static PyObject *
 Satrec_sgp4init(PyObject *self, PyObject *args)
 {
-    char satnum_str[6];
+    char satnum_str[8];
     int whichconst;  /* "int" rather than "gravconsttype" so we know size */
     int opsmode;     /* "int" rather than "char" because "C" needs an int */
     long int satnum;
@@ -188,16 +290,9 @@ Satrec_sgp4init(PyObject *self, PyObject *args)
                           &ecco, &argpo, &inclo, &mo, &no_kozai, &nodeo))
         return NULL;
 
-    // See https://www.space-track.org/documentation#tle-alpha5
-    if (satnum < 100000) {
-        snprintf(satnum_str, 6, "%ld", satnum);
-    } else {
-        char c = 'A' + satnum / 10000 - 10;
-        if (c > 'I') c++;
-        if (c > 'O') c++;
-        satnum_str[0] = c;
-        snprintf(satnum_str + 1, 5, "%04ld", satnum % 10000);
-    }
+    // let `encode_a5_satnum` take care of validating satnum
+    if (encode_a5_satnum(satnum, satnum_str) == -1)
+        return NULL;
 
     elsetrec &satrec = ((SatrecObject*) self)->satrec;
 
@@ -431,18 +526,59 @@ set_intldesg(SatrecObject *self, PyObject *value, void *closure)
 static PyObject *
 get_satnum(SatrecObject *self, void *closure)
 {
-    char *s = self->satrec.satnum;
-    long n;
-    if (strlen(s) < 5 || s[0] <= '9')
-        n = atol(s);
-    else if (s[0] <= 'I')
-        n = (s[0] - 'A' + 10) * 10000 + atol(s + 1);
-    else if (s[0] <= 'O')
-        n = (s[0] - 'A' + 9) * 10000 + atol(s + 1);
-    else
-        n = (s[0] - 'A' + 8) * 10000 + atol(s + 1);
+    long n = decode_a5_satnum(self->satrec.satnum);
     return PyLong_FromLong(n);
 }
+
+static int
+set_satnum(SatrecObject *self, PyObject *value, void *closure)
+{
+    // Try to be helpful and accept any reasonably formatted satnum.
+    char *satnum_str, satnum_buf[8];
+    int satnum_int;
+
+    if (PyLong_Check(value)) {
+        satnum_int = PyLong_AsLong(value);
+        if (satnum_int < 0 || satnum_int > MAX_ALPHA5) {
+            PyErr_SetString(PyExc_ValueError, "Satnum out of numeric range");
+            return -1;
+        } else {
+            if (satnum_int < MIN_ALPHA5) {
+                snprintf(self->satrec.satnum, 6, "%05d", satnum_int);
+                return 0;
+            } else {
+                satnum_int = encode_a5_satnum(satnum_int, self->satrec.satnum);
+                return satnum_int < 0 ? -1 : 0;
+            }
+        }
+    } else if (PyUnicode_Check(value)) {
+        satnum_str = (char *)PyUnicode_AsUTF8(value);
+        if (strlen(satnum_str) < 1 || strlen(satnum_str) > 6) {
+            // 0 chars is too short, and 7+ chars is >1 million.
+            // "123456" is 6 characters and could be encoded as alpha5.
+            // "654321" is 6 characters but would exceed the range of alpha5
+            PyErr_SetString(PyExc_ValueError, "Satnum has inappropriate string length");
+            return -1;
+        }
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Invalid type for satnum");
+        return -1;
+    }
+
+    // decode_a5_satnum knows what to do with strings, and will always
+    // return something sensible.
+    satnum_int = decode_a5_satnum((char *)satnum_str);
+    if (satnum_int < 0) {
+        PyErr_SetString(PyExc_ValueError, "Invalid satnum");
+        return -1;
+    }
+
+    // encode_a5_satnum calls PyErr_SetString in case of error, so return
+    // -1 to make the error propagate up
+    satnum_int = encode_a5_satnum(satnum_int, self->satrec.satnum);
+    return satnum_int < 0 ? -1 : 0;
+}
+
 
 static PyGetSetDef Satrec_getset[] = {
     {"intldesg", (getter)get_intldesg, (setter)set_intldesg,
@@ -450,7 +586,7 @@ static PyGetSetDef Satrec_getset[] = {
                " from the first line of the TLE that typically provides"
                " two digits for the launch year, a 3-digit launch number,"
                " and one or two letters for which piece of the launch.")},
-    {"satnum", (getter)get_satnum, NULL,
+    {"satnum", (getter)get_satnum, (setter)set_satnum,
      PyDoc_STR("Satellite number, from characters 3-7 of each TLE line.")},
     {NULL},
 };

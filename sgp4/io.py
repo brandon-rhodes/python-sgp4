@@ -277,3 +277,13 @@ def _alpha5(s):
     n -= c > 'I'
     n -= c > 'O'
     return n * 10000 + int(s[1:])
+
+def _to_alpha5(n):
+    n -= 100000
+    c = ord('A') + n // 10000
+    if c >= ord('I'):
+        c += 1
+    if c >= ord('O'):
+        c += 1
+    return f'{chr(c)}{n%10000:04d}'
+

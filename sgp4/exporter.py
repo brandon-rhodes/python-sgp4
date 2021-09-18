@@ -4,7 +4,7 @@ Contributed by Egemen Imre https://github.com/egemenimre
 
 """
 from math import pi
-from sgp4.io import compute_checksum
+from sgp4.io import compute_checksum, _to_alpha5
 from sgp4.conveniences import sat_epoch_datetime
 
 # Define constants
@@ -14,15 +14,20 @@ _xpdotp = 1440.0 / (2.0 * pi)  # 229.1831180523293
 def export_tle(satrec):
     """Generate the TLE for a given `Satrec` object; returns two strings."""
 
+    if satrec.satnum < 99999:
+        # Pad the `satnum` entry with zeros
+        satnum = f'{satrec.satnum:05d}'
+    else:
+        satnum = _to_alpha5(satrec.satnum)
+
     # --------------------- Start generating line 1 ---------------------
 
     # Build the list by appending successive items
     pieces = ["1 "]
     append = pieces.append
 
-    # Pad the `satnum` entry with zeros
-    if len(str(satrec.satnum)) <= 5:
-        append(str(satrec.satnum).zfill(5))
+    # properly formatted satnum
+    append(satnum)
 
     # Add classification code (use "U" if empty)
     classification = getattr(satrec, 'classification', 'U')
@@ -63,9 +68,8 @@ def export_tle(satrec):
     pieces = ["2 "]
     append = pieces.append
 
-    # Pad the `satnum` entry with zeros
-    if len(str(satrec.satnum)) <= 5:
-        append(str(satrec.satnum).zfill(5) + " ")
+    # properly formatted satnum
+    append(satnum + ' ')
 
     # Add the inclination (deg)
     if not 0 <= satrec.inclo <= pi:
