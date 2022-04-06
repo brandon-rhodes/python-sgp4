@@ -1,7 +1,9 @@
 """Public API that tries to import C++ module, but falls back to Python."""
 
-__all__ = ('Satrec', 'SatrecArray', 'WGS72OLD', 'WGS72', 'WGS84',
-           'jday', 'days2mdhms')
+__all__ = (
+    'SGP4_ERRORS', 'Satrec', 'SatrecArray', 'WGS72OLD', 'WGS72', 'WGS84',
+    'accelerated', 'jday', 'days2mdhms',
+)
 
 from .functions import jday, days2mdhms
 
