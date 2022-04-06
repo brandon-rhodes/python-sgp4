@@ -285,13 +285,9 @@ GRAVITY_DIGITS = (
     # Why don't Python and C agree more closely?
     4 if not accelerated
 
-    # Insist on very high precision on my Linux laptop, to signal me if
-    # some future adjustment subtlely changes the library's results.
-    else 12 if platform.system() == 'Linux' and platform.machine() == 'x86_64'
-
-    # Otherwise, reduce our expectations.  Note that at least 6 digits
-    # past the decimal point are necessary to let the test distinguish
-    # between WSG72OLD and WGS72.  See:
+    # Otherwise, try 10 digits.  Note that at least 6 digits past the
+    # decimal point are necessary to let the test distinguish between
+    # WSG72OLD and WGS72.  See:
     # https://github.com/conda-forge/sgp4-feedstock/pull/19
     # https://github.com/brandon-rhodes/python-sgp4/issues/69
     else 10
