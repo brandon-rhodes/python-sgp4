@@ -585,9 +585,12 @@ https://pypi.org/project/sgp4/1.4/
 Changelog
 ---------
 
-2021-? — 2.21
+2022-? — 2.21
 
 * Added ``dump_satrec()`` to the ``sgp4.conveniences`` module.
+
+* Fixed the ``Satrec`` attribute ``.error``, which was previously
+  building a nonsense integer from the wrong data in memory.
 
 * Removed ``.whichconst`` from Python ``Satrec``, to help users avoid
   writing code that will break when the C++ extension is available.

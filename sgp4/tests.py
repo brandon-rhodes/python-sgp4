@@ -533,6 +533,7 @@ def test_satrec_against_tcppver_using_julian_dates():
         jd = satrec.jdsatepoch + whole
         fr = satrec.jdsatepochF + fraction
         e, r, v = satrec.sgp4(jd, fr)
+        assert e == satrec.error
         return e, r, v
 
     run_satellite_against_tcppver(Satrec.twoline2rv, invoke, [1,1,6,6,4,3,6])
@@ -541,6 +542,7 @@ def test_satrec_against_tcppver_using_tsince():
 
     def invoke(satrec, tsince):
         e, r, v = satrec.sgp4_tsince(tsince)
+        assert e == satrec.error
         return e, r, v
 
     run_satellite_against_tcppver(Satrec.twoline2rv, invoke, [1,1,6,6,4,3,6])

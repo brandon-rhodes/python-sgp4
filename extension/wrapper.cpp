@@ -341,7 +341,7 @@ static PyMemberDef Satrec_members[] = {
 
     {"method", T_CHAR, O(method), READONLY,
      PyDoc_STR("Method, either 'n' near earth or 'd' deep space.")},
-    {"error", T_INT, O(method), READONLY,
+    {"error", T_INT, O(error), READONLY,
      PyDoc_STR("Error code (1-6) documented in sgp4()")},
     {"a", T_DOUBLE, O(a), READONLY,
      PyDoc_STR("semi-major axis")},
