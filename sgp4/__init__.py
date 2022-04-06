@@ -585,7 +585,7 @@ https://pypi.org/project/sgp4/1.4/
 Changelog
 ---------
 
-2022-? — 2.21
+2022-04-06 — 2.21
 
 * Added ``dump_satrec()`` to the ``sgp4.conveniences`` module.
 
@@ -655,4 +655,4 @@ Changelog
 | 2012-08-27 — 1.0 — Initial release
 
 """
-__version__ = '2.20'
+__version__ = '2.21'
