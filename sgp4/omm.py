@@ -24,6 +24,7 @@ def parse_xml(file):
 _epoch0 = datetime(1949, 12, 31)
 _to_radians = pi / 180.0
 _ndot_units = 1036800.0 / pi  # See SGP4.cpp for details.
+_nddot_units = 2985984000.0 / 2.0 / pi  # See SGP4.cpp for details.
 
 def initialize(sat, fields):
     sat.classification = fields['CLASSIFICATION_TYPE']
@@ -40,7 +41,7 @@ def initialize(sat, fields):
     ecco = float(fields['ECCENTRICITY'])
     inclo = float(fields['INCLINATION']) * _to_radians
     mo = float(fields['MEAN_ANOMALY']) * _to_radians
-    nddot = float(fields['MEAN_MOTION_DDOT'])
+    nddot = float(fields['MEAN_MOTION_DDOT']) / _nddot_units
     ndot = float(fields['MEAN_MOTION_DOT']) / _ndot_units
     no_kozai = float(fields['MEAN_MOTION']) / 720.0 * pi
     nodeo = float(fields['RA_OF_ASC_NODE']) * _to_radians
