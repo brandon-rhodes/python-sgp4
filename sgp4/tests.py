@@ -341,6 +341,9 @@ def test_satnum_alpha5_encoding():
     for satnum, satnum_string in cases:
         sat = make_sat(satnum_string)
         assert sat.satnum == satnum
+        if sys.version_info < (3,):
+            continue
+        assert sat.satnum_str.decode('ascii') == satnum_string
 
     args = sgp4init_args(VANGUARD_ATTRS)
     for satnum, satnum_string in cases:
