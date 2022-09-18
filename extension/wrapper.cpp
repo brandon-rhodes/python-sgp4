@@ -192,7 +192,7 @@ Satrec_sgp4init(PyObject *self, PyObject *args)
     if (satnum < 100000) {
         snprintf(satnum_str, 6, "%05ld", satnum);
     } else if (satnum > 339999) {
-        PyErr_SetString(PyExc_ValueError, "Satellite numbers cannot exceed "
+        PyErr_SetString(PyExc_ValueError, "satellite number cannot exceed "
                         "339999, whose Alpha 5 encoding is 'Z9999'");
         return 0;
     } else {

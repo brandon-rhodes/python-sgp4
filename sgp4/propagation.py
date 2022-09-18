@@ -18,6 +18,7 @@ code for the first time here in its Python form.
 
 """
 from math import atan2, cos, fabs, pi, sin, sqrt
+from sgp4.alpha5 import to_alpha5
 
 deg2rad = pi / 180.0;
 _nan = float('NaN')
@@ -1341,12 +1342,13 @@ def sgp4init(
  	 # -------------------------------------------------------------------------
 
      if (satn > 339999):
-         raise ValueError('Satellite numbers cannot exceed 339999,'
+         raise ValueError('satellite number cannot exceed 339999,'
                           " whose Alpha 5 encoding is 'Z9999'")
 
      satrec.error = 0;
      satrec.operationmode = opsmode;
      satrec.satnum = satn;
+     satrec.satnum_str = to_alpha5(satn);
 
      """
      // sgp4fix - note the following variables are also passed directly via satrec.

@@ -3,6 +3,7 @@
 Contributed by Egemen Imre https://github.com/egemenimre
 
 """
+from sys import version_info
 from math import pi
 from sgp4.io import compute_checksum
 from sgp4.conveniences import sat_epoch_datetime
@@ -14,15 +15,15 @@ _xpdotp = 1440.0 / (2.0 * pi)  # 229.1831180523293
 def export_tle(satrec):
     """Generate the TLE for a given `Satrec` object; returns two strings."""
 
+    satnum_str = satrec.satnum_str
+    if version_info >= (3,):
+        satnum_str = satnum_str.decode('ascii')
+
     # --------------------- Start generating line 1 ---------------------
 
     # Build the list by appending successive items
-    pieces = ["1 "]
+    pieces = ['1 ', satnum_str]
     append = pieces.append
-
-    # Pad the `satnum` entry with zeros
-    if len(str(satrec.satnum)) <= 5:
-        append(str(satrec.satnum).zfill(5))
 
     # Add classification code (use "U" if empty)
     classification = getattr(satrec, 'classification', 'U')
@@ -60,17 +61,13 @@ def export_tle(satrec):
     # --------------------- Start generating line 2 ---------------------
 
     # Reset the str array
-    pieces = ["2 "]
+    pieces = ['2 ', satnum_str]
     append = pieces.append
-
-    # Pad the `satnum` entry with zeros
-    if len(str(satrec.satnum)) <= 5:
-        append(str(satrec.satnum).zfill(5) + " ")
 
     # Add the inclination (deg)
     if not 0 <= satrec.inclo <= pi:
         raise ValueError("Inclination must be between 0 and pi, got %r", satrec.inclo)
-    append("{0:8.4f}".format(satrec.inclo / _deg2rad).rjust(8, " ") + " ")
+    append(' {0:8.4f} '.format(satrec.inclo / _deg2rad))
 
     # Add the RAAN (deg)
     if not 0 <= satrec.nodeo <= 2 * pi:
