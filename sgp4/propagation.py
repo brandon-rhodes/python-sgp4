@@ -1340,6 +1340,10 @@ def sgp4init(
 
  	 # -------------------------------------------------------------------------
 
+     if (satn > 339999):
+         raise ValueError('Satellite numbers cannot exceed 339999,'
+                          " whose Alpha 5 encoding is 'Z9999'")
+
      satrec.error = 0;
      satrec.operationmode = opsmode;
      satrec.satnum = satn;

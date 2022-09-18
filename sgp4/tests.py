@@ -347,6 +347,17 @@ def test_satnum_alpha5_encoding():
         sat.sgp4init(WGS72, 'i', satnum, VANGUARD_EPOCH, *args)
         assert sat.satnum == satnum
 
+def test_satnum_that_is_too_large():
+    sat = Satrec()
+    with assertRaisesRegex(ValueError, 'cannot exceed 339999'):
+        sat.sgp4init(
+            WGS72,
+            'i',
+            340000,
+            VANGUARD_EPOCH,
+            *sgp4init_args(VANGUARD_ATTRS)
+        )
+
 def test_intldesg_with_6_characters():
     sat = Satrec.twoline2rv(LINE1, LINE2)
     assertEqual(sat.intldesg, '58002B')

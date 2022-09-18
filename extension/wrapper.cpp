@@ -191,6 +191,10 @@ Satrec_sgp4init(PyObject *self, PyObject *args)
     // See https://www.space-track.org/documentation#tle-alpha5
     if (satnum < 100000) {
         snprintf(satnum_str, 6, "%05ld", satnum);
+    } else if (satnum > 339999) {
+        PyErr_SetString(PyExc_ValueError, "Satellite numbers cannot exceed "
+                        "339999, whose Alpha 5 encoding is 'Z9999'");
+        return 0;
     } else {
         char c = 'A' + satnum / 10000 - 10;
         if (c > 'I') c++;
