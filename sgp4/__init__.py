@@ -401,6 +401,7 @@ These are copied directly from the TLE record but aren’t used by the
 propagation math.
 
 | ``satnum`` — Unique number assigned to the satellite.
+| ``satnum_str`` — String used internally to store the ``satnum``.
 | ``classification`` — ``'U'``, ``'C'``, or ``'S'``
   indicating the element set is Unclassified, Classified, or Secret.
 | ``ephtype`` — Integer “ephemeris type”, used internally by space

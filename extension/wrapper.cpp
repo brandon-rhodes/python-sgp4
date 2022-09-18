@@ -190,7 +190,7 @@ Satrec_sgp4init(PyObject *self, PyObject *args)
 
     // See https://www.space-track.org/documentation#tle-alpha5
     if (satnum < 100000) {
-        snprintf(satnum_str, 6, "%ld", satnum);
+        snprintf(satnum_str, 6, "%05ld", satnum);
     } else {
         char c = 'A' + satnum / 10000 - 10;
         if (c > 'I') c++;
@@ -444,6 +444,12 @@ get_satnum(SatrecObject *self, void *closure)
     return PyLong_FromLong(n);
 }
 
+static PyObject *
+get_satnum_str(SatrecObject *self, void *closure)
+{
+    return PyBytes_FromString(self->satrec.satnum);
+}
+
 static PyGetSetDef Satrec_getset[] = {
     {"intldesg", (getter)get_intldesg, (setter)set_intldesg,
      PyDoc_STR("International Designator: a string of up to 7 characters"
@@ -452,6 +458,8 @@ static PyGetSetDef Satrec_getset[] = {
                " and one or two letters for which piece of the launch.")},
     {"satnum", (getter)get_satnum, NULL,
      PyDoc_STR("Satellite number, from characters 3-7 of each TLE line.")},
+    {"satnum_str", (getter)get_satnum_str, NULL,
+     PyDoc_STR("String used internally to store the satellite number.")},
     {NULL},
 };
 
