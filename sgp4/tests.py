@@ -220,15 +220,15 @@ def test_tle_export():
         satrec_old = io.twoline2rv(line1, line2, wgs72)
 
         # Generate TLE from satrec
-        out_line1, out_line2 = export_tle(satrec)
-        out_line1_old, out_line2_old = export_tle(satrec_old)
+        actual_line1, actual_line2 = export_tle(satrec)
+        actual_line1_old, actual_line2_old = export_tle(satrec_old)
 
         if satrec.satnum not in expected_errs_line1:
-            assertEqual(out_line1, line1)
-            assertEqual(out_line1_old, line1)
+            assertEqual(actual_line1, line1)
+            assertEqual(actual_line1_old, line1)
         if satrec.satnum not in expected_errs_line2:
-            assertEqual(out_line2, line2)
-            assertEqual(out_line2_old, line2)
+            assertEqual(actual_line2, line2)
+            assertEqual(actual_line2_old, line2)
 
 def test_export_tle_raises_error_for_out_of_range_angles():
     # See https://github.com/brandon-rhodes/python-sgp4/issues/70
