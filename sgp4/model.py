@@ -91,6 +91,8 @@ class Satrec(object):
         self.epochyr = y % 100
         self.epochdays = whole_jd - jan0 + fraction
 
+        self.classification = 'U'
+
         sgp4init(whichconst, opsmode, satnum, epoch, bstar, ndot, nddot,
                  ecco, argpo, inclo, mo, no_kozai, nodeo, self)
 

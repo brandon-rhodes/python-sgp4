@@ -1349,6 +1349,7 @@ def sgp4init(
      satrec.operationmode = opsmode;
      satrec.satnum = satn;
      satrec.satnum_str = to_alpha5(satn);
+     satrec.classification = 'U'  # so attribute is not missing in Python
 
      """
      // sgp4fix - note the following variables are also passed directly via satrec.

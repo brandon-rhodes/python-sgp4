@@ -232,8 +232,10 @@ Satrec_sgp4init(PyObject *self, PyObject *args)
     satrec.epochyr = y % 100;
     satrec.epochdays = whole_jd - jan0jd + fraction;
 
-    /* Return true as sgp4init does, satrec.error contains any error codes */
+    /* Leaving the classification as the null character is awkward. */
+    satrec.classification = 'U';  /* "Unclassified" */
 
+    /* Return true, like sgp4init does; check satrec.error for an error code */
     Py_INCREF(Py_None);
     return Py_None;
 }
