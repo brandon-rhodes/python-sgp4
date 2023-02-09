@@ -342,8 +342,6 @@ def test_satnum_alpha5_encoding():
     for satnum, satnum_string in cases:
         sat = make_sat(satnum_string)
         assert sat.satnum == satnum
-        if sys.version_info < (3,):
-            continue
         decoded = sat.satnum_str.decode('ascii')
         assert decoded == satnum_string, (
             'sat.satnum_str %r != %r' % (decoded, satnum_string))
