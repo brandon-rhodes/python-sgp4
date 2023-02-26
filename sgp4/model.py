@@ -186,7 +186,6 @@ class Satellite(object):
     """The old Satellite object, for compatibility with sgp4 1.x."""
     jdsatepochF = 0.0  # for compatibility with new Satrec; makes tests simpler
 
-    # TODO: only offer this on legacy class we no longer document
     def propagate(self, year, month=1, day=1, hour=0, minute=0, second=0.0):
         """Return a position and velocity vector for a given date and time."""
 
