@@ -342,9 +342,8 @@ def test_satnum_alpha5_encoding():
     for satnum, satnum_string in cases:
         sat = make_sat(satnum_string)
         assert sat.satnum == satnum
-        decoded = sat.satnum_str.decode('ascii')
-        assert decoded == satnum_string, (
-            'sat.satnum_str %r != %r' % (decoded, satnum_string))
+        assert sat.satnum_str == satnum_string, (
+            'sat.satnum_str %r != %r' % (sat.satnum_str, satnum_string))
 
     args = sgp4init_args(VANGUARD_ATTRS)
     for satnum, satnum_string in cases:

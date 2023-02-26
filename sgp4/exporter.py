@@ -15,14 +15,10 @@ _xpdotp = 1440.0 / (2.0 * pi)  # 229.1831180523293
 def export_tle(satrec):
     """Generate the TLE for a given `Satrec` object; returns two strings."""
 
-    satnum_str = satrec.satnum_str
-    if version_info >= (3,):
-        satnum_str = satnum_str.decode('ascii')
-
     # --------------------- Start generating line 1 ---------------------
 
     # Build the list by appending successive items
-    pieces = ['1 ', satnum_str]
+    pieces = ['1 ', satrec.satnum_str]
     append = pieces.append
 
     # Add classification code (use "U" if empty)
@@ -61,7 +57,7 @@ def export_tle(satrec):
     # --------------------- Start generating line 2 ---------------------
 
     # Reset the str array
-    pieces = ['2 ', satnum_str]
+    pieces = ['2 ', satrec.satnum_str]
     append = pieces.append
 
     # Add the inclination (deg)

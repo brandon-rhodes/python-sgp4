@@ -453,7 +453,7 @@ get_satnum(SatrecObject *self, void *closure)
 static PyObject *
 get_satnum_str(SatrecObject *self, void *closure)
 {
-    return PyBytes_FromString(self->satrec.satnum);
+    return PyUnicode_FromString(self->satrec.satnum);
 }
 
 static PyGetSetDef Satrec_getset[] = {
