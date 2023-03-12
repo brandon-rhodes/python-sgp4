@@ -357,8 +357,8 @@ first code example above:
 ...     25544,                # satnum: Satellite number
 ...     25545.69339541,       # epoch: days since 1949 December 31 00:00 UT
 ...     3.8792e-05,           # bstar: drag coefficient (1/earth radii)
-...     0.0,                  # ndot: ballistic coefficient (revs/day)
-...     0.0,                  # nddot: mean motion 2nd derivative (revs/day^3)
+...     0.0,                  # ndot: ballistic coefficient (radians/minute^2)
+...     0.0,                  # nddot: mean motion 2nd derivative (radians/minute^3)
 ...     0.0007417,            # ecco: eccentricity
 ...     0.3083420829620822,   # argpo: argument of perigee (radians)
 ...     0.9013560935706996,   # inclo: inclination (radians)
