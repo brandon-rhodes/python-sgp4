@@ -21,12 +21,12 @@ except ImportError:
 
 import numpy as np
 
-from sgp4.api import WGS72OLD, WGS72, WGS84, Satrec, jday, accelerated
+from sgp4.api import WGS72OLD, WGS72, WGS84, Satrec, jday
 from sgp4.earth_gravity import wgs72
 from sgp4.ext import invjday, newtonnu, rv2coe
 from sgp4.functions import days2mdhms, _day_of_year_to_month_day
 from sgp4.propagation import sgp4, sgp4init
-from sgp4 import conveniences, io, omm
+from sgp4 import api, conveniences, io, omm
 from sgp4.exporter import export_omm, export_tle
 import sgp4.model as model
 
@@ -284,7 +284,7 @@ def test_all_three_gravity_models_with_sgp4init():
 
 GRAVITY_DIGITS = (
     # Why don't Python and C agree more closely?
-    4 if not accelerated
+    4 if not api.accelerated
 
     # Otherwise, try 10 digits.  Note that at least 6 digits past the
     # decimal point are necessary to let the test distinguish between
@@ -848,13 +848,16 @@ def load_tests(loader, tests, ignore):
     # breaks the doctest, so we only run the doctest on later versions.
     if sys.version_info >= (2, 7):
 
-        def setCwd(suite):
+        def setUp(suite):
             suite.olddir = os.getcwd()
             os.chdir(os.path.dirname(__file__))
-        def restoreCwd(suite):
+            suite.oldaccel = api.accelerated
+            api.accelerated = True  # so doctest passes under 2.7
+        def tearDown(suite):
             os.chdir(suite.olddir)
+            api.accelerated = suite.oldaccel
 
-        options = dict(optionflags=ELLIPSIS, setUp=setCwd, tearDown=restoreCwd)
+        options = dict(optionflags=ELLIPSIS, setUp=setUp, tearDown=tearDown)
         tests.addTests(DocTestSuite('sgp4', **options))
         tests.addTests(DocTestSuite('sgp4.conveniences', **options))
         tests.addTests(DocTestSuite('sgp4.functions', **options))

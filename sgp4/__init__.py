@@ -36,10 +36,18 @@ documentation).
 Usage
 -----
 
+You will probably first want to to check whether your machine has
+successfully installed the fast SGP4 C++ code, or is using the slow
+Python version (in which case this value will be false):
+
+>>> from sgp4.api import accelerated
+>>> print(accelerated)
+True
+
 This library uses the same function names as the official C++ code, to
-help users who may already be familiar with SGP4 in other languages.
-Here is how to compute the x,y,z position and velocity for the
-International Space Station at 12:50:19 on 29 June 2000:
+help users who are already familiar with SGP4 in other languages.  Here
+is how to compute the x,y,z position and velocity for the International
+Space Station at 12:50:19 on 29 June 2000:
 
 >>> from sgp4.api import Satrec
 >>>
@@ -221,8 +229,18 @@ datetime.datetime(2019, 12, 9, 16, 38, 29, 363423, tzinfo=UTC)
 Array Acceleration
 ------------------
 
-To avoid the expense of Python loops when you have many dates, you can
-pass them as arrays to another method that understands NumPy:
+To avoid the expense of running a Python loop when you have many dates
+and times for which you want a position, you can pass your Julian dates
+as arrays.  The array routine is only faster if your machine has
+successfully installed or compiled the SGP4 C++ code, so you might want
+to check first:
+
+>>> from sgp4.api import accelerated
+>>> print(accelerated)
+True
+
+To call the array routine, make NumPy arrays for ``jd`` and ``fr`` that
+are the same length:
 
 >>> import numpy as np
 >>> np.set_printoptions(precision=2)
