@@ -471,6 +471,24 @@ def test_december_32():
     sat = Satrec.twoline2rv(a, b)
     assertEqual(conveniences.sat_epoch_datetime(sat), correct_epoch)
 
+def test_non_ascii_first_line():
+    if sys.version_info < (3,):
+        return
+    with assertRaisesRegex(ValueError, re.escape("""your TLE lines are broken because they contain non-ASCII characters:
+
+1 00005U 58002B   00179.78495062  .00000023\\xa0 00000-0  28098-4 0  4753
+2 00005  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413667""")):
+        io.twoline2rv(LINE1.replace('23 ', '23\xa0'), LINE2, wgs72)
+
+def test_non_ascii_second_line():
+    if sys.version_info < (3,):
+        return
+    with assertRaisesRegex(ValueError, re.escape("""your TLE lines are broken because they contain non-ASCII characters:
+
+1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753
+2 00005 \\xa034.2682\\xa0348.7242 1859667 331.7664  19.3264 10.82419157413667\
+""")):
+        io.twoline2rv(LINE1, LINE2.replace(' 34', '\xa034'), wgs72)
 
 def test_bad_first_line():
     with assertRaisesRegex(ValueError, re.escape("""TLE format error

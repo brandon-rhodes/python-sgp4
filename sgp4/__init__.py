@@ -109,15 +109,30 @@ compute ``jd`` and ``fr`` from calendar dates using ``jday()``.
 >>> fr
 0.5
 
-OMM
----
+Double-checking your TLE lines
+------------------------------
 
-The industry is making adjustments because the fixed-width TLE format
+Because TLE is an old punch-card fixed-width format, it’s very sensitive
+to whether exactly the right number of spaces are positioned in exactly
+the right columns.  If you suspect that your satellite elements aren’t
+getting loaded correctly, try calling the slow pure-Python version of
+``twoline2rv()``, which performs extra checks that the fast C++ doesn’t:
+
+>>> from sgp4.earth_gravity import wgs72
+>>> from sgp4.io import twoline2rv
+>>> assert twoline2rv(s, t, wgs72)
+
+Any TLE formatting errors will be raised as a ``ValueError``.
+
+Using OMM elements instead of TLE
+---------------------------------
+
+The industry is migrating away from the original TLE format, because it
 will soon run out of satellite numbers.
 
 * Some TLE files now use a new “Alpha-5” convention that expands the
   range of satellite numbers by using an initial letter; for example,
-  “E8493” means satellite 148493.  This library now supports the Alpha-5
+  “E8493” means satellite 148493.  This library supports the Alpha-5
   convention and should return the correct integer in Python.
 
 * Some authorities are now distributing satellite elements in an “OMM”
@@ -591,6 +606,10 @@ Changelog
 * Added ``satnum_str`` attribute, exposing the fact that the C++ now
   stores the satellite number as a string; and check that ``satnum`` is
   never greater than 339999.
+
+* Enhanced the fallback Python version of ``twoline2rv()`` to verify
+  that TLE lines are ASCII, and added documentation using it to examine
+  suspect TLEs.
 
 2022-04-06 — 2.21
 

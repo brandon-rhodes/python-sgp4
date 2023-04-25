@@ -130,6 +130,15 @@ def twoline2rv(longstr1, longstr2, whichconst, opsmode='i', satrec=None):
 
     line = longstr1.rstrip()
 
+    try:
+        longstr1.encode('ascii')
+        longstr2.encode('ascii')
+    except UnicodeEncodeError:
+        r1 = repr(longstr1)[1:-1]
+        r2 = repr(longstr2)[1:-1]
+        raise ValueError('your TLE lines are broken because they contain'
+                         ' non-ASCII characters:\n\n%s\n%s' % (r1, r2))
+
     if (len(line) >= 64 and
         line.startswith('1 ') and
         line[8] == ' ' and
