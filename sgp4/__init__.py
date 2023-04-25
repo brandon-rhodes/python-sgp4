@@ -1,41 +1,37 @@
 # -*- coding: utf-8 -*-
 """Track Earth satellites given TLE data, using up-to-date 2020 SGP4 routines.
 
-This Python package computes the position and velocity of an
-earth-orbiting satellite, given the satellite's TLE orbital elements
-from a source like `CelesTrak <https://celestrak.com/>`_.  It implements
-the most recent version of SGP4, and is regularly run against the SGP4
-test suite to make sure that its satellite position predictions **agree
-to within 0.1 mm** with the predictions of the standard distribution of
-the algorithm.  This error is far less than the 1–3 km/day by which
-satellites themselves deviate from the ideal orbits described in TLE
-files.
+This package compiles the official C++ code from `Revisiting Spacetrack
+Report #3 <https://celestrak.org/publications/AIAA/2006-6753/>`_ (AIAA
+2006-6753) and uses it to compute the positions of satellites in Earth
+orbit.  Orbital elements can be read from either a legacy TLE file or
+from a modern OMM element set, both of which you can fetch from a site
+like `CelesTrak <https://celestrak.com/>`_.
 
-* If your platform supports it, this package compiles and uses the
-  verbatim source code from the official C++ version of SGP4.
+If your machine can’t install or compile the C++ code, then this package
+falls back to using a slower pure-Python implementation of SGP4.  Tests
+make sure that its positions **agree to within 0.1 mm** with the
+standard version of the algorithm — an error far less than the
+1–3 km/day by which satellites themselves deviate from the ideal orbits
+described in TLE files.
 
-* Otherwise, a slower but reliable Python implementation of SGP4 is used
-  instead.
-
-* If, instead of asking for the position of a single satellite at a
-  single time, you supply this library with an array of satellites and
-  an array of times, then the arrays can be processed using machine code
-  instead of requiring you to run a slow Python loop over them.
+An accelerated routine is available that, given a series of times and of
+satellites, computes a whole array of output positions using a fast C++
+loop.  See the “Array Acceleration” section below.
 
 Note that the SGP4 propagator returns raw *x,y,z* Cartesian coordinates
 in a “True Equator Mean Equinox” (TEME) reference frame that’s centered
 on the Earth but does not rotate with it — an “Earth centered inertial”
 (ECI) reference frame.  The SGP4 propagator itself does not implement
 the math to convert these positions into more official ECI frames like
-J2000 or the ICRF; nor to convert positions into any Earth-centered
-Earth-fixed (ECEF) frames like the ITRS; nor to convert them to
-latitudes and longitudes through an Earth ellipsoid like WGS84.
-
-For conversions into other coordinate frames, look for a comprehensive
-astronomy library that is built atop this one, like the `Skyfield
-<https://rhodesmill.org/skyfield/>`_ library:
-
-https://rhodesmill.org/skyfield/earth-satellites.html
+J2000 or the ICRS, nor into any Earth-centered Earth-fixed (ECEF) frames
+like the ITRS, nor into latitudes and longitudes through an Earth
+ellipsoid like WGS84.  For conversions into these other coordinate
+frames, look for a comprehensive astronomy library, like the `Skyfield
+<https://rhodesmill.org/skyfield/>`_ library that is built atop this one
+(see the `section on Earth satellites
+<https://rhodesmill.org/skyfield/earth-satellites.html>`_ in its
+documentation).
 
 Usage
 -----
