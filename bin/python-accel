@@ -6,6 +6,6 @@
 HERE="$(readlink -f $(dirname "${BASH_SOURCE[0]}"))"
 mv $HERE/../sgp4 $HERE/../sgp4.tmp
 $HERE/../.tox/py38/bin/python "$@"
-mv $HERE/../sgp4.tmp $HERE/../sgp4
 CODE=$?
+mv $HERE/../sgp4.tmp $HERE/../sgp4
 exit $CODE
