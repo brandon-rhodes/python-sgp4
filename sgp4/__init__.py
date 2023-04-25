@@ -586,6 +586,12 @@ https://pypi.org/project/sgp4/1.4/
 Changelog
 ---------
 
+2023-?-? — 2.22
+
+* Added ``satnum_str`` attribute, exposing the fact that the C++ now
+  stores the satellite number as a string; and check that ``satnum`` is
+  never greater than 339999.
+
 2022-04-06 — 2.21
 
 * Added ``dump_satrec()`` to the ``sgp4.conveniences`` module.
@@ -631,7 +637,6 @@ Changelog
   ``sgp4init()`` method can’t set them with full floating point
   precision.
 
-| 2023-?-? — 2.18 — Added ``satnum_str`` attribute, exposing the fact that the C++ now stores the satellite number as a string; and check that ``satnum`` is never greater than 339999.
 | 2021-02-17 — 2.17 — Fixed where in the output array the ``sgp4_array()`` method writes NaN values when an SGP4 propagation fails.
 | 2021-02-12 — 2.16 — Fixed ``days2mdhms()`` rounding to always match TLE epoch.
 | 2021-01-08 — 2.15 — Fixed parsing of the ``satnum`` TLE field in the Python fallback code, when the field has a leading space; added OMM export routine.
