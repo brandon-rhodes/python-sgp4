@@ -757,36 +757,46 @@ VANGUARD 1              \n\
 2 00005  34.2443 225.5254 1845686 162.2516 205.2356 10.84869164218149
 """
 
-# https://celestrak.com/NORAD/elements/gp.php?CATNR=00005&FORMAT=XML
-VANGUARD_XML = """\
+# The MARIO satellite was chosen by reading through stations.txt looking
+# for an element set with every field nonzero, since a zero in any field
+# would hide errors in our unit conversion: zero times any conversion
+# factor is zero.
+MARIO_TLE = """\
+MARIO                   \n\
+1 55123U 98067UQ  23115.44827133  .00787702  29408-3  15680-2 0  9999
+2 55123  51.6242 216.2930 0014649 331.8976  28.1241 15.99081912 18396
+"""
+
+# https://celestrak.org/NORAD/elements/gp.php?CATNR=55123&FORMAT=XML
+MARIO_XML = """\
 <?xml version="1.0" encoding="UTF-8"?>
-<ndm xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://sanaregistry.org/r/ndmxml/ndmxml-1.0-master.xsd">
+<ndm xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://sanaregistry.org/r/ndmxml_unqualified/ndmxml-2.0.0-master-2.0.xsd">
 <omm id="CCSDS_OMM_VERS" version="2.0">
-<header><CREATION_DATE/><ORIGINATOR/></header><body><segment><metadata><OBJECT_NAME>VANGUARD 1</OBJECT_NAME><OBJECT_ID>1958-002B</OBJECT_ID><CENTER_NAME>EARTH</CENTER_NAME><REF_FRAME>TEME</REF_FRAME><TIME_SYSTEM>UTC</TIME_SYSTEM><MEAN_ELEMENT_THEORY>SGP4</MEAN_ELEMENT_THEORY></metadata><data><meanElements><EPOCH>2020-10-13T04:52:48.472320</EPOCH><MEAN_MOTION>10.84869164</MEAN_MOTION><ECCENTRICITY>.1845686</ECCENTRICITY><INCLINATION>34.2443</INCLINATION><RA_OF_ASC_NODE>225.5254</RA_OF_ASC_NODE><ARG_OF_PERICENTER>162.2516</ARG_OF_PERICENTER><MEAN_ANOMALY>205.2356</MEAN_ANOMALY></meanElements><tleParameters><EPHEMERIS_TYPE>0</EPHEMERIS_TYPE><CLASSIFICATION_TYPE>U</CLASSIFICATION_TYPE><NORAD_CAT_ID>5</NORAD_CAT_ID><ELEMENT_SET_NO>999</ELEMENT_SET_NO><REV_AT_EPOCH>21814</REV_AT_EPOCH><BSTAR>-.22483E-4</BSTAR><MEAN_MOTION_DOT>-1.6E-7</MEAN_MOTION_DOT><MEAN_MOTION_DDOT>0</MEAN_MOTION_DDOT></tleParameters></data></segment></body></omm>
+<header><CREATION_DATE/><ORIGINATOR/></header><body><segment><metadata><OBJECT_NAME>MARIO</OBJECT_NAME><OBJECT_ID>1998-067UQ</OBJECT_ID><CENTER_NAME>EARTH</CENTER_NAME><REF_FRAME>TEME</REF_FRAME><TIME_SYSTEM>UTC</TIME_SYSTEM><MEAN_ELEMENT_THEORY>SGP4</MEAN_ELEMENT_THEORY></metadata><data><meanElements><EPOCH>2023-04-25T10:45:30.642912</EPOCH><MEAN_MOTION>15.99081912</MEAN_MOTION><ECCENTRICITY>.0014649</ECCENTRICITY><INCLINATION>51.6242</INCLINATION><RA_OF_ASC_NODE>216.2930</RA_OF_ASC_NODE><ARG_OF_PERICENTER>331.8976</ARG_OF_PERICENTER><MEAN_ANOMALY>28.1241</MEAN_ANOMALY></meanElements><tleParameters><EPHEMERIS_TYPE>0</EPHEMERIS_TYPE><CLASSIFICATION_TYPE>U</CLASSIFICATION_TYPE><NORAD_CAT_ID>55123</NORAD_CAT_ID><ELEMENT_SET_NO>999</ELEMENT_SET_NO><REV_AT_EPOCH>1839</REV_AT_EPOCH><BSTAR>.1568E-2</BSTAR><MEAN_MOTION_DOT>.787702E-2</MEAN_MOTION_DOT><MEAN_MOTION_DDOT>.29408E-3</MEAN_MOTION_DDOT></tleParameters></data></segment></body></omm>
 </ndm>
 """
 
-# https://celestrak.com/NORAD/elements/gp.php?CATNR=00005&FORMAT=CSV
-VANGUARD_CSV = """\
+# https://celestrak.com/NORAD/elements/gp.php?CATNR=55123&FORMAT=CSV
+MARIO_CSV = """\
 OBJECT_NAME,OBJECT_ID,EPOCH,MEAN_MOTION,ECCENTRICITY,INCLINATION,RA_OF_ASC_NODE,ARG_OF_PERICENTER,MEAN_ANOMALY,EPHEMERIS_TYPE,CLASSIFICATION_TYPE,NORAD_CAT_ID,ELEMENT_SET_NO,REV_AT_EPOCH,BSTAR,MEAN_MOTION_DOT,MEAN_MOTION_DDOT
-VANGUARD 1,1958-002B,2020-10-13T04:52:48.472320,10.84869164,.1845686,34.2443,225.5254,162.2516,205.2356,0,U,5,999,21814,-.22483E-4,-1.6E-7,0
+MARIO,1998-067UQ,2023-04-25T10:45:30.642912,15.99081912,.0014649,51.6242,216.2930,331.8976,28.1241,0,U,55123,999,1839,.1568E-2,.787702E-2,.29408E-3
 """
 
 def test_omm_xml_matches_old_tle():
-    line0, line1, line2 = VANGUARD_TLE.splitlines()
+    line0, line1, line2 = MARIO_TLE.splitlines()
     sat1 = Satrec.twoline2rv(line1, line2)
 
-    fields = next(omm.parse_xml(StringIO(VANGUARD_XML)))
+    fields = next(omm.parse_xml(StringIO(MARIO_XML)))
     sat2 = Satrec()
     omm.initialize(sat2, fields)
 
     assert_satellites_match(sat1, sat2)
 
 def test_omm_csv_matches_old_tle():
-    line0, line1, line2 = VANGUARD_TLE.splitlines()
+    line0, line1, line2 = MARIO_TLE.splitlines()
     sat1 = Satrec.twoline2rv(line1, line2)
 
-    fields = next(omm.parse_csv(StringIO(VANGUARD_CSV)))
+    fields = next(omm.parse_csv(StringIO(MARIO_CSV)))
     sat2 = Satrec()
     omm.initialize(sat2, fields)
 
