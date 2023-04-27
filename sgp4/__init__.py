@@ -615,7 +615,7 @@ https://pypi.org/project/sgp4/1.4/
 Changelog
 ---------
 
-2023-?-? — 2.22
+2023-04-27 — 2.22
 
 * Added a ``satnum_str`` attribute, exposing the fact that the C++ now
   stores the satellite number as a string; and check that ``satnum`` is
@@ -702,4 +702,4 @@ Changelog
 | 2012-08-27 — 1.0 — Initial release
 
 """
-__version__ = '2.21'
+__version__ = '2.22'
