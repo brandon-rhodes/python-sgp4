@@ -617,7 +617,7 @@ Changelog
 
 2023-?-? — 2.22
 
-* Added ``satnum_str`` attribute, exposing the fact that the C++ now
+* Added a ``satnum_str`` attribute, exposing the fact that the C++ now
   stores the satellite number as a string; and check that ``satnum`` is
   never greater than 339999.
 

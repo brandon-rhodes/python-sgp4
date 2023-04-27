@@ -390,8 +390,8 @@ def test_setters():
     sat.classification = 'S'
     assert sat.classification == 'S'
 
-    sat.intldesg = 'Russian'
-    assert sat.intldesg == 'Russian'
+    sat.intldesg = 'abcdefg'
+    assert sat.intldesg == 'abcdefg'
 
     sat.ephtype = 23
     assert sat.ephtype == 23
@@ -401,6 +401,9 @@ def test_setters():
 
     sat.revnum = 1234
     assert sat.revnum == 1234
+
+    sat.satnum_str = 'abcde'
+    assert sat.satnum_str == 'abcde'
 
 def test_hyperbolic_orbit():
     # Exercise the newtonnu() code path with asinh() to see whether

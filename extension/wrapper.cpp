@@ -299,9 +299,6 @@ static PyMethodDef Satrec_methods[] = {
 static PyMemberDef Satrec_members[] = {
     /* Listed in the order they appear in a TLE record. */
 
-    {"satnum_str", T_STRING_INPLACE, O(satnum), 0,
-     PyDoc_STR("Satellite number from characters 3-7 of each TLE line,"
-               " as a string.")},
     {"operationmode", T_CHAR, O(operationmode), READONLY,
      PyDoc_STR("Operation mode: 'a' legacy AFSPC, or 'i' improved.")},
     {"jdsatepoch", T_DOUBLE, O(jdsatepoch), 0,
@@ -428,12 +425,11 @@ get_intldesg(SatrecObject *self, void *closure)
 static int
 set_intldesg(SatrecObject *self, PyObject *value, void *closure)
 {
-    if (!PyUnicode_Check(value))
-        return -1;
     const char *s = PyUnicode_AsUTF8(value);
     if (!s)
         return -1;
-    strncpy(self->satrec.intldesg, s, 11);
+    strncpy(self->satrec.intldesg, s, 10);
+    self->satrec.intldesg[10] = '\0';
     return 0;
 }
 
@@ -456,6 +452,23 @@ get_satnum(SatrecObject *self, void *closure)
     return PyLong_FromLong(n);
 }
 
+static PyObject *
+get_satnum_str(SatrecObject *self, void *closure)
+{
+    return PyUnicode_FromString(self->satrec.satnum);
+}
+
+static int
+set_satnum_str(SatrecObject *self, PyObject *value, void *closure)
+{
+    const char *s = PyUnicode_AsUTF8(value);
+    if (!s)
+        return -1;
+    strncpy(self->satrec.satnum, s, 5);
+    self->satrec.satnum[5] = '\0';
+    return 0;
+}
+
 static PyGetSetDef Satrec_getset[] = {
     {"intldesg", (getter)get_intldesg, (setter)set_intldesg,
      PyDoc_STR("International Designator: a string of up to 7 characters"
@@ -465,6 +478,9 @@ static PyGetSetDef Satrec_getset[] = {
     {"satnum", (getter)get_satnum, NULL,
      PyDoc_STR("Satellite number from characters 3-7 of each TLE line,"
                " as an integer.")},
+    {"satnum_str", (getter)get_satnum_str, (setter)set_satnum_str,
+     PyDoc_STR("Satellite number from characters 3-7 of each TLE line,"
+               " as a string.")},
     {NULL},
 };
 
