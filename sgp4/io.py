@@ -6,7 +6,6 @@ This is a minimally-edited copy of "sgp4io.cpp".
 import re
 from datetime import datetime
 from math import pi, pow
-from sgp4.alpha5 import from_alpha5
 from sgp4.ext import days2mdhms, invjday, jday
 from sgp4.propagation import sgp4init
 

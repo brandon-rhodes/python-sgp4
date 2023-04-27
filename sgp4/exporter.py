@@ -3,7 +3,6 @@
 Contributed by Egemen Imre https://github.com/egemenimre
 
 """
-from sys import version_info
 from math import pi
 from sgp4.io import compute_checksum
 from sgp4.conveniences import sat_epoch_datetime

@@ -6,7 +6,6 @@ except:
     from unittest import TestCase, main
 
 import datetime as dt
-import platform
 import re
 import os
 import sys
