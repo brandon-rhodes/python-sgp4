@@ -1,5 +1,6 @@
 """The Satellite class."""
 
+from sgp4.alpha5 import from_alpha5
 from sgp4.earth_gravity import wgs72old, wgs72, wgs84
 from sgp4.ext import invjday, jday
 from sgp4.io import twoline2rv
@@ -30,8 +31,7 @@ class Satrec(object):
         'j2', 'j3', 'j3oj2', 'j4', 'jdsatepoch', 'mdot', 'method', 'mm', 'mo',
         'mu', 'nddot', 'ndot', 'nm', 'no_kozai', 'no_unkozai', 'nodecf',
         'nodedot', 'nodeo', 'om', 'omgcof', 'operationmode', 'peo', 'pgho',
-        'pho', 'pinco', 'plo', 'radiusearthkm', 'revnum', 'satnum',
-        'satnum_str', 'se2',
+        'pho', 'pinco', 'plo', 'radiusearthkm', 'revnum', 'satnum_str', 'se2',
         'se3', 'sgh2', 'sgh3', 'sgh4', 'sh2', 'sh3', 'si2', 'si3', 'sinmao',
         'sl2', 'sl3', 'sl4', 't', 't2cof', 't3cof', 't4cof', 't5cof', 'tumin',
         'x1mth2', 'x7thm1', 'xfact', 'xgh2', 'xgh3', 'xgh4',
@@ -45,6 +45,10 @@ class Satrec(object):
     @property
     def no(self):
         return self.no_kozai
+
+    @property
+    def satnum(self):
+        return from_alpha5(self.satnum_str)
 
     @classmethod
     def twoline2rv(cls, line1, line2, whichconst=WGS72):
@@ -194,7 +198,5 @@ class Satellite(object):
         r, v = sgp4(self, m)
         return r, v
 
-    @property
-    def no(self):
-        """Support renamed attribute for any code still using the old name."""
-        return self.no_kozai
+    no = Satrec.no
+    satnum = Satrec.satnum

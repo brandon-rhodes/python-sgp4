@@ -150,7 +150,7 @@ def twoline2rv(longstr1, longstr2, whichconst, opsmode='i', satrec=None):
         line[61] == ' ' and
         line[63] == ' '):
 
-        _saved_satnum = satrec.satnum = from_alpha5(line[2:7])
+        satrec.satnum_str = line[2:7]
         satrec.classification = line[7] or 'U'
         satrec.intldesg = line[9:17].rstrip()
         two_digit_year = int(line[18:20])
@@ -180,8 +180,7 @@ def twoline2rv(longstr1, longstr2, whichconst, opsmode='i', satrec=None):
         line[46] == '.' and
         line[51] == ' '):
 
-        satrec.satnum = from_alpha5(line[2:7])
-        if _saved_satnum != satrec.satnum:
+        if satrec.satnum_str != line[2:7]:
             raise ValueError('Object numbers in lines 1 and 2 do not match')
 
         satrec.inclo = float(line[8:16])
@@ -242,7 +241,7 @@ def twoline2rv(longstr1, longstr2, whichconst, opsmode='i', satrec=None):
                                 int(sec_fraction * 1000000.0 // 1.0))
 
     #  ---------------- initialize the orbit at sgp4epoch -------------------
-    sgp4init(whichconst, opsmode, satrec.satnum, satrec.jdsatepoch-2433281.5, satrec.bstar,
+    sgp4init(whichconst, opsmode, satrec.satnum_str, satrec.jdsatepoch-2433281.5, satrec.bstar,
              satrec.ndot, satrec.nddot, satrec.ecco, satrec.argpo, satrec.inclo, satrec.mo,
              satrec.no_kozai, satrec.nodeo, satrec)
 

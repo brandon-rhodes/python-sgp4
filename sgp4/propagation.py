@@ -1341,14 +1341,15 @@ def sgp4init(
 
  	 # -------------------------------------------------------------------------
 
-     if (satn > 339999):
-         raise ValueError('satellite number cannot exceed 339999,'
-                          " whose Alpha 5 encoding is 'Z9999'")
+     # The SGP4 library has changed `satn` from an integer to a string.
+     # But to avoid breaking our API contract with existing Python code,
+     # we are still willing to accept an integer.
+     if isinstance(satn, int):
+          satn = to_alpha5(satn)
 
      satrec.error = 0;
      satrec.operationmode = opsmode;
-     satrec.satnum = satn;
-     satrec.satnum_str = to_alpha5(satn);
+     satrec.satnum_str = satn;
      satrec.classification = 'U'  # so attribute is not missing in Python
 
      """

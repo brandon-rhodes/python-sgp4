@@ -46,6 +46,7 @@ BAD2  = '2 00007  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413669'
 VANGUARD_ATTRS = {
     # Identity
     'satnum': 5,
+    'satnum_str': '00005',
     'classification': 'U',
     'operationmode': 'i',
     # Time

@@ -299,6 +299,9 @@ static PyMethodDef Satrec_methods[] = {
 static PyMemberDef Satrec_members[] = {
     /* Listed in the order they appear in a TLE record. */
 
+    {"satnum_str", T_STRING_INPLACE, O(satnum), 0,
+     PyDoc_STR("Satellite number from characters 3-7 of each TLE line,"
+               " as a string.")},
     {"operationmode", T_CHAR, O(operationmode), READONLY,
      PyDoc_STR("Operation mode: 'a' legacy AFSPC, or 'i' improved.")},
     {"jdsatepoch", T_DOUBLE, O(jdsatepoch), 0,
@@ -434,6 +437,9 @@ set_intldesg(SatrecObject *self, PyObject *value, void *closure)
     return 0;
 }
 
+/* The official TLE code has switched `satnum` to a string, but to avoid
+   a breaking change we make the string available as `satnum_str` and
+   still return an integer for `satnum`. */
 static PyObject *
 get_satnum(SatrecObject *self, void *closure)
 {
@@ -450,12 +456,6 @@ get_satnum(SatrecObject *self, void *closure)
     return PyLong_FromLong(n);
 }
 
-static PyObject *
-get_satnum_str(SatrecObject *self, void *closure)
-{
-    return PyUnicode_FromString(self->satrec.satnum);
-}
-
 static PyGetSetDef Satrec_getset[] = {
     {"intldesg", (getter)get_intldesg, (setter)set_intldesg,
      PyDoc_STR("International Designator: a string of up to 7 characters"
@@ -463,9 +463,8 @@ static PyGetSetDef Satrec_getset[] = {
                " two digits for the launch year, a 3-digit launch number,"
                " and one or two letters for which piece of the launch.")},
     {"satnum", (getter)get_satnum, NULL,
-     PyDoc_STR("Satellite number, from characters 3-7 of each TLE line.")},
-    {"satnum_str", (getter)get_satnum_str, NULL,
-     PyDoc_STR("String used internally to store the satellite number.")},
+     PyDoc_STR("Satellite number from characters 3-7 of each TLE line,"
+               " as an integer.")},
     {NULL},
 };
 

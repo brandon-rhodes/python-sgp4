@@ -429,8 +429,8 @@ underlying C++ SGP4 record.  They fall into the following categories.
 These are copied directly from the TLE record but aren’t used by the
 propagation math.
 
-| ``satnum`` — Unique number assigned to the satellite.
-| ``satnum_str`` — String used internally to store the ``satnum``.
+| ``satnum_str`` — Satellite number, as a 5-character string.
+| ``satnum`` — Satellite number, converted to an integer.
 | ``classification`` — ``'U'``, ``'C'``, or ``'S'``
   indicating the element set is Unclassified, Classified, or Secret.
 | ``ephtype`` — Integer “ephemeris type”, used internally by space
