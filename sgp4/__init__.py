@@ -621,9 +621,16 @@ Changelog
   stores the satellite number as a string; and check that ``satnum`` is
   never greater than 339999.
 
+* Fixed the units of the ``nddot`` attribute when the value is loaded
+  from an OMM record.  (Since the TLE computation itself ignores this
+  attribute, this did not affect any satellite positions.)
+
 * Enhanced the fallback Python version of ``twoline2rv()`` to verify
-  that TLE lines are ASCII, and added documentation using it to examine
-  suspect TLEs.
+  that TLE lines are ASCII, and added documentation using it to
+  double-check TLEs that might suffer from non-ASCII characters.
+
+* If the user doesn’t set a satellite’s ``classification``, it now
+  defaults to ``'U'`` for ‘unclassified’.
 
 2022-04-06 — 2.21
 
