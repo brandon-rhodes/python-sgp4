@@ -2143,6 +2143,7 @@ namespace SGP4Funcs
 	*    included at the end of the second line of data. this only works with the
 	*    verification mode. the catalog mode simply propagates from -1440 to 1440 min
 	*    from epoch and is useful when performing entire catalog runs.
+	*    update for alpha 5 numbering system. 4 mar 2021.
 	*
 	*  author        : david vallado                  719-573-2600    1 mar 2001
 	*
@@ -2302,6 +2303,7 @@ namespace SGP4Funcs
 		// ---- find no, ndot, nddot ----
 		satrec.no_kozai = satrec.no_kozai / xpdotp; //* rad/min
 		satrec.nddot = satrec.nddot * pow(10.0, nexp);
+		// could multiply by 0.00001, but implied decimal is set in the longstr1 above
 		satrec.bstar = satrec.bstar * pow(10.0, ibexp);
 
 		// ---- convert to sgp4 units ----

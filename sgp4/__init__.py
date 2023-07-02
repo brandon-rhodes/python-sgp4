@@ -2,11 +2,16 @@
 """Track Earth satellites given TLE data, using up-to-date 2020 SGP4 routines.
 
 This package compiles the official C++ code from `Revisiting Spacetrack
-Report #3 <https://celestrak.org/publications/AIAA/2006-6753/>`_ (AIAA
-2006-6753) and uses it to compute the positions of satellites in Earth
-orbit.  Orbital elements can be read from either a legacy TLE file or
-from a modern OMM element set, both of which you can fetch from a site
-like `CelesTrak <https://celestrak.com/>`_.
+Report #3`_ (AIAA 2006-6753) — specifically, the 2023 May 09 release
+from David Vallado’s `Fundamentals of Astrodynamics and Applications`_
+webpage — and uses it to compute the positions of satellites in Earth
+orbit.  Satellite orbital elements can be loaded from either a legacy
+TLE file or from a modern OMM element set, both of which you can fetch
+from a site like `CelesTrak <https://celestrak.com/>`_.
+
+.. _Revisiting Spacetrack Report #3: https://celestrak.org/publications/AIAA/2006-6753/
+
+.. _Fundamentals of Astrodynamics and Applications: https://celestrak.org/software/vallado-sw.php
 
 If your machine can’t install or compile the C++ code, then this package
 falls back to using a slower pure-Python implementation of SGP4.  Tests
