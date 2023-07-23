@@ -52,7 +52,7 @@ True
 This library uses the same function names as the official C++ code, to
 help users who are already familiar with SGP4 in other languages.  Here
 is how to compute the x,y,z position and velocity for the International
-Space Station at 12:50:19 on 29 June 2000:
+Space Station at 20:42:00 on 2019 December 9:
 
 >>> from sgp4.api import Satrec
 >>>
@@ -60,14 +60,14 @@ Space Station at 12:50:19 on 29 June 2000:
 >>> t = '2 25544  51.6439 211.2001 0007417  17.6667  85.6398 15.50103472202482'
 >>> satellite = Satrec.twoline2rv(s, t)
 >>>
->>> jd, fr = 2458827, 0.362605
+>>> jd, fr = 2458826.5, 0.8625
 >>> e, r, v = satellite.sgp4(jd, fr)
 >>> e
 0
 >>> print(r)  # True Equator Mean Equinox position (km)
-(-6102.44..., -986.33..., -2820.31...)
+(-6088.92..., -936.13..., -2866.44...)
 >>> print(v)  # True Equator Mean Equinox velocity (km/s)
-(-1.45..., -5.52..., 5.10...)
+(-1.525..., -5.538..., 5.068...)
 
 As input, you can provide either:
 
@@ -112,11 +112,11 @@ If your application does not natively handle Julian dates, you can
 compute ``jd`` and ``fr`` from calendar dates using ``jday()``.
 
 >>> from sgp4.api import jday
->>> jd, fr = jday(2019, 12, 9, 12, 0, 0)
+>>> jd, fr = jday(2019, 12, 9, 20, 42, 0)
 >>> jd
 2458826.5
 >>> fr
-0.5
+0.8625
 
 Double-checking your TLE lines
 ------------------------------
