@@ -620,6 +620,10 @@ https://pypi.org/project/sgp4/1.4/
 Changelog
 ---------
 
+2023-10-01 — 2.23
+
+* Tweaked tests to resolve breakage introduced by Python 3.12.
+
 2023-04-27 — 2.22
 
 * Added a ``satnum_str`` attribute, exposing the fact that the C++ now
@@ -707,4 +711,4 @@ Changelog
 | 2012-08-27 — 1.0 — Initial release
 
 """
-__version__ = '2.22'
+__version__ = '2.23'

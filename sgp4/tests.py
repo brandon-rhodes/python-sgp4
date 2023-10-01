@@ -34,8 +34,10 @@ _testcase.maxDiff = 9999
 assertEqual = _testcase.assertEqual
 assertAlmostEqual = _testcase.assertAlmostEqual
 assertRaises = _testcase.assertRaises
-assertRaisesRegex = getattr(_testcase, 'assertRaisesRegex',
-                            _testcase.assertRaisesRegexp)
+try:
+    assertRaisesRegex = _testcase.assertRaisesRegex
+except AttributeError:
+    assertRaisesRegex = _testcase.assertRaisesRegexp
 
 error = 2e-7
 rad = 180.0 / pi
