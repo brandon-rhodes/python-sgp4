@@ -43,8 +43,8 @@ jobs:
 
   build_test_dist:
     # Build the distribution in a matrix. Jobs are done in parallel.
-    # The formal distro which is uploaded to PyPI will be build on
-    # ubuntu-latest for python 3.10, which is the recent one.
+    # The formal distro which is uploaded to PyPI will be built on
+    # ubuntu-latest for python 3.12.
     # As in dist build no compilation takes place, we run all tests
     # in not accelerated mode.
 
@@ -52,15 +52,15 @@ jobs:
     strategy:
       max-parallel: 15
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup_Python_${{ matrix.python-version }}
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -69,19 +69,17 @@ jobs:
       # installation before running the tests
 
       - name: install_deps
-        run: pip install numpy pyflakes
+        run: pip install numpy pyflakes setuptools twine
 
       - name: build_sdist
         run: python setup.py sdist
 
       - name: check_metadata
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.10'
-        run: |
-          pip install twine
-          twine check dist/*
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        run: twine check dist/*
 
       - name: upload_sdist
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.10'
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
         uses: actions/upload-artifact@v3
         with:
           name: dist
@@ -102,12 +100,12 @@ jobs:
     # Building wheels for different OS, python and platform versions. This is
     # done with the help of 'cibuildwheel' package. It will run on all
     # necessary supported OS (native or emulated), each running cibuildwheel on
-    # actual python (now 3.10).
+    # python 3.12.
 
     # Reference: https://cibuildwheel.readthedocs.io/en/stable/
     # OS: Windows, Linux, macOS (x64 and M1), ARM64
-    # Python: versions 3.7 - 3.10 in testing
-    # Python: versions 3.6 - 3.10 in build wheels
+    # Python: versions 3.7 - 3.12 in testing
+    # Python: versions 3.7 - 3.12 in build wheels
     # As all build wheels are installed after build, the tests run in
     # accelerated mode only.
 
@@ -118,24 +116,25 @@ jobs:
       max-parallel: 4
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
-        python-version: ['3.10']
+        python-version: ['3.12']
         include:
           - os: ubuntu-20.04
             cibw_archs: "aarch64"
+            python-version: '3.12'
 
     steps:
       # Using QEMU for aarch64 emulation
       - name: setup QEMU
         if: matrix.cibw_archs == 'aarch64'
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64
 
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup_Python_${{ matrix.python-version }}
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -143,28 +142,52 @@ jobs:
         run: python -m pip install cibuildwheel
 
       # unfortunately actions do not have an else statement
-      - name: build_test_aarch64
+      # and I have to split builds due to numpy pinning
+      - name: build_test_aarch64_until_p39
         if: matrix.cibw_archs == 'aarch64'
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_ARCHS_LINUX: "aarch64"
           CIBW_SKIP: '*-musllinux_*'
-          CIBW_BUILD: "cp3*"
+          CIBW_BUILD: "cp37-* cp38-* cp39-*"
           CIBW_BUILD_VERBOSITY: 0
-          CIBW_TEST_REQUIRES: numpy
+          CIBW_TEST_REQUIRES: numpy==1.21.1
           CIBW_TEST_COMMAND: python -m sgp4.tests
 
-      # unfortunately actions do not have an else statement
-      - name: build_test_normal
+      - name: build_test_normal_until_p39
         if: matrix.cibw_archs != 'aarch64'
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_ARCHS_MACOS: "x86_64 universal2 arm64"
           CIBW_ARCHS_LINUX: "auto"
           CIBW_SKIP: '*-musllinux_*'
-          CIBW_BUILD: "cp3*"
+          CIBW_BUILD: "cp37-* cp38-* cp39-*"
           CIBW_BUILD_VERBOSITY: 0
-          CIBW_TEST_REQUIRES: numpy
+          CIBW_TEST_REQUIRES: numpy==1.21.1
+          CIBW_TEST_COMMAND: python -m sgp4.tests
+          CIBW_TEST_SKIP: "*-macosx_arm64 *-macosx_universal2:arm64"
+
+      - name: build_test_aarch64_from_p310
+        if: matrix.cibw_archs == 'aarch64'
+        run: python -m cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_ARCHS_LINUX: "aarch64"
+          CIBW_SKIP: '*-musllinux_*'
+          CIBW_BUILD: "cp310-* cp311-* cp312-*"
+          CIBW_BUILD_VERBOSITY: 0
+          CIBW_TEST_REQUIRES: numpy==1.26.1
+          CIBW_TEST_COMMAND: python -m sgp4.tests
+
+      - name: build_test_normal_from_p310
+        if: matrix.cibw_archs != 'aarch64'
+        run: python -m cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_ARCHS_MACOS: "x86_64 universal2 arm64"
+          CIBW_ARCHS_LINUX: "x86_64"
+          CIBW_SKIP: '*-musllinux_*'
+          CIBW_BUILD: "cp310-* cp311-* cp312-*"
+          CIBW_BUILD_VERBOSITY: 0
+          CIBW_TEST_REQUIRES: numpy==1.26.1
           CIBW_TEST_COMMAND: python -m sgp4.tests
           CIBW_TEST_SKIP: "*-macosx_arm64 *-macosx_universal2:arm64"
 
@@ -188,7 +211,7 @@ jobs:
       github.ref == 'refs/heads/release'
 
     steps:
-    - uses: actions/setup-python@v3
+    - uses: actions/setup-python@v4
 
     # download dist files
     - uses: actions/download-artifact@v3
@@ -208,7 +231,7 @@ jobs:
     # chosen for the PyPI token.
 
     - name: upload_to_pypi
-      uses: pypa/gh-action-pypi-publish@v1.4.1
+      uses: pypa/gh-action-pypi-publish@v1
       with:
         user: __token__
         password: ${{ secrets.pypi_password }}
