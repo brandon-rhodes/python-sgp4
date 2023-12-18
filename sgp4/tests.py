@@ -386,6 +386,12 @@ def test_1990s_satrec_initialized_with_sgp4init():
     )
     assertEqual(sat.epochyr, 99)
 
+def test_tle_that_lacks_checksums():
+    Satrec.twoline2rv(
+        '1 00058U 60013A   97142.85906518  .00000093  00000-0 +10762-4 0  274',
+        '2 00058 028.3286 356.4726 0164991 158.6392 202.1128 13.4602145880282',
+    )
+
 def test_setters():
     sat = Satrec()
 

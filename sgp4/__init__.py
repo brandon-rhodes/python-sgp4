@@ -620,6 +620,11 @@ https://pypi.org/project/sgp4/1.4/
 Changelog
 ---------
 
+Unreleased — 2.24
+
+* Tweaked the fallback Python code to accept TLE lines without a final
+  checksum character in the 69th column, to match the C++ code.
+
 2023-10-01 — 2.23
 
 * Tweaked tests to resolve breakage introduced by Python 3.12.

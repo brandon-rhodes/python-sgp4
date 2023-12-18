@@ -166,7 +166,7 @@ def twoline2rv(longstr1, longstr2, whichconst, opsmode='i', satrec=None):
 
     line = longstr2.rstrip()
 
-    if (len(line) >= 69 and
+    if (len(line) >= 68 and
         line.startswith('2 ') and
         line[7] == ' ' and
         line[11] == '.' and
