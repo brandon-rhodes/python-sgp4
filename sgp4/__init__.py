@@ -526,13 +526,13 @@ The possible ``error`` codes are:
 
 *Mean Elements From Most Recent Propagation*
 
-Partway through each propagation, the SGP4 routine saves a set of
-“singly averaged mean elements” that describe the orbit’s shape at the
-moment for which a position is being computed.  They are averaged with
-respect to the mean anomaly and include the effects of secular gravity,
-atmospheric drag, and — in Deep Space mode — of those pertubations from
-the Sun and Moon that SGP4 averages over an entire revolution of each of
-those bodies.  They omit both the shorter-term and longer-term periodic
+Each time the SGP4 routine generates a satellite position, it also saves
+a set of “singly averaged mean elements” that describe shape of the
+satellite's orbit at that moment.  They are averaged with respect to the
+mean anomaly and include the effects of secular gravity, atmospheric
+drag, and — in Deep Space mode — of those pertubations from the Sun and
+Moon that SGP4 averages over an entire revolution of each of those
+bodies.  They omit both the shorter-term and longer-term periodic
 pertubations from the Sun and Moon that SGP4 applies right before
 computing each position.
 
