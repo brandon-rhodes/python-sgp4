@@ -792,6 +792,30 @@ OBJECT_NAME,OBJECT_ID,EPOCH,MEAN_MOTION,ECCENTRICITY,INCLINATION,RA_OF_ASC_NODE,
 MARIO,1998-067UQ,2023-04-25T10:45:30.642912,15.99081912,.0014649,51.6242,216.2930,331.8976,28.1241,0,U,55123,999,1839,.1568E-2,.787702E-2,.29408E-3
 """
 
+MARIO_JSON = """\
+[
+    {
+        "OBJECT_NAME": "MARIO",
+        "OBJECT_ID": "1998-067UQ",
+        "EPOCH": "2023-04-25T10:45:30.642912",
+        "MEAN_MOTION": 15.99081912,
+        "ECCENTRICITY": 0.0014649,
+        "INCLINATION": 51.6242,
+        "RA_OF_ASC_NODE": 216.2930,
+        "ARG_OF_PERICENTER": 331.8976,
+        "MEAN_ANOMALY": 28.1241,
+        "EPHEMERIS_TYPE": 0,
+        "CLASSIFICATION_TYPE": "U",
+        "NORAD_CAT_ID": 55123,
+        "ELEMENT_SET_NO": 999,
+        "REV_AT_EPOCH": 1839,
+        "BSTAR": 0.001568,
+        "MEAN_MOTION_DOT": 0.00787702,
+        "MEAN_MOTION_DDOT": 0.00029408
+    }
+]
+"""
+
 def test_omm_xml_matches_old_tle():
     line0, line1, line2 = MARIO_TLE.splitlines()
     sat1 = Satrec.twoline2rv(line1, line2)
@@ -807,6 +831,16 @@ def test_omm_csv_matches_old_tle():
     sat1 = Satrec.twoline2rv(line1, line2)
 
     fields = next(omm.parse_csv(StringIO(MARIO_CSV)))
+    sat2 = Satrec()
+    omm.initialize(sat2, fields)
+
+    assert_satellites_match(sat1, sat2)
+
+def test_omm_json_matches_old_tle():
+    line0, line1, line2 = MARIO_TLE.splitlines()
+    sat1 = Satrec.twoline2rv(line1, line2)
+
+    fields = next(omm.parse_json(StringIO(MARIO_JSON)))
     sat2 = Satrec()
     omm.initialize(sat2, fields)
 
