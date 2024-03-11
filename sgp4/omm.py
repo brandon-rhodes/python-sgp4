@@ -1,6 +1,7 @@
 """Support for the new Orbit Mean-Elements Message format for TLE data."""
 
 import csv
+import json
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from math import pi
@@ -20,6 +21,13 @@ def parse_xml(file):
         for element in metadata, meanElements, tleParameters:
             fields.update((field.tag, field.text) for field in element)
         yield fields
+
+def parse_json(file):
+    json_data = json.load(file)
+    fields = {}
+    for item in json_data:
+        fields.update((k, v) for k, v in item.items())
+    yield fields
 
 _epoch0 = datetime(1949, 12, 31)
 _to_radians = pi / 180.0
