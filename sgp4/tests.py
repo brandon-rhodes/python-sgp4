@@ -2,7 +2,7 @@
 
 try:
     from unittest2 import TestCase, main
-except:
+except ImportError:
     from unittest import TestCase, main
 
 import datetime as dt
