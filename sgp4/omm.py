@@ -1,4 +1,4 @@
-"""Support for the new Orbit Mean-Elements Message format for TLE data."""
+"""Support for Orbit Mean-Elements Message (OMM) orbital elements format."""
 
 import csv
 import xml.etree.ElementTree as ET
