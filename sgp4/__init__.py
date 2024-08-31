@@ -13,9 +13,21 @@ from a site like `CelesTrak <https://celestrak.com/>`_.
 
 .. _Fundamentals of Astrodynamics and Applications: https://celestrak.org/software/vallado-sw.php
 
+What we today call ‘SGP4’ in fact merges together what in the 1970s were
+originally two separate satellite propagation routines, but which are
+now selected automatically:
+
+* SGP4 — the ‘Simplified General Perturbations' model is used for
+  satellites close enough to Earth that their orbit takes less than
+  225 minutes (3 hours 45 minutes) to complete.
+
+* SDP4 — the ‘Simplified Deep Space Perturbations' model is used for
+  satellites farther from Earth, which take 225 minutes or longer to
+  compete an orbit.
+
 If your machine can’t install or compile the C++ code, then this package
-falls back to using a slower pure-Python implementation of SGP4.  Tests
-make sure that its positions **agree to within 0.1 mm** with the
+falls back to using a slower pure-Python implementation of the library.
+Tests make sure that its positions **agree to within 0.1 mm** with the
 standard version of the algorithm — an error far less than the
 1–3 km/day by which satellites themselves deviate from the ideal orbits
 described in TLE files.
