@@ -90,7 +90,7 @@ As input, you can provide either:
   be consumed by the whole part that specifies the day.  The remaining
   digits will provide a precision for the fraction of around 20.1 µs.
   This should be no problem for the accuracy of your result — satellite
-  positions usually off by a few kilometers anyway, far less than a
+  positions are usually off by a few kilometers anyway, far less than a
   satellite moves in 20.1 µs — but if you run a solver that dives down
   into the microseconds while searching for a rising or setting time,
   the solver might be bothered by the 20.1 µs plateau between each jump
