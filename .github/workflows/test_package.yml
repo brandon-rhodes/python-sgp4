@@ -28,6 +28,7 @@ on:
     branches:
       - master
       - release
+      - ci
 
   # or a pull request to master branch
   pull_request:
@@ -52,7 +53,7 @@ jobs:
     strategy:
       max-parallel: 15
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
@@ -80,7 +81,7 @@ jobs:
 
       - name: upload_sdist
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/*.tar.gz
@@ -191,10 +192,13 @@ jobs:
           CIBW_TEST_COMMAND: python -m sgp4.tests
           CIBW_TEST_SKIP: "*-macosx_arm64 *-macosx_universal2:arm64"
 
+      - name: list_wheels
+        run: ls wheelhouse
+
       - name: upload_wheels
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: wheelhouse
+          name: wheelhouse-${{ matrix.os }}
           path: wheelhouse
 
   upload_to_pypi:
@@ -214,13 +218,13 @@ jobs:
     - uses: actions/setup-python@v4
 
     # download dist files
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: dist
         path: dist
 
     # download wheels
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: wheelhouse
         path: dist
