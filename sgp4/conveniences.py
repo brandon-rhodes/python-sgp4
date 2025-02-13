@@ -7,6 +7,7 @@ itself, native Python datetime handling could be convenient.
 """
 import datetime as dt
 import sgp4
+from math import pi
 from .functions import days2mdhms, jday
 
 class _UTC(dt.tzinfo):
@@ -73,25 +74,51 @@ def sat_epoch_datetime(sat):
     micro = int(fraction * 1e6)
     return dt.datetime(year, month, day, hour, minute, second, micro, UTC)
 
-_ATTRIBUTES = None
+_ATTRIBUTES = []
+_ATTR_MAXES = {}
+_MAX_VALUES = {'2pi': 2*pi, 'pi': pi}
+
+def _load_attributes():
+    for line in sgp4.__doc__.splitlines():
+        if line.endswith('*'):
+            title = line.strip('*')
+            _ATTRIBUTES.append(title)
+        elif line.startswith('| ``'):
+            pieces = line.split('``')
+            name = pieces[1]
+            _ATTRIBUTES.append(name)
+            i = 2
+            while pieces[i] == ', ':
+                another_name = pieces[i+1]
+                _ATTRIBUTES.append(another_name)
+                i += 2
+            if '<' in line:
+                _ATTR_MAXES[name] = '2pi' if ('2pi' in line) else 'pi'
+
+def check_satrec(sat):
+    """Check whether satellite orbital elements are within range."""
+
+    if not _ATTRIBUTES:
+        _load_attributes()
+
+    e = []
+
+    for name, max_name in sorted(_ATTR_MAXES.items()):
+        value = getattr(sat, name)
+        if 0.0 <= value < _MAX_VALUES[max_name]:
+            continue
+        e.append('  {0} = {1:f} is outside the range 0 <= {0} < {2}\n'
+                 .format(name, value, max_name))
+
+    if e:
+        raise ValueError('satellite parameters out of range:\n' + '\n'.join(e))
+
 
 def dump_satrec(sat, sat2=None):
     """Yield lines that list the attributes of one or two satellites."""
 
-    global _ATTRIBUTES
-    if _ATTRIBUTES is None:
-        _ATTRIBUTES = []
-        for line in sgp4.__doc__.splitlines():
-            if line.endswith('*'):
-                title = line.strip('*')
-                _ATTRIBUTES.append(title)
-            elif line.startswith('| ``'):
-                pieces = line.split('``')
-                _ATTRIBUTES.append(pieces[1])
-                i = 2
-                while pieces[i] == ', ':
-                    _ATTRIBUTES.append(pieces[i+1])
-                    i += 2
+    if not _ATTRIBUTES:
+        _load_attributes()
 
     for item in _ATTRIBUTES:
         if item[0].isupper():

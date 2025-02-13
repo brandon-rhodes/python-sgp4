@@ -170,6 +170,16 @@ def test_sat_epoch_datetime():
     zone = conveniences.UTC
     assertEqual(datetime, dt.datetime(2000, 6, 27, 18, 50, 19, 733568, zone))
 
+def test_check_satrec():
+    sat = Satrec.twoline2rv(LINE1, LINE2)
+    conveniences.check_satrec(sat)  # should succeed with no exception
+
+    sat = Satrec.twoline2rv(LINE1, LINE2.replace('34.2682', '-4.2682'))
+    msg = ('satellite parameters out of range:\n'
+           '  inclo = -0.074494 is outside the range 0 <= inclo < pi')
+    with assertRaisesRegex(ValueError, msg):
+        conveniences.check_satrec(sat)
+
 def test_good_tle_checksum():
     for line in LINE1, LINE2:
         checksum = int(line[-1])

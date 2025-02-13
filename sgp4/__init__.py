@@ -406,17 +406,26 @@ first code example above:
 ...     0.0,                  # ndot: ballistic coefficient (radians/minute^2)
 ...     0.0,                  # nddot: mean motion 2nd derivative (radians/minute^3)
 ...     0.0007417,            # ecco: eccentricity
-...     0.3083420829620822,   # argpo: argument of perigee (radians)
-...     0.9013560935706996,   # inclo: inclination (radians)
-...     1.4946964807494398,   # mo: mean anomaly (radians)
+...     0.3083420829620822,   # argpo: argument of perigee (radians 0..2pi)
+...     0.9013560935706996,   # inclo: inclination (radians 0..pi)
+...     1.4946964807494398,   # mo: mean anomaly (radians 0..2pi)
 ...     0.06763602333248933,  # no_kozai: mean motion (radians/minute)
-...     3.686137125541276,    # nodeo: R.A. of ascending node (radians)
+...     3.686137125541276,    # nodeo: R.A. of ascending node (radians 0..2pi)
 ... )
 
-These numbers don’t look the same as the numbers in the TLE, because the
-underlying ``sgp4init()`` routine uses different units: radians rather
-than degrees.  But this is the same orbit and will produce the same
-positions.
+You might notice that these numbers don’t look the same as the numbers
+in the TLE above.  For example, the inclination was 51.6439 in the TLE,
+but is 0.901356 here.  That’s because ``sgp4init()`` uses different
+units than the TLE format: angles are in radians rather than degrees.
+But this is the same orbit and will produce the same positions.
+
+If you want to double-check that your elements are valid, you can run
+the function ``check_satrec()``, which will raise a ``ValueError`` with
+an informative error message if any of the angles are out of bounds.  If
+the satellite is fine, it simply returns, without raising an exception:
+
+>>> from sgp4.conveniences import check_satrec
+>>> check_satrec(satellite2)
 
 Note that ``ndot`` and ``nddot`` are ignored by the SGP4 propagator, so
 you can leave them ``0.0`` without any effect on the resulting satellite
@@ -472,11 +481,11 @@ over again to propagate positions for different times.
 | ``nddot`` — Second time derivative of the mean motion
   (loaded from the TLE, but otherwise ignored).
 | ``bstar`` — Ballistic drag coefficient B* (1/earth radii).
-| ``inclo`` — Inclination (radians).
-| ``nodeo`` — Right ascension of ascending node (radians).
+| ``inclo`` — Inclination (radians 0 ≤ i < pi).
+| ``nodeo`` — Right ascension of ascending node (radians 0 ≤ Ω < 2pi).
 | ``ecco`` — Eccentricity.
-| ``argpo`` — Argument of perigee (radians).
-| ``mo`` — Mean anomaly (radians).
+| ``argpo`` — Argument of perigee (radians 0 ≤ ω < 2pi).
+| ``mo`` — Mean anomaly (radians 0 ≤ M < 2pi).
 | ``no_kozai`` — Mean motion (radians/minute).
 | ``no`` — Alias for ``no_kozai``, for compatibility with old code.
 
@@ -633,6 +642,11 @@ Changelog
 ---------
 
 Unreleased — 2.24
+
+* The documentation now specifies the acceptable range for orbital
+  element angles like inclination and mean anomaly, and a new function
+  ``check_satrec(sat)`` will tell the caller if any of the angles are
+  out of bounds.
 
 * Tweaked the fallback Python code to accept TLE lines without a final
   checksum character in the 69th column, to match the C++ code.
