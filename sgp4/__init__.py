@@ -169,19 +169,30 @@ You can already try out experimental support for OMM:
 Reading OMM data takes two steps, because OMM supports several different
 text formats.  First, parse the input text to recover the field names
 and values that it stores; second, build a Python satellite object from
-those field values.  For example, to load OMM from XML:
-
->>> with open('sample_omm.xml') as f:
-...     fields = next(omm.parse_xml(f))
->>> sat = Satrec()
->>> omm.initialize(sat, fields)
-
-Or, to load OMM from CSV:
+those field values.  The fastest and most efficient format is usually
+CSV, since the column names are only given once, on the first line:
 
 >>> with open('sample_omm.csv') as f:
-...     fields = next(omm.parse_csv(f))
->>> sat = Satrec()
->>> omm.initialize(sat, fields)
+...     for fields in omm.parse_csv(f):
+...         sat = Satrec()
+...         omm.initialize(sat, fields)
+
+The JSON format is more verbose because it repeats the field names over
+again in every single record:
+
+>>> import json
+>>> with open('sample_omm.json') as f:
+...     record_list = json.load(f)
+>>> for fields in record_list:
+...     sat = Satrec()
+...     omm.initialize(sat, fields)
+
+The most verbose format is XML:
+
+>>> with open('sample_omm.xml') as f:
+...     for fields in omm.parse_xml(f):
+...         sat = Satrec()
+...         omm.initialize(sat, fields)
 
 Either way, the satellite object should wind up properly initialized and
 ready to start producing positions.
