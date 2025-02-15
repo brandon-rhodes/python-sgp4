@@ -652,12 +652,14 @@ https://pypi.org/project/sgp4/1.4/
 Changelog
 ---------
 
-Unreleased — 2.24
+2024-02-15 — 2.24
 
 * The documentation now specifies the acceptable range for orbital
   element angles like inclination and mean anomaly, and a new function
   ``check_satrec(sat)`` will tell the caller if any of the angles are
   out of bounds.
+
+* The documentation now gives an example of loading elements from JSON.
 
 * Tweaked the fallback Python code to accept TLE lines without a final
   checksum character in the 69th column, to match the C++ code.
@@ -753,4 +755,4 @@ Unreleased — 2.24
 | 2012-08-27 — 1.0 — Initial release
 
 """
-__version__ = '2.23'
+__version__ = '2.24'
