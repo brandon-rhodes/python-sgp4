@@ -18,7 +18,7 @@
 # If the first two jobs succeed, upload the distro and wheels to PyPI
 #
 
-name: test_package
+name: ci
 
 on:
   # the trigger event for running the action is either a push on master or
