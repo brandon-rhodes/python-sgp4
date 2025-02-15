@@ -226,7 +226,17 @@ jobs:
     # download wheels
     - uses: actions/download-artifact@v4
       with:
-        name: wheelhouse
+        name: wheelhouse-macos-latest
+        path: dist
+
+    - uses: actions/download-artifact@v4
+      with:
+        name: wheelhouse-ubuntu-latest
+        path: dist
+
+    - uses: actions/download-artifact@v4
+      with:
+        name: wheelhouse-windows-latest
         path: dist
 
     # For the activation of the PyPI index, please add a secret token from
