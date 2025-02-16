@@ -2,14 +2,15 @@ import os
 import sys
 from distutils.core import setup, Extension
 
-import sgp4
-description, long_description = sgp4.__doc__.split('\n', 1)
-
-# It is hard to write C extensions that support both Python 2 and 3, so
-# we opt here to support the acceleration only for Python 3.
-
+name = 'sgp4'
 ext_modules = []
-if sys.version_info[0] == 3:
+
+if os.environ.get('SGP4_PURE_PYTHON'):
+    name += '_pure_python'
+
+elif sys.version_info[0] == 3:
+    # It is hard to write C extensions that support both Python 2 and 3,
+    # so we opt here to support the acceleration only for Python 3.
 
     # This lets CI force us to exit with an error if compilation fails,
     # instead of falling back silently to the backup Python code.
@@ -33,18 +34,28 @@ if sys.version_info[0] == 3:
         extra_compile_args=['-ffloat-store'],
     ))
 
-# Read the package's "__version__" without importing it.
+# Read the package's docstring and "__version__" without importing it.
 path = 'sgp4/__init__.py'
 with open(path, 'rb') as f:
     text = f.read().decode('utf-8')
 text = text.replace('-*- coding: utf-8 -*-', '')  # for Python 2.7
+
 namespace = {}
 eval(compile(text, path, 'exec'), namespace)
 
-setup(name = 'sgp4',
-      version = namespace['__version__'],
+version = namespace['__version__']
+description, long_description = namespace['__doc__'].split('\n', 1)
+
+# Avoid "`long_description` has syntax errors in markup" from extra
+# whitespace that somehow creeps in.
+description = description.strip()
+long_description = long_description.strip() + '\n'
+
+setup(name = name,
+      version = version,
       description = description,
       long_description = long_description,
+      long_description_content_type = 'text/x-rst',
       license = 'MIT',
       author = 'Brandon Rhodes',
       author_email = 'brandon@rhodesmill.org',
