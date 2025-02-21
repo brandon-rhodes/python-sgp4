@@ -2,13 +2,9 @@ import os
 import sys
 from distutils.core import setup, Extension
 
-name = 'sgp4'
 ext_modules = []
 
-if os.environ.get('SGP4_PURE_PYTHON'):
-    name += '_pure_python'
-
-elif sys.version_info[0] == 3:
+if sys.version_info[0] == 3:
     # It is hard to write C extensions that support both Python 2 and 3,
     # so we opt here to support the acceleration only for Python 3.
 
@@ -51,16 +47,17 @@ description, long_description = namespace['__doc__'].split('\n', 1)
 description = description.strip()
 long_description = long_description.strip() + '\n'
 
-setup(name = name,
-      version = version,
-      description = description,
-      long_description = long_description,
-      long_description_content_type = 'text/x-rst',
-      license = 'MIT',
-      author = 'Brandon Rhodes',
-      author_email = 'brandon@rhodesmill.org',
-      url = 'https://github.com/brandon-rhodes/python-sgp4',
-      classifiers = [
+setup(
+    name = 'sgp4',
+    version = version,
+    description = description,
+    long_description = long_description,
+    long_description_content_type = 'text/x-rst',
+    license = 'MIT',
+    author = 'Brandon Rhodes',
+    author_email = 'brandon@rhodesmill.org',
+    url = 'https://github.com/brandon-rhodes/python-sgp4',
+    classifiers = [
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: MIT License',
@@ -73,8 +70,9 @@ setup(name = name,
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
         'Topic :: Scientific/Engineering :: Astronomy',
-      ],
-      packages = ['sgp4'],
-      package_data = {'sgp4': ['SGP4-VER.TLE', 'sample*', 'tcppver.out']},
-      ext_modules = ext_modules,
+    ],
+    packages = ['sgp4'],
+    package_data = {'sgp4': ['SGP4-VER.TLE', 'sample*', 'tcppver.out']},
+    provides = ['sgp4'],
+    ext_modules = ext_modules,
 )
