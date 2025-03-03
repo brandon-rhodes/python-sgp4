@@ -229,19 +229,50 @@ def test_tle_export():
         # trim lines to normal TLE string size
         line1 = line1[:69]
         line2 = line2[:69]
-        satrec = Satrec.twoline2rv(line1, line2)
-        satrec_old = io.twoline2rv(line1, line2, wgs72)
 
-        # Generate TLE from satrec
-        actual_line1, actual_line2 = export_tle(satrec)
+        satrec_old = io.twoline2rv(line1, line2, wgs72)
         actual_line1_old, actual_line2_old = export_tle(satrec_old)
 
-        if satrec.satnum not in expected_errs_line1:
-            assertEqual(actual_line1, line1)
-            assertEqual(actual_line1_old, line1)
-        if satrec.satnum not in expected_errs_line2:
-            assertEqual(actual_line2, line2)
-            assertEqual(actual_line2_old, line2)
+        models = [Satrec]
+        outputs = []
+        if api.accelerated:
+            # if we have the compiled library, we can compare it to the pure python
+            models.append(model.Satrec)
+
+        for satrec_model in models:
+            satrec = satrec_model.twoline2rv(line1, line2)
+
+            # Generate TLE from satrec
+            actual_line1, actual_line2 = export_tle(satrec)
+            outputs.append([actual_line1, actual_line2])
+
+            if satrec.satnum not in expected_errs_line1:
+                assertEqual(actual_line1, line1)
+                assertEqual(actual_line1_old, line1)
+            if satrec.satnum not in expected_errs_line2:
+                assertEqual(actual_line2, line2)
+                assertEqual(actual_line2_old, line2)
+
+        if api.accelerated:
+            assertEqual(outputs[0], outputs[1])
+
+def test_export_tle_sgp4init():
+    """Check `export_tle()` round-trip with a Satrec constructed via sgp4init()."""
+    models = [Satrec]
+    if api.accelerated:
+        # if we have the compiled library, we can test both
+        models.append(model.Satrec)
+
+    for satrec_model in models:
+        sat = satrec_model()
+        sat.sgp4init(
+            WGS84, 'i', VANGUARD_ATTRS['satnum'], VANGUARD_EPOCH,
+            *sgp4init_args(VANGUARD_ATTRS.copy())
+        )
+        outline1, outline2 = export_tle(sat)
+        parsed_sat = satrec_model()
+        parsed_sat = parsed_sat.twoline2rv(outline1, outline2, WGS84)
+        assert_satellites_match(sat, parsed_sat)
 
 def test_export_tle_raises_error_for_out_of_range_angles():
     # See https://github.com/brandon-rhodes/python-sgp4/issues/70
