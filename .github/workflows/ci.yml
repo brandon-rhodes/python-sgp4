@@ -37,9 +37,9 @@ on:
 
 jobs:
   # This action is split into three jobs:
-  # - Building the distribution linting and testing without acceleration
-  # - Building the wheels for the distribution and testing with acceleration
-  # - Uploading the artifacts to PyPI package if branch is release
+  # - Building the distribution linting and testing without acceleration.
+  # - Building the wheels for the distribution and testing with acceleration.
+  # - Uploading the artifacts to PyPI package if branch is release.
   # The uploading job needs all tests to be finished without error.
 
   build_test_dist:
