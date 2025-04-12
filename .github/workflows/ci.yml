@@ -210,7 +210,7 @@ jobs:
           CIBW_ARCHS_MACOS: "x86_64 universal2 arm64"
           CIBW_ARCHS_LINUX: "x86_64"
           CIBW_SKIP: '*-musllinux_*'
-          CIBW_BUILD: "cp313"
+          CIBW_BUILD: "cp313-*"
           CIBW_BUILD_VERBOSITY: 0
           CIBW_TEST_REQUIRES: numpy==2.2.3
           CIBW_TEST_COMMAND: python -m sgp4.tests
