@@ -119,7 +119,7 @@ jobs:
         os: [windows-latest, ubuntu-latest, macos-latest]
         python-version: ['3.12']
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             cibw_archs: "aarch64"
             python-version: '3.12'
 
