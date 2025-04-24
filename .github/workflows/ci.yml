@@ -21,7 +21,7 @@
 name: ci
 
 on:
-  # the trigger event for running the action is either a push on master or
+  # The trigger event for running the action is either a push on master or
   # release branch
 
   push:
