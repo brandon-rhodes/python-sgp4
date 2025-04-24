@@ -45,16 +45,17 @@ jobs:
   build_test_dist:
     # Build the distribution in a matrix. Jobs are done in parallel.
     # The formal distro which is uploaded to PyPI will be built on
-    # ubuntu-latest for python 3.12.
+    # ubuntu-latest for python 3.13.
     # As in dist build no compilation takes place, we run all tests
     # in not accelerated mode.
 
     runs-on: ${{ matrix.os }}
+    name: Build dist ${{ matrix.python-version }} on ${{ matrix.os }}
     strategy:
-      max-parallel: 18
+      max-parallel: 24
       matrix:
         python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
 
     steps:
       - name: checkout
@@ -66,160 +67,74 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       # The build test needs numpy and pyflakes. Adding twine enables for
-      # testing and checking the metadata. Adding wheels for package
-      # installation before running the tests
+      # testing and checking the metadata.
 
-      - name: install_deps
-        run: pip install numpy pyflakes setuptools twine
+      - name: install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy pyflakes setuptools twine
 
-      - name: build_sdist
+      - name: build distro
         run: python setup.py sdist
 
-      - name: check_metadata
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+      - name: check metadata
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
         run: twine check dist/*
 
-      - name: upload_sdist
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+      - name: upload distro
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
         uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/*.tar.gz
 
-      - name: copy_file
+      - name: rename file
         run: mv dist/sgp4*.* dist/sgp4.tar.gz
 
-      - name: install_dist
+      - name: install distro for testing
         run: |
           pip install dist/sgp4.tar.gz
           python -c "from sgp4.api import accelerated; print(accelerated)"
 
-      - name: run_tests
+      - name: run tests
         run: python -m sgp4.tests
 
   build_test_wheels:
     # Building wheels for different OS, python and platform versions. This is
-    # done with the help of 'cibuildwheel' package. It will run on all
-    # necessary supported OS (native or emulated), each running cibuildwheel on
-    # python 3.12.
-
-    # Reference: https://cibuildwheel.readthedocs.io/en/stable/
-    # OS: Windows, Linux, macOS (x64 and M1), ARM64
-    # Python: versions 3.7 - 3.13 in testing
-    # Python: versions 3.7 - 3.13 in build wheels
-    # As all build wheels are installed after build, the tests run in
-    # accelerated mode only.
+    # done with the help of 'cibuildwheel' package.
+    # Reference: https://cibuildwheel.readthedocs.io
+    # OS: Windows (10, 11), Linux (x86 and ARM), macOS13 (x64) and macOS14 (M1)
+    # Python wheels for versions 3.7 - 3.13
+    # Tests run in accelerated mode and python 3.13 only.
 
     runs-on: ${{ matrix.os }}
+    name: Build wheels on ${{ matrix.os }}
     needs: [build_test_dist]
 
     strategy:
-      max-parallel: 4
+      max-parallel: 5
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
-        python-version: ['3.12']
-        include:
-          - os: ubuntu-22.04
-            cibw_archs: "aarch64"
-            python-version: '3.12'
+        os: [windows-latest, ubuntu-latest, ubuntu-24.04-arm,  macos-13, macos-14]
 
     steps:
-      # Using QEMU for aarch64 emulation
-      - name: setup QEMU
-        if: matrix.cibw_archs == 'aarch64'
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
-
-      - name: checkout
-        uses: actions/checkout@v4
-
-      - name: Setup_Python_${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: install_deps
-        run: python -m pip install cibuildwheel
-
-      # unfortunately actions do not have an else statement
-      # and I have to split builds due to numpy pinning
-      - name: build_test_aarch64_to_p39
-        if: matrix.cibw_archs == 'aarch64'
-        run: python -m cibuildwheel --output-dir wheelhouse
+      - uses: actions/checkout@v4
+      - name: Build wheels python 3.7 - 3.12
+        uses: pypa/cibuildwheel@v2.23.2
         env:
-          CIBW_ARCHS_LINUX: "aarch64"
-          CIBW_SKIP: '*-musllinux_*'
-          CIBW_BUILD: "cp37-* cp38-* cp39-*"
+          CIBW_BUILD: "cp37-* cp38-* cp39-* cp310-* cp311-* cp312-*"
           CIBW_BUILD_VERBOSITY: 0
-          CIBW_TEST_REQUIRES: numpy==1.21.1
-          CIBW_TEST_COMMAND: python -m sgp4.tests
-
-      - name: build_test_normal_to_p39
-        if: matrix.cibw_archs != 'aarch64'
-        run: python -m cibuildwheel --output-dir wheelhouse
-        env:
-          CIBW_ARCHS_MACOS: "x86_64 universal2 arm64"
-          CIBW_ARCHS_LINUX: "auto"
           CIBW_SKIP: '*-musllinux_*'
-          CIBW_BUILD: "cp37-* cp38-* cp39-*"
-          CIBW_BUILD_VERBOSITY: 0
-          CIBW_TEST_REQUIRES: numpy==1.21.1
-          CIBW_TEST_COMMAND: python -m sgp4.tests
-          CIBW_TEST_SKIP: "*-macosx_arm64 *-macosx_universal2:arm64"
 
-      - name: build_test_aarch64_from_p310_to_p312
-        if: matrix.cibw_archs == 'aarch64'
-        run: python -m cibuildwheel --output-dir wheelhouse
+      - name: Build wheels python 3.13
+        uses: pypa/cibuildwheel@v2.23.2
         env:
-          CIBW_ARCHS_LINUX: "aarch64"
-          CIBW_SKIP: '*-musllinux_*'
-          CIBW_BUILD: "cp310-* cp311-* cp312-*"
-          CIBW_BUILD_VERBOSITY: 0
-          CIBW_TEST_REQUIRES: numpy==1.26.1
-          CIBW_TEST_COMMAND: python -m sgp4.tests
-
-      - name: build_test_normal_from_p310_to_p312
-        if: matrix.cibw_archs != 'aarch64'
-        run: python -m cibuildwheel --output-dir wheelhouse
-        env:
-          CIBW_ARCHS_MACOS: "x86_64 universal2 arm64"
-          CIBW_ARCHS_LINUX: "x86_64"
-          CIBW_SKIP: '*-musllinux_*'
-          CIBW_BUILD: "cp310-* cp311-* cp312-*"
-          CIBW_BUILD_VERBOSITY: 0
-          CIBW_TEST_REQUIRES: numpy==1.26.1
-          CIBW_TEST_COMMAND: python -m sgp4.tests
-          CIBW_TEST_SKIP: "*-macosx_arm64 *-macosx_universal2:arm64"
-
-      - name: build_test_aarch64_from_p313
-        if: matrix.cibw_archs == 'aarch64'
-        run: python -m cibuildwheel --output-dir wheelhouse
-        env:
-          CIBW_ARCHS_LINUX: "aarch64"
-          CIBW_SKIP: '*-musllinux_*'
           CIBW_BUILD: "cp313-*"
           CIBW_BUILD_VERBOSITY: 0
-          CIBW_TEST_REQUIRES: numpy==2.2.3
-          CIBW_TEST_COMMAND: python -m sgp4.tests
-
-      - name: build_test_normal_from_p313
-        if: matrix.cibw_archs != 'aarch64'
-        run: python -m cibuildwheel --output-dir wheelhouse
-        env:
-          CIBW_ARCHS_MACOS: "x86_64 universal2 arm64"
-          CIBW_ARCHS_LINUX: "x86_64"
           CIBW_SKIP: '*-musllinux_*'
-          CIBW_BUILD: "cp313-*"
-          CIBW_BUILD_VERBOSITY: 0
           CIBW_TEST_REQUIRES: numpy==2.2.3
           CIBW_TEST_COMMAND: python -m sgp4.tests
-          CIBW_TEST_SKIP: "*-macosx_arm64 *-macosx_universal2:arm64"
-
-      - name: list_wheels
-        run: ls wheelhouse
-
-      - name: upload_wheels
+      
+      - name: upload wheels
         uses: actions/upload-artifact@v4
         with:
           name: wheelhouse-${{ matrix.os }}
@@ -241,26 +156,10 @@ jobs:
     steps:
     - uses: actions/setup-python@v5
 
-    # download dist files
+    # Download dist files and wheels from the artifacts
     - uses: actions/download-artifact@v4
       with:
-        name: dist
-        path: dist
-
-    # download wheels
-    - uses: actions/download-artifact@v4
-      with:
-        name: wheelhouse-macos-latest
-        path: dist
-
-    - uses: actions/download-artifact@v4
-      with:
-        name: wheelhouse-ubuntu-latest
-        path: dist
-
-    - uses: actions/download-artifact@v4
-      with:
-        name: wheelhouse-windows-latest
+        name: artifacts
         path: dist
 
     # For the activation of the PyPI index, please add a secret token from
