@@ -131,7 +131,7 @@ jobs:
           CIBW_SKIP: '*-musllinux_*'
           CIBW_TEST_REQUIRES: numpy==2.2.3
           CIBW_TEST_COMMAND: python -m sgp4.tests
-      
+
       - name: upload wheels
         uses: actions/upload-artifact@v4
         with:
@@ -166,8 +166,8 @@ jobs:
     # chosen for the PyPI token.
 
     - name: upload_to_pypi
-      uses: pypa/gh-action-pypi-publish@v1.8.10
+      uses: pypa/gh-action-pypi-publish@v1.12.4
       with:
         user: __token__
         password: ${{ secrets.pypi_password }}
-        skip_existing: true
+        skip-existing: true
