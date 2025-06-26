@@ -48,8 +48,20 @@ def jday_datetime(datetime):
     The input is a native `datetime` object. Timezone of the input is
     converted internally to UTC.
 
+    The input can also be a pandas `DatetimeIndex` as generated
+    by `pandas.date_range`. In that case, the returned objects will
+    be NumPy arrays.
+
     """
-    u = datetime.astimezone(UTC)
+    if datetime.tzinfo is None and hasattr(datetime, 'tz_localize'):
+        # It is a naive pandas DatetimeIndex
+        u = datetime.tz_localize(UTC)
+    elif hasattr(datetime, 'tz_convert'):
+        # It is a timezone aware pandas DatetimeIndex
+        u = datetime.tz_convert(UTC)
+    else:
+        # It is a native datetime object
+        u = datetime.astimezone(UTC)
     year = u.year
     mon = u.month
     day = u.day
@@ -57,7 +69,14 @@ def jday_datetime(datetime):
     minute = u.minute
     sec = u.second + u.microsecond * 1e-6
 
-    return jday(year, mon, day, hr, minute, sec)
+    if hasattr(u, 'tz_convert'):
+        # Pandas DatetimeIndex'es are returned and can't be used
+        # by sgp4_array(). Turn them into numpy arrays.
+        jd, fr = jday(year, mon, day, hr, minute, sec)
+        return jd.to_numpy(), fr.to_numpy()
+    else:
+        return jday(year, mon, day, hr, minute, sec)
+
 
 def sat_epoch_datetime(sat):
     """Return the epoch of the given satellite as a Python datetime."""
