@@ -129,6 +129,19 @@ def test_whether_array_logic_writes_nan_values_to_correct_row():
     assert np.isnan(r).tolist() == [[False, False, False], [True, True, True]]
     assert np.isnan(v).tolist() == [[False, False, False], [True, True, True]]
 
+def test_empty_array_handling():
+    # Make sure the pure-python based sgp4_array() correctly handles empty inputs
+    l1 = "1 44160U 19006AX  20162.79712247 +.00816806 +19088-3 +34711-2 0  9997"
+    l2 = "2 44160 095.2472 272.0808 0216413 032.6694 328.7739 15.58006382062511"
+    sat = model.Satrec.twoline2rv(l1, l2)
+    jd0 = np.array([])
+    jd1 = np.array([])
+    e, r, v = sat.sgp4_array(jd0, jd1)
+    assert e.shape == (0,)
+    assert r.shape == (0, 3)
+    assert v.shape == (0, 3)
+
+
 # ------------------------------------------------------------------------
 #                 Other Officially Supported Routines
 #

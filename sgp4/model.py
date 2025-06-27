@@ -128,15 +128,19 @@ class Satrec(object):
             from numpy import array
             Satrec.array = array
 
-        results = []
-        z = list(zip(jd, fr))
-        for jd_i, fr_i in z:
-            results.append(self.sgp4(jd_i, fr_i))
-        elist, rlist, vlist = zip(*results)
+        results = [self.sgp4(jd_i, fr_i) for jd_i, fr_i in zip(jd, fr)]
 
-        e = array(elist)
-        r = array(rlist)
-        v = array(vlist)
+        if len(results) == 0:
+            # No data to unpack
+            e = array([], dtype='uint8')
+            r = array([], dtype='float64')
+            v = array([], dtype='float64')
+        else:
+            elist, rlist, vlist = zip(*results)
+
+            e = array(elist)
+            r = array(rlist)
+            v = array(vlist)
 
         r.shape = v.shape = len(jd), 3
         return e, r, v
