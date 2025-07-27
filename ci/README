@@ -1,0 +1,2 @@
+This is an empty directory, where it’s safe to run tests without
+`import` snagging the raw `sgp4/` directory and using it as a package.

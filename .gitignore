@@ -1,9 +1,9 @@
 *.egg-info
 *.pyc
-/.tox/
 /.coverage
 /MANIFEST
 /build/
+/ci/legacy/
 /cpp/
 /dist/
 /htmlcov/
