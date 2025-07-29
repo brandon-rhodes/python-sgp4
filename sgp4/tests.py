@@ -249,6 +249,13 @@ def test_tle_export():
             assertEqual(actual_line2, line2)
             assertEqual(actual_line2_old, line2)
 
+def test_export_tle_works_with_sgp4init():
+    # Does sgp4init() build a sat that can successfully export?
+    sat = Satrec()
+    args = sgp4init_args(VANGUARD_ATTRS)
+    sat.sgp4init(WGS72, 'i', VANGUARD_ATTRS['satnum'], VANGUARD_EPOCH, *args)
+    export_tle(sat)
+
 def test_export_tle_raises_error_for_out_of_range_angles():
     # See https://github.com/brandon-rhodes/python-sgp4/issues/70
     for angle in 'inclo', 'nodeo', 'argpo', 'mo':

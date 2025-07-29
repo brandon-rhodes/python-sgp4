@@ -42,6 +42,9 @@ class Satrec(object):
 
     array = None       # replaced, if needed, with NumPy array()
 
+    def __init__(self):
+        self.revnum = 0  # for consistency, since sgp4init() leaves this unset
+
     @property
     def no(self):
         return self.no_kozai
