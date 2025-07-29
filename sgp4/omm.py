@@ -26,7 +26,7 @@ _to_radians = pi / 180.0
 _ndot_units = 1036800.0 / pi  # See SGP4.cpp for details.
 _nddot_units = 2985984000.0 / 2.0 / pi  # See SGP4.cpp for details.
 
-def initialize(sat, fields):
+def initialize(sat, fields, gravconst=WGS72):
     sat.classification = fields['CLASSIFICATION_TYPE']
     sat.intldesg = fields['OBJECT_ID'][2:].replace('-', '')
     sat.ephtype = int(fields['EPHEMERIS_TYPE'])
@@ -47,5 +47,5 @@ def initialize(sat, fields):
     nodeo = float(fields['RA_OF_ASC_NODE']) * _to_radians
     satnum = int(fields['NORAD_CAT_ID'])
 
-    sat.sgp4init(WGS72, 'i', satnum, epoch, bstar, ndot, nddot, ecco,
+    sat.sgp4init(gravconst, 'i', satnum, epoch, bstar, ndot, nddot, ecco,
                  argpo, inclo, mo, no_kozai, nodeo)

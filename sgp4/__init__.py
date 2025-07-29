@@ -197,6 +197,11 @@ The most verbose format is XML:
 Either way, the satellite object should wind up properly initialized and
 ready to start producing positions.
 
+The ``omm.initialize()`` routine uses the standard WGS72 gravity model
+by default.  To make your own choice of model, supply a third argument
+that is one of the three constants ``WGS72OLD``, ``WGS72``, or ``WGS84``
+(which are shown below in the section on ‘Gravity’).
+
 If you are interested in saving satellite parameters using the new OMM
 format, then read the section on “Export” below.
 
@@ -651,6 +656,10 @@ https://pypi.org/project/sgp4/1.4/
 
 Changelog
 ---------
+
+Not yet released — 2.25
+
+* Added a ``gravconst`` parameter to the ``omm.initialize()`` routine.
 
 2024-02-15 — 2.24
 

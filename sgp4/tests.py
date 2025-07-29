@@ -847,6 +847,18 @@ def assert_satellites_match(sat1, sat2):
         value2 = getattr(sat2, attr)
         assertEqual(value1, value2, '%s %r != %r' % (attr, value1, value2))
 
+def test_omm_uses_gravconst_parameter():
+    fields = next(omm.parse_csv(StringIO(MARIO_CSV)))
+
+    sat1 = Satrec()
+    omm.initialize(sat1, fields, WGS72)
+
+    sat2 = Satrec()
+    omm.initialize(sat2, fields, WGS84)
+
+    assertEqual(sat1.mu, 398600.8)
+    assertEqual(sat2.mu, 398600.5)
+
 # Live example of OMM:
 # https://celestrak.com/NORAD/elements/gp.php?INTDES=2020-025&FORMAT=JSON-PRETTY
 
