@@ -764,4 +764,4 @@ Not yet released — 2.25
 | 2012-08-27 — 1.0 — Initial release
 
 """
-__version__ = '2.24'
+__version__ = '2.25'
