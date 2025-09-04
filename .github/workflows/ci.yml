@@ -166,7 +166,7 @@ jobs:
     # chosen for the PyPI token.
 
     - name: upload_to_pypi
-      uses: pypa/gh-action-pypi-publish@v1.12.4
+      uses: pypa/gh-action-pypi-publish@v1.13.0
       with:
         user: __token__
         password: ${{ secrets.pypi_password }}
