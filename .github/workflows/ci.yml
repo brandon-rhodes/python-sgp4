@@ -54,7 +54,7 @@ jobs:
     strategy:
       max-parallel: 24
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
         os: [ubuntu-latest, windows-latest, macos-13, macos-14]
 
     steps:
@@ -76,11 +76,11 @@ jobs:
         run: python setup.py sdist
 
       - name: check metadata
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
         run: twine check dist/*
 
       - name: upload distro
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
         uses: actions/upload-artifact@v4
         with:
           name: artifact-dist-${{ matrix.os }}-${{ matrix.python-version }}
@@ -102,8 +102,8 @@ jobs:
     # done with the help of 'cibuildwheel' package.
     # Reference: https://cibuildwheel.readthedocs.io
     # OS: Windows (10, 11), Linux (x86 and ARM), macOS13 (x64) and macOS14 (M1)
-    # Python wheels for versions 3.7 - 3.13
-    # Tests run in accelerated mode and python 3.13 only.
+    # Python wheels for versions 3.7 - 3.14
+    # Tests run in accelerated mode and python 3.14 only.
 
     runs-on: ${{ matrix.os }}
     name: Build wheels on ${{ matrix.os }}
@@ -116,17 +116,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Build wheels python 3.7 - 3.12
+      - name: Build wheels python 3.7 - 3.13
         uses: pypa/cibuildwheel@v2.23.2
         env:
-          CIBW_BUILD: "cp37-* cp38-* cp39-* cp310-* cp311-* cp312-*"
+          CIBW_BUILD: "cp37-* cp38-* cp39-* cp310-* cp311-* cp312-* cp313-*"
           CIBW_BUILD_VERBOSITY: 0
           CIBW_SKIP: '*-musllinux_*'
 
-      - name: Build wheels python 3.13
+      - name: Build wheels python 3.14
         uses: pypa/cibuildwheel@v2.23.2
         env:
-          CIBW_BUILD: "cp313-*"
+          CIBW_BUILD: "cp314-*"
           CIBW_BUILD_VERBOSITY: 0
           CIBW_SKIP: '*-musllinux_*'
           CIBW_TEST_REQUIRES: numpy==2.2.3
