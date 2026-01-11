@@ -55,7 +55,7 @@ jobs:
       max-parallel: 24
       matrix:
         python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
-        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
+        os: [ubuntu-latest, windows-latest, macos-14]
 
     steps:
       - name: checkout
@@ -101,7 +101,7 @@ jobs:
     # Building wheels for different OS, python and platform versions. This is
     # done with the help of 'cibuildwheel' package.
     # Reference: https://cibuildwheel.readthedocs.io
-    # OS: Windows (10, 11), Linux (x86 and ARM), macOS13 (x64) and macOS14 (M1)
+    # OS: Windows (10, 11), Linux (x86 and ARM), and macOS14 (M1)
     # Python wheels for versions 3.7 - 3.14
     # Tests run in accelerated mode and python 3.14 only.
 
@@ -112,7 +112,7 @@ jobs:
     strategy:
       max-parallel: 5
       matrix:
-        os: [windows-latest, ubuntu-latest, ubuntu-24.04-arm,  macos-13, macos-14]
+        os: [windows-latest, ubuntu-latest, ubuntu-24.04-arm, macos-14]
 
     steps:
       - uses: actions/checkout@v4
