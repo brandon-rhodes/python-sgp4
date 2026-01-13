@@ -52,17 +52,17 @@ jobs:
     runs-on: ${{ matrix.os }}
     name: Build dist ${{ matrix.python-version }} on ${{ matrix.os }}
     strategy:
-      max-parallel: 24
+      max-parallel: 15
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
-        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
+        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup_Python_${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -112,28 +112,21 @@ jobs:
     strategy:
       max-parallel: 5
       matrix:
-        os: [windows-latest, ubuntu-latest, ubuntu-24.04-arm,  macos-13, macos-14]
+        os: [windows-latest, ubuntu-latest, ubuntu-24.04-arm,  macos-15, macos-15-intel]
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Build wheels python 3.7 - 3.13
-        uses: pypa/cibuildwheel@v2.23.2
+      - uses: actions/checkout@v6
+      - name: Build wheels python 3.9 - 3.14
+        uses: pypa/cibuildwheel@v3.3.1
         env:
-          CIBW_BUILD: "cp37-* cp38-* cp39-* cp310-* cp311-* cp312-* cp313-*"
+          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-* cp314-*"
           CIBW_BUILD_VERBOSITY: 0
           CIBW_SKIP: '*-musllinux_*'
-
-      - name: Build wheels python 3.14
-        uses: pypa/cibuildwheel@v2.23.2
-        env:
-          CIBW_BUILD: "cp314-*"
-          CIBW_BUILD_VERBOSITY: 0
-          CIBW_SKIP: '*-musllinux_*'
-          CIBW_TEST_REQUIRES: numpy==2.2.3
+          CIBW_TEST_REQUIRES: numpy
           CIBW_TEST_COMMAND: python -m sgp4.tests
 
       - name: upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: artifact-wheelhouse-${{ matrix.os }}
           path: wheelhouse
@@ -152,9 +145,9 @@ jobs:
       github.ref == 'refs/heads/release'
 
     steps:
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v6
 
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v7
       with:
         path: dist
         pattern: artifact-*
@@ -166,7 +159,7 @@ jobs:
     # chosen for the PyPI token.
 
     - name: upload_to_pypi
-      uses: pypa/gh-action-pypi-publish@v1.12.4
+      uses: pypa/gh-action-pypi-publish@v1.13.0
       with:
         user: __token__
         password: ${{ secrets.pypi_password }}
