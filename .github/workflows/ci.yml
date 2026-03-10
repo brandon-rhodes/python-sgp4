@@ -45,24 +45,26 @@ jobs:
   build_test_dist:
     # Build the distribution in a matrix. Jobs are done in parallel.
     # The formal distro which is uploaded to PyPI will be built on
-    # ubuntu-latest for python 3.13.
+    # ubuntu-latest for python 3.14.
     # As in dist build no compilation takes place, we run all tests
     # in not accelerated mode.
 
     runs-on: ${{ matrix.os }}
     name: Build dist ${{ matrix.python-version }} on ${{ matrix.os }}
     strategy:
-      max-parallel: 24
+      # max parallel should be (number os) * (number python versions)
+      max-parallel: 15
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
-        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
+        # if adding python 3.15, just add "3.15", keep max parallel accordingly
+        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup_Python_${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -76,10 +78,12 @@ jobs:
         run: python setup.py sdist
 
       - name: check metadata
+        # when adding python 3.15, move distro version to 3.15 as well
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
         run: twine check dist/*
 
       - name: upload distro
+        # when adding python 3.15, move distro version to 3.15 as well
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
         uses: actions/upload-artifact@v4
         with:
@@ -101,9 +105,9 @@ jobs:
     # Building wheels for different OS, python and platform versions. This is
     # done with the help of 'cibuildwheel' package.
     # Reference: https://cibuildwheel.readthedocs.io
-    # OS: Windows (10, 11), Linux (x86 and ARM), macOS13 (x64) and macOS14 (M1)
-    # Python wheels for versions 3.7 - 3.14
-    # Tests run in accelerated mode and python 3.14 only.
+    # OS: Windows (10, 11), Linux (x86 and ARM), macOS (x64) and macOS (M1)
+    # Python wheels for versions 3.10 - 3.14
+    # Tests run in accelerated mode on all selected python versions.
 
     runs-on: ${{ matrix.os }}
     name: Build wheels on ${{ matrix.os }}
@@ -112,28 +116,24 @@ jobs:
     strategy:
       max-parallel: 5
       matrix:
-        os: [windows-latest, ubuntu-latest, ubuntu-24.04-arm,  macos-13, macos-14]
+        # there is actually no macos-latest-intel and the same for arm on ubuntu so it has to
+        # be maintained and checked in future
+        os: [windows-latest, ubuntu-latest, ubuntu-24.04-arm,  macos-latest, macos-15-intel]
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Build wheels python 3.7 - 3.13
-        uses: pypa/cibuildwheel@v2.23.2
+      - uses: actions/checkout@v6
+      - name: Build wheels python 3.10 - 3.14
+        uses: pypa/cibuildwheel@v3.3.1
         env:
-          CIBW_BUILD: "cp37-* cp38-* cp39-* cp310-* cp311-* cp312-* cp313-*"
+          # if adding python 3.15, just add cp315-*
+          CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-* cp314-*"
           CIBW_BUILD_VERBOSITY: 0
           CIBW_SKIP: '*-musllinux_*'
-
-      - name: Build wheels python 3.14
-        uses: pypa/cibuildwheel@v2.23.2
-        env:
-          CIBW_BUILD: "cp314-*"
-          CIBW_BUILD_VERBOSITY: 0
-          CIBW_SKIP: '*-musllinux_*'
-          CIBW_TEST_REQUIRES: numpy==2.2.3
+          CIBW_TEST_REQUIRES: numpy
           CIBW_TEST_COMMAND: python -m sgp4.tests
 
       - name: upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: artifact-wheelhouse-${{ matrix.os }}
           path: wheelhouse
@@ -152,9 +152,9 @@ jobs:
       github.ref == 'refs/heads/release'
 
     steps:
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v6
 
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v7
       with:
         path: dist
         pattern: artifact-*
@@ -166,7 +166,7 @@ jobs:
     # chosen for the PyPI token.
 
     - name: upload_to_pypi
-      uses: pypa/gh-action-pypi-publish@v1.12.4
+      uses: pypa/gh-action-pypi-publish@v1.13.0
       with:
         user: __token__
         password: ${{ secrets.pypi_password }}
