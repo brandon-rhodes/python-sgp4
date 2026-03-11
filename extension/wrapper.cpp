@@ -22,6 +22,9 @@ typedef struct {
     elsetrec satrec[0];
 } SatrecArrayObject;
 
+static PyObject* SatrecType = NULL;
+static PyObject* SatrecArrayType = NULL;
+
 /* Support routine that is used to support NumPy array broadcasting for
    both individual satellite objects and also arrays. */
 
@@ -483,21 +486,12 @@ static PyGetSetDef Satrec_getset[] = {
     {NULL},
 };
 
-static PyTypeObject SatrecType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    /* See the module initialization function at the bottom of this file. */
-};
-
 /* Details of the SatrecArray. */
 
 static Py_ssize_t
 Satrec_len(PyObject *self) {
     return ((SatrecArrayObject*)self)->ob_base.ob_size;
 }
-
-static PySequenceMethods SatrecArray_as_sequence = {
-    Satrec_len
-};
 
 static PyObject *
 SatrecArray_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
@@ -529,7 +523,7 @@ SatrecArray_init(SatrecArrayObject *self, PyObject *args, PyObject *kwds)
         PyObject *item = PySequence_GetItem(sequence, i);
         if (!item)
             return -1;
-        if (!PyObject_IsInstance(item, (PyObject*) &SatrecType)) {
+        if (!PyObject_IsInstance(item, (PyObject*) SatrecType)) {
             PyErr_Format(PyExc_ValueError, "every item must be a Satrec,"
                          " but element %d is: %R", i, item);
             Py_DECREF(item);
@@ -557,9 +551,40 @@ static PyMethodDef SatrecArray_methods[] = {
     {NULL, NULL}
 };
 
-static PyTypeObject SatrecArrayType = {
-    PyVarObject_HEAD_INIT(NULL, sizeof(elsetrec))
-    /* See the module initialization function at the bottom of this file. */
+static char doc_SatRecType[23] = "SGP4 satellite record.";
+static PyType_Slot SatrecType_slots[] = {
+    {Py_tp_doc, doc_SatRecType},
+    {Py_tp_methods, Satrec_methods},
+    {Py_tp_members, Satrec_members},
+    {Py_tp_getset, Satrec_getset},
+    {Py_tp_new, (void *)PyType_GenericNew},
+    {0, NULL},
+};
+
+static PyType_Spec SatrecType_spec = {
+    .name = "sgp4.vallado_cpp.Satrec",
+    .basicsize = sizeof(SatrecObject),
+    .itemsize = 0,
+    .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_IMMUTABLETYPE,
+    .slots = SatrecType_slots,
+};
+
+static char doc_SatRecArrayType[26] = "SGP4 array of satellites.";
+static PyType_Slot SatrecArrayType_slots[] = {
+    {Py_tp_doc, doc_SatRecArrayType},
+    {Py_tp_methods, SatrecArray_methods},
+    {Py_tp_init, (void *)SatrecArray_init},
+    {Py_tp_new, (void *)SatrecArray_new},
+    {Py_sq_length, (void *)Satrec_len},
+    {0, NULL},
+};
+
+static PyType_Spec SatrecArrayType_spec = {
+    .name = "sgp4.vallado_cpp.SatrecArray",
+    .basicsize = sizeof(SatrecArrayObject),
+    .itemsize = sizeof(elsetrec),
+    .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_IMMUTABLETYPE,
+    .slots = SatrecArrayType_slots,
 };
 
 /* The module that ties it all together. */
@@ -575,47 +600,29 @@ static PyModuleDef module = {
 PyMODINIT_FUNC
 PyInit_vallado_cpp(void)
 {
-    SatrecType.tp_name = "sgp4.vallado_cpp.Satrec";
-    SatrecType.tp_basicsize = sizeof(SatrecObject);
-    SatrecArrayType.tp_itemsize = 0;
-    SatrecType.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
-    SatrecType.tp_doc = "SGP4 satellite record.";
-    SatrecType.tp_methods = Satrec_methods;
-    SatrecType.tp_members = Satrec_members;
-    SatrecType.tp_getset = Satrec_getset;
-    SatrecType.tp_new = PyType_GenericNew;
-
-    if (PyType_Ready(&SatrecType) < 0)
+    SatrecType = PyType_FromSpec(&SatrecType_spec);
+    if (SatrecType == NULL)
         return NULL;
 
-    SatrecArrayType.tp_name = "sgp4.vallado_cpp.SatrecArray";
-    SatrecArrayType.tp_basicsize = sizeof(SatrecArrayObject);
-    SatrecArrayType.tp_itemsize = sizeof(elsetrec);
-    SatrecArrayType.tp_as_sequence = &SatrecArray_as_sequence;
-    SatrecArrayType.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
-    SatrecArrayType.tp_doc = "SGP4 array of satellites.";
-    SatrecArrayType.tp_methods = SatrecArray_methods;
-    SatrecArrayType.tp_init = (initproc) SatrecArray_init;
-    SatrecArrayType.tp_new = SatrecArray_new;
-
-    if (PyType_Ready(&SatrecArrayType) < 0)
+    SatrecArrayType = PyType_FromSpec(&SatrecArrayType_spec);
+    if (SatrecArrayType == NULL) {
+        Py_DECREF(SatrecType);
         return NULL;
+    }
 
     PyObject *m = PyModule_Create(&module);
     if (m == NULL)
         return NULL;
 
-    Py_INCREF(&SatrecType);
-    if (PyModule_AddObject(m, "Satrec", (PyObject *) &SatrecType) < 0) {
-        Py_DECREF(&SatrecType);
+    if (PyModule_AddObject(m, "Satrec", SatrecType) < 0) {
+        Py_DECREF(SatrecArrayType);
+        Py_DECREF(SatrecType);
         Py_DECREF(m);
         return NULL;
     }
 
-    Py_INCREF(&SatrecArrayType);
-    if (PyModule_AddObject(m, "SatrecArray", (PyObject *) &SatrecArrayType) < 0) {
-        Py_DECREF(&SatrecArrayType);
-        Py_DECREF(&SatrecType);
+    if (PyModule_AddObject(m, "SatrecArray", SatrecArrayType) < 0) {
+        Py_DECREF(SatrecArrayType);
         Py_DECREF(m);
         return NULL;
     }

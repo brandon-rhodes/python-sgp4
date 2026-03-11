@@ -14,6 +14,7 @@
 
 import os
 import sys
+from distutils.ccompiler import get_default_compiler
 from distutils.core import setup, Extension
 
 PYTHON_SGP4_COMPILE = os.environ.get('PYTHON_SGP4_COMPILE', '')
@@ -26,6 +27,15 @@ if sys.version_info[0] == 3 and PYTHON_SGP4_COMPILE != 'never':
     else:
         optional = True
 
+    # TODO: can we safely figure out how to use a pair of options
+    # like these, adapted to as many platforms as possible, to use
+    # multiple processors when available?
+    # extra_compile_args=['-fopenmp'],
+    # extra_link_args=['-fopenmp'],
+    extra_compile_args = ['-ffloat-store']
+    if get_default_compiler() == "msvc":
+        extra_compile_args.append("/std:c++20")
+
     ext_modules.append(Extension(
         'sgp4.vallado_cpp',
         optional=optional,
@@ -33,13 +43,7 @@ if sys.version_info[0] == 3 and PYTHON_SGP4_COMPILE != 'never':
             'extension/SGP4.cpp',
             'extension/wrapper.cpp',
         ],
-
-        # TODO: can we safely figure out how to use a pair of options
-        # like these, adapted to as many platforms as possible, to use
-        # multiple processors when available?
-        # extra_compile_args=['-fopenmp'],
-        # extra_link_args=['-fopenmp'],
-        extra_compile_args=['-ffloat-store'],
+        extra_compile_args=extra_compile_args,
     ))
 
 # Read the package's docstring and "__version__" without importing it.
