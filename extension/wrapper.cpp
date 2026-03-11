@@ -424,7 +424,7 @@ get_intldesg(SatrecObject *self, void *closure)
 static int
 set_intldesg(SatrecObject *self, PyObject *value, void *closure)
 {
-    const char *s = PyUnicode_AsUTF8(value);
+    const char *s = PyUnicode_AsUTF8AndSize(value, NULL);
     if (!s)
         return -1;
     strncpy(self->satrec.intldesg, s, 10);
@@ -460,7 +460,7 @@ get_satnum_str(SatrecObject *self, void *closure)
 static int
 set_satnum_str(SatrecObject *self, PyObject *value, void *closure)
 {
-    const char *s = PyUnicode_AsUTF8(value);
+    const char *s = PyUnicode_AsUTF8AndSize(value, NULL);
     if (!s)
         return -1;
     strncpy(self->satrec.satnum, s, 5);
