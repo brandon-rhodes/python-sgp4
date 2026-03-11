@@ -657,9 +657,15 @@ https://pypi.org/project/sgp4/1.4/
 Changelog
 ---------
 
-Not yet released — 2.25
+2025-08-04 — 2.25
 
-* Added a ``gravconst`` parameter to the ``omm.initialize()`` routine.
+* Added a ``gravconst`` parameter to the ``omm.initialize()`` routine
+  for folks using gravity models other than ``WGS72``, or who at least
+  want to make that choice explicit in their code.
+
+* Added a ``revnum`` attribute to satellites built with ``sgp4init()``
+  (it defaults to the dummy value of zero), so they can be passed to
+  ``export_tle()`` without raising an exception.
 
 2024-02-15 — 2.24
 
