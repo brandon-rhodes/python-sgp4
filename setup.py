@@ -59,25 +59,30 @@ description, long_description = namespace['__doc__'].split('\n', 1)
 description = description.strip()
 long_description = long_description.strip() + '\n'
 
+if sys.version_info[0] == 2:
+    # keep in sync with the [project] table from pyproject.toml
+    setup_kwargs = {
+        "name": "sgp4",
+        "long_description": long_description,
+        "long_description_content_type": 'text/markdown',
+        "license": 'MIT',
+    }
+else:
+    # equivalent metadata lives in pyproject.toml
+    setup_kwargs = {}
+
 setup(
-    name = 'sgp4',
     version = version,
     description = description,
-    long_description = long_description,
-    long_description_content_type = 'text/x-rst',
-    license = 'MIT',
     author = 'Brandon Rhodes',
     author_email = 'brandon@rhodesmill.org',
     url = 'https://github.com/brandon-rhodes/python-sgp4',
     classifiers = [
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
@@ -89,4 +94,5 @@ setup(
     package_data = {'sgp4': ['SGP4-VER.TLE', 'sample*', 'tcppver.out']},
     provides = ['sgp4'],
     ext_modules = ext_modules,
+    **setup_kwargs,
 )
