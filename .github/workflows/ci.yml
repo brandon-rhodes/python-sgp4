@@ -72,7 +72,7 @@ jobs:
       # testing and checking the metadata.
 
       - name: install dependencies
-        run: pip install numpy pyflakes setuptools twine
+        run: pip install --upgrade numpy pyflakes setuptools>=77.0.1 twine
 
       - name: build distro
         run: python setup.py sdist
