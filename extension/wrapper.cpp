@@ -62,6 +62,8 @@ _vectorized_sgp4(PyObject *args, elsetrec *raw_satrec_array, int imax)
             goto cleanup;
         }
 
+        Py_BEGIN_ALLOW_THREADS
+
         double *jd = (double*) jd_buf.buf;
         double *fr = (double*) fr_buf.buf;
         double *r = (double*) r_buf.buf;
@@ -83,6 +85,8 @@ _vectorized_sgp4(PyObject *args, elsetrec *raw_satrec_array, int imax)
                 }
             }
         }
+
+        Py_END_ALLOW_THREADS
     }
 
     Py_INCREF(Py_None);
