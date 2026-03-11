@@ -121,7 +121,8 @@ Satrec_twoline2rv(PyTypeObject *cls, PyObject *args)
     line2[68] = '\0';
 
     /* Allocate the new object. */
-    SatrecObject *self = (SatrecObject*) cls->tp_alloc(cls, 0);
+    allocfunc alloc_func = (allocfunc)PyType_GetSlot(cls, Py_tp_alloc);
+    SatrecObject *self = (SatrecObject*)alloc_func(cls, 0);
     if (!self)
         return NULL;
 
@@ -510,7 +511,9 @@ SatrecArray_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if (length == -1)
         return NULL;
 
-    return type->tp_alloc(type, length);
+    allocfunc alloc_func = (allocfunc)PyType_GetSlot(type, Py_tp_alloc);
+    PyObject *ret = alloc_func(type, length);
+    return ret;
 }
 
 
