@@ -125,6 +125,7 @@ jobs:
       - name: Build wheels python 3.10 - 3.14
         uses: pypa/cibuildwheel@v3.3.1
         env:
+          PYTHON_SGP4_COMPILE: always
           # if adding python 3.15, just add cp315-*
           CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-* cp314-*"
           CIBW_BUILD_VERBOSITY: 0
