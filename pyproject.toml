@@ -1,0 +1,31 @@
+[build-system]
+requires = [
+    "setuptools>=38.6.0", # for long_description_content_type
+    "setuptools>=77.0.1 ; python_version>='3'",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+# keep in sync with setup_kwargs for Python 2
+name = "sgp4"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=2.7,!=3.0,!=3.1,!=3.2,!=3.3,!=3.4,!=3.5,!=3.6,!=3.7,!=3.8,!=3.9"
+dynamic = ["version", "description", "authors", "dependencies", "classifiers"]
+
+[dependency-groups]
+dev = [
+    "numpy>=1.21.2",
+]
+
+[tool.cibuildwheel]
+build-verbosity = 0
+skip = [
+    "*-musllinux_*", # not sure there's a good reason for this anymore ?
+    "cp314t-*",
+]
+test-groups = ["dev"]
+test-command = [
+    "python -m unittest sgp4.tests",
+]
