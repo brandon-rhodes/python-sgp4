@@ -85,7 +85,7 @@ jobs:
       - name: upload distro
         # when adding python 3.15, move distro version to 3.15 as well
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: artifact-dist-${{ matrix.os }}-${{ matrix.python-version }}
           path: dist/*.tar.gz
@@ -123,12 +123,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Build wheels python 3.10 - 3.14
-        uses: pypa/cibuildwheel@v3.3.1
+        uses: pypa/cibuildwheel@v3.4.1
         env:
           PYTHON_SGP4_COMPILE: always
 
       - name: upload wheels
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: artifact-wheelhouse-${{ matrix.os }}
           path: wheelhouse
@@ -149,7 +149,7 @@ jobs:
     steps:
     - uses: actions/setup-python@v6
 
-    - uses: actions/download-artifact@v7
+    - uses: actions/download-artifact@v8
       with:
         path: dist
         pattern: artifact-*
@@ -161,7 +161,7 @@ jobs:
     # chosen for the PyPI token.
 
     - name: upload_to_pypi
-      uses: pypa/gh-action-pypi-publish@v1.13.0
+      uses: pypa/gh-action-pypi-publish@v1.14.0
       with:
         user: __token__
         password: ${{ secrets.pypi_password }}
