@@ -22,7 +22,6 @@ dev = [
 [tool.cibuildwheel]
 build-verbosity = 0
 skip = [
-    "*-musllinux_*", # not sure there's a good reason for this anymore ?
     "cp314t-*",
 ]
 test-groups = ["dev"]
