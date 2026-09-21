@@ -833,6 +833,26 @@ def test_omm_csv_matches_old_tle():
 
     assert_satellites_match(sat1, sat2)
 
+def test_omm_xml_with_empty_object_id():
+    # CelesTrak writes <OBJECT_ID></OBJECT_ID> for analyst objects, which have
+    # no international designator; ElementTree returns None for the empty
+    # element, and initialize() used to raise TypeError on it.
+    xml = MARIO_XML.replace('<OBJECT_ID>1998-067UQ</OBJECT_ID>',
+                            '<OBJECT_ID></OBJECT_ID>')
+    fields = next(omm.parse_xml(StringIO(xml)))
+    assertEqual(fields['OBJECT_ID'], '')
+    sat = Satrec()
+    omm.initialize(sat, fields)
+    assertEqual(sat.intldesg, '')
+
+def test_omm_unknown_object_id():
+    # CCSDS 502.0-B-3 Table 4-2: an unknown OBJECT_ID "should be set to UNKNOWN".
+    fields = dict(next(omm.parse_csv(StringIO(MARIO_CSV))))
+    fields['OBJECT_ID'] = 'UNKNOWN'
+    sat = Satrec()
+    omm.initialize(sat, fields)
+    assertEqual(sat.intldesg, '')
+
 def assert_satellites_match(sat1, sat2):
     for attr in dir(sat1):
         if attr.startswith('_'):
