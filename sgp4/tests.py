@@ -133,6 +133,50 @@ def test_whether_array_logic_writes_nan_values_to_correct_row():
     assert np.isnan(r).tolist() == [[False, False, False], [True, True, True]]
     assert np.isnan(v).tolist() == [[False, False, False], [True, True, True]]
 
+def test_satrec_array_logic_accepts_empty_arrays():
+    skip_under_python2()
+
+    import numpy as np
+
+    sat = Satrec.twoline2rv(LINE1, LINE2)
+    jd = np.array([])
+    fr = np.array([])
+    e, r, v = sat.sgp4_array(jd, fr)
+    assert e.dtype == np.uint8
+    assert r.dtype == np.float64
+    assert v.dtype == np.float64
+    assert e.shape == (0,)
+    assert r.shape == (0, 3)
+    assert v.shape == (0, 3)
+
+def test_satrecarray_logic_accepts_empty_arrays():
+    skip_under_python2()
+
+    import numpy as np
+
+    sat = Satrec.twoline2rv(LINE1, LINE2)
+    sat_array = api.SatrecArray([sat])
+    jd = np.array([])
+    fr = np.array([])
+    e, r, v = sat_array.sgp4(jd, fr)
+    assert e.dtype == np.uint8
+    assert r.dtype == np.float64
+    assert v.dtype == np.float64
+    assert e.shape == (1, 0)
+    assert r.shape == (1, 0, 3)
+    assert v.shape == (1, 0, 3)
+
+def test_array_logic_rejects_arrays_of_different_lengths():
+    skip_under_python2()
+
+    import numpy as np
+
+    sat = Satrec.twoline2rv(LINE1, LINE2)
+    jd = np.array([2458827.5])
+    fr = np.array([])
+    assertRaises(ValueError, sat.sgp4_array, jd, fr)
+    assertRaises(ValueError, api.SatrecArray([sat]).sgp4, jd, fr)
+
 # ------------------------------------------------------------------------
 #                 Other Officially Supported Routines
 #
