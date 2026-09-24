@@ -18,7 +18,7 @@ def parse_xml(file):
         tleParameters = data.find('tleParameters')
         fields = {}
         for element in metadata, meanElements, tleParameters:
-            fields.update((field.tag, field.text) for field in element)
+            fields.update((field.tag, field.text or '') for field in element)
         yield fields
 
 _epoch0 = datetime(1949, 12, 31)
@@ -28,7 +28,13 @@ _nddot_units = 2985984000.0 / 2.0 / pi  # See SGP4.cpp for details.
 
 def initialize(sat, fields, gravconst=WGS72):
     sat.classification = fields['CLASSIFICATION_TYPE']
-    sat.intldesg = fields['OBJECT_ID'][2:].replace('-', '')
+    object_id = fields.get('OBJECT_ID', '')
+    # Analyst objects have no international designator: CelesTrak writes an
+    # empty OBJECT_ID; CCSDS 502.0-B-3 permits the literal UNKNOWN.
+    if object_id[4:5] == '-':
+        sat.intldesg = object_id[2:].replace('-', '')
+    else:
+        sat.intldesg = ''
     sat.ephtype = int(fields['EPHEMERIS_TYPE'])
     sat.elnum = int(fields['ELEMENT_SET_NO'])
     sat.revnum = int(fields['REV_AT_EPOCH'])
