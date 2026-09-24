@@ -1,5 +1,0 @@
-
-After doing a release, I should also publish a source wheel:
-
-PYTHON_SGP4_COMPILE=never PYTHONDONTWRITEBYTECODE= uv build
-uv publish dist/...

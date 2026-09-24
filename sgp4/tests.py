@@ -877,6 +877,40 @@ def test_omm_uses_gravconst_parameter():
     assertEqual(sat1.mu, 398600.8)
     assertEqual(sat2.mu, 398600.5)
 
+def test_omm_supports_satnum_beyond_alpha5_range():
+    if api.accelerated:
+        raise SkipTest('omm.initialize() passes satnum as str, which the'
+                       ' accelerated Satrec.sgp4init() does not accept')
+    # https://github.com/brandon-rhodes/python-sgp4/issues/169
+    # The Alpha-5 encoding used by TLEs caps NORAD_CAT_ID at 339999.
+    # OMM is a modern format (CCSDS 502.0) and can carry larger integers,
+    # so the OMM init path must accept them without raising.
+    MARIO_LARGE_CSV = """\
+OBJECT_NAME,OBJECT_ID,EPOCH,MEAN_MOTION,ECCENTRICITY,INCLINATION,RA_OF_ASC_NODE,ARG_OF_PERICENTER,MEAN_ANOMALY,EPHEMERIS_TYPE,CLASSIFICATION_TYPE,NORAD_CAT_ID,ELEMENT_SET_NO,REV_AT_EPOCH,BSTAR,MEAN_MOTION_DOT,MEAN_MOTION_DDOT
+MARIO,1998-067UQ,2023-04-25T10:45:30.642912,15.99081912,.0014649,51.6242,216.2930,331.8976,28.1241,0,U,999999,999,1839,.1568E-2,.787702E-2,.29408E-3
+"""
+    fields = next(omm.parse_csv(StringIO(MARIO_LARGE_CSV)))
+    sat = Satrec()
+    omm.initialize(sat, fields)
+    assertEqual(sat.satnum, 999999)
+    # The raw integer is stored verbatim in satnum_str; from_alpha5()
+    # decodes any digit-led string as int(s), so the round-trip works.
+    assertEqual(sat.satnum_str, '999999')
+
+def test_omm_satnum_at_alpha5_boundary():
+    if api.accelerated:
+        raise SkipTest('omm.initialize() passes satnum as str, which the'
+                       ' accelerated Satrec.sgp4init() does not accept')
+    # 339999 is the last value that fits in Alpha-5 ('Z9999'). It must
+    # still work through the OMM path, both with the legacy integer-form
+    # representation that to_alpha5() would produce and as a raw int.
+    for norad_id in (339999, 340000):
+        csv = MARIO_CSV.replace('55123', str(norad_id))
+        fields = next(omm.parse_csv(StringIO(csv)))
+        sat = Satrec()
+        omm.initialize(sat, fields)
+        assertEqual(sat.satnum, norad_id)
+
 # Live example of OMM:
 # https://celestrak.com/NORAD/elements/gp.php?INTDES=2020-025&FORMAT=JSON-PRETTY
 
