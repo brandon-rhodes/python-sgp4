@@ -64,14 +64,6 @@ VANGUARD_ATTRS = {
 }
 VANGUARD_EPOCH = 18441.78495062
 
-# Handle deprecated assertRaisesRegexp, but allow its use Python 2.6 and 2.7
-if sys.version_info[:2] == (2, 7) or sys.version_info[:2] == (2, 6):
-    TestCase.assertRaisesRegex = TestCase.assertRaisesRegexp
-
-def skip_under_python2():
-    if sys.version_info[0] < 3:
-        raise SkipTest('feature not supported under Python 2')
-
 # ------------------------------------------------------------------------
 #                           Core Attributes
 #
@@ -118,8 +110,6 @@ def test_legacy_initialized_with_sgp4init():
 #                            Test array API
 
 def test_whether_array_logic_writes_nan_values_to_correct_row():
-    skip_under_python2()
-
     import numpy as np
 
     # https://github.com/brandon-rhodes/python-sgp4/issues/87

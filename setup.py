@@ -18,6 +18,13 @@ import sysconfig
 from distutils.ccompiler import get_default_compiler
 from distutils.core import setup, Extension
 
+if sys.version_info[0] == 2:
+    message = (
+        'alas, this newer version of "sgp4" no longer supports Python 2,'
+        ' but you can install "sgp4==2.27" instead'
+    )
+    raise RuntimeError(message)
+
 PYTHON_SGP4_COMPILE = os.environ.get('PYTHON_SGP4_COMPILE', '')
 
 USE_PY_LIMITED_API = (
@@ -35,7 +42,7 @@ define_macros = []
 if USE_PY_LIMITED_API:
     define_macros.append(("Py_LIMITED_API", ABI3_TARGET_HEX))
 
-if sys.version_info[0] == 3 and PYTHON_SGP4_COMPILE != 'never':
+if PYTHON_SGP4_COMPILE != 'never':
 
     if PYTHON_SGP4_COMPILE == 'always':
         optional = False
@@ -64,33 +71,16 @@ if sys.version_info[0] == 3 and PYTHON_SGP4_COMPILE != 'never':
     ))
 
 # Read the package's docstring and "__version__" without importing it.
+
 path = 'sgp4/__init__.py'
 with open(path, 'rb') as f:
     text = f.read().decode('utf-8')
-text = text.replace('-*- coding: utf-8 -*-', '')  # for Python 2.7
 
 namespace = {}
 eval(compile(text, path, 'exec'), namespace)
 
 version = namespace['__version__']
-description, long_description = namespace['__doc__'].split('\n', 1)
-
-# Avoid "`long_description` has syntax errors in markup" from extra
-# whitespace that somehow creeps in.
-description = description.strip()
-long_description = long_description.strip() + '\n'
-
-if sys.version_info[0] == 2:
-    # keep in sync with the [project] table from pyproject.toml
-    setup_kwargs = {
-        "name": "sgp4",
-        "long_description": long_description,
-        "long_description_content_type": 'text/markdown',
-        "license": 'MIT',
-    }
-else:
-    # equivalent metadata lives in pyproject.toml
-    setup_kwargs = {}
+description = namespace['__doc__'].split('\n', 1)[0].strip()
 
 setup(
     version = version,
@@ -101,8 +91,6 @@ setup(
     classifiers = [
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Science/Research',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
@@ -118,5 +106,4 @@ setup(
     options={
         "bdist_wheel": {"py_limited_api": "cp%s" % ABI3_TARGET_VERSION}
     } if USE_PY_LIMITED_API else {},
-    **setup_kwargs,
 )

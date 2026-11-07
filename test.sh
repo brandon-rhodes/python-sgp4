@@ -6,15 +6,6 @@
 set -e
 export PYTHONDONTWRITEBYTECODE=dont
 
-# Python 2.
-
-(
-    set -e
-    python2.7 setup.py install --prefix ci/legacy
-    cd ci
-    PYTHONPATH=legacy/lib/python2.7/site-packages python2.7 -m sgp4.tests
-)
-
 # Python 3, using pure-Python SGP4 implementation.
 
 PYTHON_SGP4_COMPILE=never uv run \
