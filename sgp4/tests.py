@@ -6,8 +6,10 @@ except ImportError:
     from unittest import TestCase, SkipTest, main
 
 import datetime as dt
+import os
 import re
 import sys
+import textwrap
 from math import pi, isnan
 from pkgutil import get_data
 
@@ -34,6 +36,40 @@ try:
     assertRaisesRegex = _testcase.assertRaisesRegex
 except AttributeError:
     assertRaisesRegex = _testcase.assertRaisesRegexp
+
+# If we are being run from inside "uv run" in the "./test.sh" script,
+# then confirm that the C++ extension is present when, and only when, it
+# should be; otherwise, there has been a malfunction, and we will either
+# wind up testing the pure Python code twice, or the C++ code twice,
+# instead of testing them once each.
+
+if 'PYTHON_SGP4_COMPILE' in os.environ:
+    print()
+    if os.environ['PYTHON_SGP4_COMPILE'] == 'never':
+        if api.accelerated:
+            raise RuntimeError(
+                'Alas! You set PYTHON_SGP4_COMPILE=never but the C++'
+                ' extension is somehow present. Aborting tests.'
+            )
+        else:
+            print(textwrap.fill(
+                'Sanity check successful: PYTHON_SGP4_COMPILE=never'
+                ' and we are indeed about to test the pure Python code,'
+                ' not the compiled C++ extension. Proceeding!'
+            ))
+    elif os.environ['PYTHON_SGP4_COMPILE'] == 'always':
+        if api.accelerated:
+            print(textwrap.fill(
+                'Sanity check successful: PYTHON_SGP4_COMPILE=always'
+                ' and we are indeed about to test the compiled C++'
+                ' extension, not the pure Python code; proceeding!'
+            ))
+        else:
+            raise RuntimeError(
+                'Alas! You set PYTHON_SGP4_COMPILE=always but the C++'
+                ' extension is absent. Aborting tests.'
+            )
+    print()
 
 error = 2e-7
 rad = 180.0 / pi

@@ -27,3 +27,8 @@ test-groups = ["dev"]
 test-command = [
     "python -m unittest sgp4.tests",
 ]
+
+[tool.uv]
+cache-keys = [
+    { env = "PYTHON_SGP4_COMPILE" }
+]
