@@ -125,23 +125,21 @@ class Satrec(object):
         * ``v``: velocity vectors in kilometers per second.
 
         """
-        # Import NumPy the first time sgp4_array() is called.
-        array = self.array
-        if array is None:
-            from numpy import array
-            Satrec.array = array
+        if len(jd) != len(fr):
+            raise ValueError('jd and fr must have the same length')
 
-        results = []
-        z = list(zip(jd, fr))
-        for jd_i, fr_i in z:
-            results.append(self.sgp4(jd_i, fr_i))
-        elist, rlist, vlist = zip(*results)
+        # Import NumPy lazily.
+        from numpy import zeros
 
-        e = array(elist)
-        r = array(rlist)
-        v = array(vlist)
+        jdlen = len(jd)
+        e = zeros(jdlen, 'uint8')
+        r = zeros((jdlen, 3), 'float64')
+        v = zeros((jdlen, 3), 'float64')
 
-        r.shape = v.shape = len(jd), 3
+        z = zip(jd, fr)
+        for i, (jd_i, fr_i) in enumerate(z):
+            e[i], r[i], v[i] = self.sgp4(jd_i, fr_i)
+
         return e, r, v
 
 class SatrecArray(object):
@@ -171,21 +169,21 @@ class SatrecArray(object):
         * ``v``: (dx,dy,dz) velocity vector in kilometers per second.
 
         """
-        results = []
-        z = list(zip(jd, fr))
-        for satrec in self._satrecs:
-            for jd_i, fr_i in z:
-                results.append(satrec.sgp4(jd_i, fr_i))
-        elist, rlist, vlist = zip(*results)
+        if len(jd) != len(fr):
+            raise ValueError('jd and fr must have the same length')
 
-        e = self.array(elist)
-        r = self.array(rlist)
-        v = self.array(vlist)
+        from numpy import zeros
 
         jdlen = len(jd)
         mylen = len(self._satrecs)
-        e.shape = (mylen, jdlen)
-        r.shape = v.shape = (mylen, jdlen, 3)
+        e = zeros((mylen, jdlen), 'uint8')
+        r = zeros((mylen, jdlen, 3), 'float64')
+        v = zeros((mylen, jdlen, 3), 'float64')
+
+        z = list(zip(jd, fr))
+        for i, satrec in enumerate(self._satrecs):
+            for j, (jd_i, fr_i) in enumerate(z):
+                e[i, j], r[i, j], v[i, j] = satrec.sgp4(jd_i, fr_i)
 
         return e, r, v
 
