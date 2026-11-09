@@ -156,8 +156,18 @@ def test_whether_array_logic_writes_nan_values_to_correct_row():
     jd1 = np.array([0.79712247, 0.79712247])
     e, r, v = sat.sgp4_array(jd0, jd1)
     assert list(e) == [6, 1]
-    assert np.isnan(r).tolist() == [[False, False, False], [True, True, True]]
-    assert np.isnan(v).tolist() == [[False, False, False], [True, True, True]]
+    assertEqual(
+        array_str(r),
+        '[[ 2373.4 -2783.6 -2862.3] [ nan nan nan]]',
+    )
+    assertEqual(
+        array_str(v),
+        '[[ 2.9 -5. 7.2] [ nan nan nan]]',
+    )
+
+def array_str(a):
+    import numpy as np
+    return ' '.join(np.array_str(a, precision=1).split())
 
 # ------------------------------------------------------------------------
 #                 Other Officially Supported Routines
