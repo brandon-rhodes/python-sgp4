@@ -145,6 +145,24 @@ def test_legacy_initialized_with_sgp4init():
 # ------------------------------------------------------------------------
 #                            Test array API
 
+def test_array_api_accepts_noncontiguous_times():
+    skip_under_python2()
+    import numpy as np
+    from sgp4.api import SatrecArray
+
+    sat = Satrec.twoline2rv(LINE1, LINE2)
+    jd = np.full(8, sat.jdsatepoch)
+    fr = np.linspace(0.0, 1.0, 8)
+    for dates, fractions in [(jd[::2], fr[:4]), (jd[:4], fr[::-2]),
+                             (jd[::2], fr[::2])]:
+        expected = [sat.sgp4(j, f) for j, f in zip(dates, fractions)]
+        e, r, v = sat.sgp4_array(dates, fractions)
+        for actual, reference in zip((e, r, v), zip(*expected)):
+            np.testing.assert_array_equal(actual, reference)
+        e, r, v = SatrecArray([sat]).sgp4(dates, fractions)
+        for actual, reference in zip((e[0], r[0], v[0]), zip(*expected)):
+            np.testing.assert_array_equal(actual, reference)
+
 def test_whether_array_logic_writes_nan_values_to_correct_row():
     import numpy as np
 

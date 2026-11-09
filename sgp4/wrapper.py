@@ -17,8 +17,9 @@ class Satrec(vallado_cpp.Satrec):
         * ``v``: velocity vectors in kilometers per second.
 
         """
-        jd = jd.astype('float64', copy=False)
-        fr = fr.astype('float64', copy=False)
+        from numpy import ascontiguousarray
+        jd = ascontiguousarray(jd, dtype='float64')
+        fr = ascontiguousarray(fr, dtype='float64')
 
         eshape = jd.shape
         fshape = eshape[0], 3
@@ -51,8 +52,9 @@ class SatrecArray(vallado_cpp.SatrecArray):
         the input date arrays, and the third dimension has length 3.
 
         """
-        jd = jd.astype('float64', copy=False)
-        fr = fr.astype('float64', copy=False)
+        from numpy import ascontiguousarray
+        jd = ascontiguousarray(jd, dtype='float64')
+        fr = ascontiguousarray(fr, dtype='float64')
 
         ilength = len(self)
         jlength, = jd.shape
