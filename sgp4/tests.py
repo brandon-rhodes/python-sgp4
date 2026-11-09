@@ -879,6 +879,16 @@ def test_omm_unknown_object_id():
     omm.initialize(sat, fields)
     assertEqual(sat.intldesg, '')
 
+def test_omm_preserves_classification():
+    for classification in 'UCS':
+        fields = dict(next(omm.parse_csv(StringIO(MARIO_CSV))))
+        fields['CLASSIFICATION_TYPE'] = classification
+        sat = Satrec()
+        omm.initialize(sat, fields)
+        assertEqual(sat.classification, classification)
+        assertEqual(export_omm(sat, 'MARIO')['CLASSIFICATION_TYPE'], classification)
+        assertEqual(export_tle(sat)[0][7], classification)
+
 def assert_satellites_match(sat1, sat2):
     for attr in dir(sat1):
         if attr.startswith('_'):

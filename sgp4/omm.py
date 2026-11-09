@@ -27,7 +27,6 @@ _ndot_units = 1036800.0 / pi  # See SGP4.cpp for details.
 _nddot_units = 2985984000.0 / 2.0 / pi  # See SGP4.cpp for details.
 
 def initialize(sat, fields, gravconst=WGS72):
-    sat.classification = fields['CLASSIFICATION_TYPE']
     object_id = fields.get('OBJECT_ID', '')
     # Analyst objects have no international designator: CelesTrak writes an
     # empty OBJECT_ID; CCSDS 502.0-B-3 permits the literal UNKNOWN.
@@ -55,3 +54,4 @@ def initialize(sat, fields, gravconst=WGS72):
 
     sat.sgp4init(gravconst, 'i', satnum, epoch, bstar, ndot, nddot, ecco,
                  argpo, inclo, mo, no_kozai, nodeo)
+    sat.classification = fields['CLASSIFICATION_TYPE']
