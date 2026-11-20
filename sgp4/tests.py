@@ -407,6 +407,7 @@ def test_satnum_alpha5_encoding():
     for satnum, satnum_string in cases:
         sat.sgp4init(WGS72, 'i', satnum, VANGUARD_EPOCH, *args)
         assertEqual(sat.satnum, satnum)
+        assertEqual(sat.satnum_str, satnum_string)
 
 def test_satnum_that_is_too_large():
     sat = Satrec()

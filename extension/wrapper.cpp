@@ -201,8 +201,8 @@ Satrec_sgp4init(PyObject *self, PyObject *args)
         return 0;
     } else {
         char c = 'A' + satnum / 10000 - 10;
-        if (c > 'I') c++;
-        if (c > 'O') c++;
+        if (c >= 'I') c++;
+        if (c >= 'O') c++;
         satnum_str[0] = c;
         snprintf(satnum_str + 1, 5, "%04ld", satnum % 10000);
     }
