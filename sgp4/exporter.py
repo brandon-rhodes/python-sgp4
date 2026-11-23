@@ -104,9 +104,15 @@ def _abbreviate_rate(value, zero_exponent_string):
     )
 
 def export_omm(satrec, object_name):
-    launch_year = int(satrec.intldesg[:2])
-    launch_year += 1900 + (launch_year < 57) * 100
-    object_id = '{0}-{1}'.format(launch_year, satrec.intldesg[2:])
+    # Empty or malformed intldesg (analyst objects, UNKNOWN OBJECT_ID)
+    # should not prevent export.
+    try:
+        launch_year = int(satrec.intldesg[:2])
+    except (TypeError, ValueError, AttributeError):
+        object_id = ''
+    else:
+        launch_year += 1900 + (launch_year < 57) * 100
+        object_id = '{0}-{1}'.format(launch_year, satrec.intldesg[2:])
 
     return {
         "OBJECT_NAME": object_name,
