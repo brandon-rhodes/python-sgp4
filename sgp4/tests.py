@@ -880,6 +880,25 @@ def test_omm_xml_with_empty_object_id():
     sat = Satrec()
     omm.initialize(sat, fields)
     assertEqual(sat.intldesg, '')
+    assertEqual(export_omm(sat, 'MARIO')['OBJECT_ID'], '')
+
+def test_export_omm_empty_and_normal_object_id():
+    # initialize() accepts an empty OBJECT_ID; export_omm() used to raise
+    # ValueError on the resulting empty intldesg (GitHub issue #168).
+    fields = dict(next(omm.parse_csv(StringIO(MARIO_CSV))))
+    fields['OBJECT_ID'] = ''
+    sat = Satrec()
+    omm.initialize(sat, fields)
+    assertEqual(export_omm(sat, 'MARIO')['OBJECT_ID'], '')
+
+    fields['OBJECT_ID'] = '1998-067UQ'
+    sat = Satrec()
+    omm.initialize(sat, fields)
+    assertEqual(export_omm(sat, 'MARIO')['OBJECT_ID'], '1998-067UQ')
+
+    # Malformed metadata should not stop export either.
+    sat.intldesg = 'abcdefg'
+    assertEqual(export_omm(sat, 'MARIO')['OBJECT_ID'], '')
 
 def test_omm_unknown_object_id():
     # CCSDS 502.0-B-3 Table 4-2: an unknown OBJECT_ID "should be set to UNKNOWN".
